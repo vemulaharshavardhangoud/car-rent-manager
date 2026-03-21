@@ -76,13 +76,9 @@ export const AppProvider = ({ children }) => {
         setIsSyncing(true);
         setSyncError(null);
         
-        try {
-            // Quick check for settings first
-            const settingsPromise = firestore.getSettingsFromFirestore();
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Sync Timeout')), 5000));
-            
-            await Promise.race([settingsPromise, timeoutPromise]);
-            
+        // 1. Setup real-time listeners (Independent of initial fetch)
+        const setupListeners = () => {
+          try {
             unsubVehicles = firestore.listenToVehicles((data) => {
               setVehicles(data);
               localStorage.setItem('crm_vehicles', JSON.stringify(data));
@@ -109,9 +105,28 @@ export const AppProvider = ({ children }) => {
               }
               setLastSyncedAt(new Date());
             });
+          } catch (err) {
+            console.warn("Listeners failed:", err);
+          }
+        };
+
+        setupListeners();
+        
+        // 2. Initial fetch with timeout
+        try {
+            const settingsPromise = firestore.getSettingsFromFirestore();
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Initial Sync Timeout')), 3000));
+            
+            const remoteSettings = await Promise.race([settingsPromise, timeoutPromise]);
+            if (remoteSettings) {
+                localStorage.setItem('crm_admin_password', remoteSettings.adminPassword);
+                localStorage.setItem('crm_protected_actions', JSON.stringify(remoteSettings.protectedActions));
+                localStorage.setItem('crm_session_duration', remoteSettings.sessionDuration.toString());
+            }
         } catch (err) {
-            console.warn("Sync failed:", err);
-            setSyncError(err.message);
+            console.warn("Initial settings fetch failed or timed out:", err);
+            // We don't set syncError here unless we want to warn the user about it specifically
+            // The listeners are already running, so they will eventually sync anyway
         } finally {
             setIsSyncing(false);
         }
