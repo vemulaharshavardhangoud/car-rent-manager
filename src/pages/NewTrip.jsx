@@ -267,7 +267,7 @@ const NewTrip = () => {
               </div>
               <div>
                 <label className={labelClass}>Start Time</label>
-                <input type="time" name="startTime" value={form.startTime} onChange={handleChange} className={inputClass('startTime')} />
+                <input type="text" name="startTime" value={form.startTime} onChange={handleChange} placeholder="e.g. 10:30 AM" className={inputClass('startTime')} />
               </div>
 
               <div>
@@ -277,7 +277,7 @@ const NewTrip = () => {
               </div>
               <div>
                 <label className={labelClass}>End Time *</label>
-                <input type="time" name="endTime" value={form.endTime} onChange={handleChange} className={inputClass('endTime')} />
+                <input type="text" name="endTime" value={form.endTime} onChange={handleChange} placeholder="e.g. 11:45 PM" className={inputClass('endTime')} />
                 {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
               </div>
               
