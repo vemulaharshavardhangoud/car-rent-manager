@@ -33,16 +33,14 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// ⬇️ PASTE YOUR FIREBASE CONFIG HERE ⬇️
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCJoT3LlFx80qOrqbgxfxa8jswNM5Gw1UI",
+  authDomain: "carrent-manager.firebaseapp.com",
+  projectId: "carrent-manager",
+  storageBucket: "carrent-manager.firebasestorage.app",
+  messagingSenderId: "534659277770",
+  appId: "1:534659277770:web:630b1b4d1965cb5856e533"
 };
-// ⬆️ PASTE YOUR FIREBASE CONFIG HERE ⬆️
 
 // Check if config has been filled in
 const isConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY";
