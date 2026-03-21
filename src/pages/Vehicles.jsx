@@ -228,6 +228,10 @@ const Vehicles = () => {
     setShowCancelSection(false);
   };
 
+  const confirmDelete = (id, name) => {
+    setDeleteDialog({ isOpen: true, id, name });
+  };
+
   const handleDelete = () => {
     deleteVehicle(deleteDialog.id);
     if (editingId === deleteDialog.id) cancelEdit();
