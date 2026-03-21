@@ -15,6 +15,7 @@ export const AppProvider = ({ children }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const [syncError, setSyncError] = useState(null);
 
   // Admin Session State
   const [adminSession, setAdminSession] = useState({
@@ -70,48 +71,53 @@ export const AppProvider = ({ children }) => {
       }
     };
 
-    initSettings();
-
-    // Listeners with error handling
-    setIsSyncing(true);
-    let unsubVehicles = () => {};
-    let unsubTrips = () => {};
-    let unsubBookings = () => {};
-    let unsubSettings = () => {};
-
-    try {
-      unsubVehicles = firestore.listenToVehicles((data) => {
-        setVehicles(data);
-        localStorage.setItem('crm_vehicles', JSON.stringify(data));
-        setLastSyncedAt(new Date());
-      });
-      
-      unsubTrips = firestore.listenToTrips((data) => {
-        setAllTrips(data);
-        localStorage.setItem('crm_all_trips', JSON.stringify(data));
-        setLastSyncedAt(new Date());
-      });
-      
-      unsubBookings = firestore.listenToBookings((data) => {
-        setBookings(data);
-        localStorage.setItem('crm_bookings', JSON.stringify(data));
-        setLastSyncedAt(new Date());
-      });
-      
-      unsubSettings = firestore.listenToSettings((data) => {
-        if (data) {
-          localStorage.setItem('crm_admin_password', data.adminPassword);
-          localStorage.setItem('crm_protected_actions', JSON.stringify(data.protectedActions));
-          localStorage.setItem('crm_session_duration', data.sessionDuration.toString());
+    // Listeners with error handling and timeout
+    const startSync = async () => {
+        setIsSyncing(true);
+        setSyncError(null);
+        
+        try {
+            // Quick check for settings first
+            const settingsPromise = firestore.getSettingsFromFirestore();
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Sync Timeout')), 5000));
+            
+            await Promise.race([settingsPromise, timeoutPromise]);
+            
+            unsubVehicles = firestore.listenToVehicles((data) => {
+              setVehicles(data);
+              localStorage.setItem('crm_vehicles', JSON.stringify(data));
+              setLastSyncedAt(new Date());
+            });
+            
+            unsubTrips = firestore.listenToTrips((data) => {
+              setAllTrips(data);
+              localStorage.setItem('crm_all_trips', JSON.stringify(data));
+              setLastSyncedAt(new Date());
+            });
+            
+            unsubBookings = firestore.listenToBookings((data) => {
+              setBookings(data);
+              localStorage.setItem('crm_bookings', JSON.stringify(data));
+              setLastSyncedAt(new Date());
+            });
+            
+            unsubSettings = firestore.listenToSettings((data) => {
+              if (data) {
+                localStorage.setItem('crm_admin_password', data.adminPassword);
+                localStorage.setItem('crm_protected_actions', JSON.stringify(data.protectedActions));
+                localStorage.setItem('crm_session_duration', data.sessionDuration.toString());
+              }
+              setLastSyncedAt(new Date());
+            });
+        } catch (err) {
+            console.warn("Sync failed:", err);
+            setSyncError(err.message);
+        } finally {
+            setIsSyncing(false);
         }
-        setLastSyncedAt(new Date());
-      });
-    } catch (err) {
-      console.warn("Firestore listeners failed to initialize:", err);
-      showToast("Sync unavailable: Check Firebase config", "warning");
-    }
+    };
 
-    setIsSyncing(false);
+    startSync();
 
     // Online Status
     const handleOnline = () => setIsOnline(true);
@@ -387,7 +393,8 @@ export const AppProvider = ({ children }) => {
         endAdminSession,
         isSyncing,
         isOnline,
-        lastSyncedAt
+        lastSyncedAt,
+        syncError
       }}
     >
       {children}

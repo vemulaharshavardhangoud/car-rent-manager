@@ -51,14 +51,24 @@ const Header = ({ setSidebarOpen }) => {
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
           {isOnline ? (
             <>
-              {isSyncing ? (
-                <RefreshCw className="w-3.5 h-3.5 text-blue-500 animate-spin" />
+              {syncError ? (
+                <>
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-[10px] font-bold text-amber-600 uppercase tracking-tight">Sync Error</span>
+                </>
+              ) : isSyncing ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 text-blue-500 animate-spin" />
+                  <span className="text-[10px] font-bold text-blue-500 uppercase tracking-tight">Syncing...</span>
+                </>
               ) : (
-                <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                <>
+                  <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">
+                    Synced {getTimeAgo(lastSyncedAt)}
+                  </span>
+                </>
               )}
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">
-                {isSyncing ? 'Syncing...' : `Synced ${getTimeAgo(lastSyncedAt)}`}
-              </span>
             </>
           ) : (
             <>
