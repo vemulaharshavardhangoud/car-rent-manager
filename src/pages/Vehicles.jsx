@@ -74,8 +74,9 @@ const Vehicles = () => {
     if (form.notes && form.notes.length > 200) newErrors.notes = 'Notes max 200 chars.';
 
     // Booking validations
+    const today = getToday();
     if (!form.bookingStartDate) newErrors.bookingStartDate = 'Required';
-    else if (form.bookingStartDate < getToday()) newErrors.bookingStartDate = 'Cannot be past date';
+    else if (form.bookingStartDate < today) newErrors.bookingStartDate = 'Cannot be past date';
 
     if (!form.bookingEndDate) newErrors.bookingEndDate = 'Required';
     else if (form.bookingEndDate < form.bookingStartDate) newErrors.bookingEndDate = 'End date cannot be before start date';
