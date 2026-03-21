@@ -37,109 +37,95 @@ export const AppProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    // Load local data immediately (instant UI on startup)
     loadAllData();
-    
-    // Global Settings Initialization
-    const initSettings = async () => {
-      const remoteSettings = await firestore.getSettingsFromFirestore();
-      if (remoteSettings) {
-        localStorage.setItem('crm_admin_password', remoteSettings.adminPassword);
-        localStorage.setItem('crm_protected_actions', JSON.stringify(remoteSettings.protectedActions));
-        localStorage.setItem('crm_session_duration', remoteSettings.sessionDuration.toString());
-      } else {
-        // Fallback or Initial Setup
-        if (!localStorage.getItem('crm_admin_password')) {
-          localStorage.setItem('crm_admin_password', btoa('admin123'));
-        }
-        if (!localStorage.getItem('crm_protected_actions')) {
-          const defaultToggles = {
-            deleteVehicle: true, deleteTrip: true, deleteBooking: true,
-            cancelBooking: true, editVehicle: true, editTrip: false,
-            editBooking: true, clearData: true
-          };
-          localStorage.setItem('crm_protected_actions', JSON.stringify(defaultToggles));
-        }
-        if (!localStorage.getItem('crm_session_duration')) {
-          localStorage.setItem('crm_session_duration', '5');
-        }
-        // Save defaults to firestore
-        firestore.saveSettingsToFirestore({
-          adminPassword: localStorage.getItem('crm_admin_password'),
-          protectedActions: JSON.parse(localStorage.getItem('crm_protected_actions')),
-          sessionDuration: localStorage.getItem('crm_session_duration')
-        });
-      }
-    };
 
-    // Listeners with error handling and timeout
+    // Initialize default settings in localStorage if not set
+    if (!localStorage.getItem('crm_admin_password')) {
+      localStorage.setItem('crm_admin_password', btoa('admin123'));
+    }
+    if (!localStorage.getItem('crm_protected_actions')) {
+      localStorage.setItem('crm_protected_actions', JSON.stringify({
+        deleteVehicle: true, deleteTrip: true, deleteBooking: true,
+        cancelBooking: true, editVehicle: true, editTrip: false,
+        editBooking: true, clearData: true
+      }));
+    }
+    if (!localStorage.getItem('crm_session_duration')) {
+      localStorage.setItem('crm_session_duration', '5');
+    }
+
+    // Declare unsub refs at effect scope so cleanup can access them
+    let unsubVehicles = () => {};
+    let unsubTrips = () => {};
+    let unsubBookings = () => {};
+    let unsubSettings = () => {};
+
     const startSync = async () => {
-        setIsSyncing(true);
-        setSyncError(null);
-        
-        // 1. Setup real-time listeners (Independent of initial fetch)
-        const setupListeners = () => {
-          try {
-            unsubVehicles = firestore.listenToVehicles((data) => {
-              setVehicles(data);
-              localStorage.setItem('crm_vehicles', JSON.stringify(data));
-              setLastSyncedAt(new Date());
-            });
-            
-            unsubTrips = firestore.listenToTrips((data) => {
-              setAllTrips(data);
-              localStorage.setItem('crm_all_trips', JSON.stringify(data));
-              setLastSyncedAt(new Date());
-            });
-            
-            unsubBookings = firestore.listenToBookings((data) => {
-              setBookings(data);
-              localStorage.setItem('crm_bookings', JSON.stringify(data));
-              setLastSyncedAt(new Date());
-            });
-            
-            unsubSettings = firestore.listenToSettings((data) => {
-              if (data) {
-                localStorage.setItem('crm_admin_password', data.adminPassword);
-                localStorage.setItem('crm_protected_actions', JSON.stringify(data.protectedActions));
-                localStorage.setItem('crm_session_duration', data.sessionDuration.toString());
-              }
-              setLastSyncedAt(new Date());
-            });
-          } catch (err) {
-            console.warn("Listeners failed:", err);
-          }
-        };
+      setIsSyncing(true);
+      setSyncError(null);
 
-        setupListeners();
-        
-        // 2. Initial fetch with timeout
-        try {
-            const settingsPromise = firestore.getSettingsFromFirestore();
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Initial Sync Timeout')), 3000));
-            
-            const remoteSettings = await Promise.race([settingsPromise, timeoutPromise]);
-            if (remoteSettings) {
-                localStorage.setItem('crm_admin_password', remoteSettings.adminPassword);
-                localStorage.setItem('crm_protected_actions', JSON.stringify(remoteSettings.protectedActions));
-                localStorage.setItem('crm_session_duration', remoteSettings.sessionDuration.toString());
-            }
-        } catch (err) {
-            console.warn("Initial settings fetch failed or timed out:", err);
-            // We don't set syncError here unless we want to warn the user about it specifically
-            // The listeners are already running, so they will eventually sync anyway
-        } finally {
-            setIsSyncing(false);
+      // 1. Setup real-time Firestore listeners
+      try {
+        unsubVehicles = firestore.listenToVehicles((data) => {
+          setVehicles(data);
+          localStorage.setItem('crm_vehicles', JSON.stringify(data));
+          setLastSyncedAt(new Date());
+        });
+
+        unsubTrips = firestore.listenToTrips((data) => {
+          setAllTrips(data);
+          localStorage.setItem('crm_all_trips', JSON.stringify(data));
+          setLastSyncedAt(new Date());
+        });
+
+        unsubBookings = firestore.listenToBookings((data) => {
+          setBookings(data);
+          localStorage.setItem('crm_bookings', JSON.stringify(data));
+          setLastSyncedAt(new Date());
+        });
+
+        unsubSettings = firestore.listenToSettings((data) => {
+          if (data) {
+            localStorage.setItem('crm_admin_password', data.adminPassword);
+            localStorage.setItem('crm_protected_actions', JSON.stringify(data.protectedActions));
+            localStorage.setItem('crm_session_duration', data.sessionDuration.toString());
+          }
+          setLastSyncedAt(new Date());
+        });
+      } catch (err) {
+        console.warn("Firestore listeners could not start:", err);
+        setSyncError(err.message);
+      }
+
+      // 2. Pull initial settings with a 5-second timeout
+      try {
+        const settingsPromise = firestore.getSettingsFromFirestore();
+        const timeout = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Sync Timeout')), 5000)
+        );
+        const remoteSettings = await Promise.race([settingsPromise, timeout]);
+        if (remoteSettings) {
+          localStorage.setItem('crm_admin_password', remoteSettings.adminPassword);
+          localStorage.setItem('crm_protected_actions', JSON.stringify(remoteSettings.protectedActions));
+          localStorage.setItem('crm_session_duration', remoteSettings.sessionDuration.toString());
         }
+      } catch (err) {
+        console.warn("Initial settings fetch skipped:", err.message);
+      } finally {
+        setIsSyncing(false);
+      }
     };
 
     startSync();
 
-    // Online Status
+    // Online / Offline detection
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Cleanup: close all Firestore listeners
     return () => {
       unsubVehicles();
       unsubTrips();
@@ -149,6 +135,7 @@ export const AppProvider = ({ children }) => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
 
   // Global Auth Guard Function
   const requirePassword = useCallback((actionInfo) => {
