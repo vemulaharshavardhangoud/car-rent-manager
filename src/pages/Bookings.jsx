@@ -456,6 +456,7 @@ const Bookings = () => {
                     <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Select Vehicle *</label>
                     <select 
                       name="vehicleId" 
+                      required
                       value={form.vehicleId} 
                       onChange={(e) => setForm(prev => ({ ...prev, vehicleId: e.target.value }))}
                       className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-slate-700 ${formErrors.vehicleId ? 'border-red-300' : 'border-slate-100'}`}

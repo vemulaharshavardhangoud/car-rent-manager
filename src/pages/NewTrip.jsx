@@ -215,11 +215,11 @@ const NewTrip = () => {
           {/* SECTION 1: VEHICLE */}
           <section className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Car className="w-5 h-5 text-gray-500" /> Select Vehicle
+              <Car className="w-5 h-5 text-gray-500" /> Select Vehicle *
             </h3>
             <div className="space-y-4">
               <div>
-                <select name="vehicleId" value={form.vehicleId} onChange={handleChange} className={inputClass('vehicleId')}>
+                <select name="vehicleId" required value={form.vehicleId} onChange={handleChange} className={inputClass('vehicleId')}>
                   <option value="">-- Choose a Vehicle --</option>
                   {vehicles.map(v => (
                     <option key={v.id} value={v.id}>
