@@ -1,0 +1,16 @@
+{
+  "name": "carrent-email-server",
+  "version": "1.0.0",
+  "description": "Email notification server for CarRent Manager",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "nodemailer": "^8.0.3"
+  }
+}

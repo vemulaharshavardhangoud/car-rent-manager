@@ -3,7 +3,6 @@ import { AppContext } from '../context/AppContext';
 import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, CalendarDays, XCircle } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { useNavigate } from 'react-router-dom';
-import { sendBookingConfirmationEmail, sendCancellationEmail } from '../utils/emailService';
 
 const getToday = () => new Date().toISOString().split('T')[0];
 const getTomorrow = () => {
@@ -119,15 +118,6 @@ const Vehicles = () => {
     if (cancelErrors[name]) setCancelErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const notifyEmail = async (subject, funcCall) => {
-    try {
-      await funcCall();
-      showToast(`Notification email sent to admin`, 'success');
-    } catch (err) {
-      showToast(`Action saved but email failed. Check EmailJS setup.`, 'error');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
@@ -169,9 +159,7 @@ const Vehicles = () => {
       }
 
       if (justBooked) {
-        notifyEmail('Booking Confirmed', () => sendBookingConfirmationEmail(submitForm, {
-          ...submitForm, startDate: submitForm.bookingStartDate, endDate: submitForm.bookingEndDate, days: bookingDays, notes: submitForm.bookingNotes, customerName: submitForm.bookedByName, customerPhone: submitForm.bookedByPhone
-        }));
+        showToast(editingId ? 'Vehicle updated & booked' : 'Vehicle added & booked');
       } else {
         showToast(editingId ? 'Vehicle updated' : 'Vehicle added');
       }
@@ -213,13 +201,6 @@ const Vehicles = () => {
        };
 
        updateVehicle(editingId, submitForm);
-       
-       if (lastBooking) {
-           notifyEmail('Booking Cancelled', () => sendCancellationEmail(submitForm, {
-               ...lastBooking
-           }, submitForm));
-       }
-
        showToast('Booking cancelled successfully', 'success');
        cancelEdit();
        setShowCancelSection(false);
