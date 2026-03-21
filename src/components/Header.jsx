@@ -4,7 +4,7 @@ import { AppContext } from '../context/AppContext';
 import { useContext } from 'react';
 
 const Header = ({ setSidebarOpen }) => {
-  const { isOnline, isSyncing, lastSyncedAt } = useContext(AppContext);
+  const { isOnline, isSyncing, lastSyncedAt, syncError } = useContext(AppContext);
   const location = useLocation();
   
   const getPageTitle = () => {
