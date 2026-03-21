@@ -67,12 +67,13 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
             <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 print:bg-transparent print:border-gray-300">
               <h3 className="text-xs font-bold uppercase text-gray-700 tracking-wider mb-3">Journey Details</h3>
               <div className="space-y-2 text-sm text-gray-800">
-                <p><span className="text-gray-500 w-24 inline-block font-medium">Travel Date:</span> <span className="font-semibold">{tripData.date}</span></p>
-                <p><span className="text-gray-500 w-24 inline-block font-medium">Route:</span> <span className="font-semibold">{tripData.fromLocation} → {tripData.toLocation}</span></p>
-                <p><span className="text-gray-500 w-24 inline-block font-medium">Duration:</span> <span className="font-semibold">{tripData.numberOfDays} Day(s)</span></p>
+                <p><span className="text-gray-500 w-24 inline-block font-medium">Start:</span> <span className="font-semibold">{tripData.date} {tripData.startTime}</span></p>
+                <p><span className="text-gray-500 w-24 inline-block font-medium">End:</span> <span className="font-semibold">{tripData.endDate} {tripData.endTime}</span></p>
+                <p><span className="text-gray-500 w-24 inline-block font-medium">Route:</span> <span className="font-semibold">{tripData.from} → {tripData.to}</span></p>
+                <p><span className="text-gray-500 w-24 inline-block font-medium">Duration:</span> <span className="font-semibold">{tripData.days || tripData.numberOfDays} Day(s)</span></p>
                 <div className="pt-2 mt-2 border-t border-gray-200">
-                  <p><span className="text-gray-500 w-24 inline-block font-medium">Start Odo:</span> <span className="font-mono">{tripData.startKm} KM</span></p>
-                  <p><span className="text-gray-500 w-24 inline-block font-medium">End Odo:</span> <span className="font-mono">{tripData.endKm} KM</span></p>
+                  <p><span className="text-gray-500 w-24 inline-block font-medium">Start Odo:</span> <span className="font-mono">{tripData.startOdo || tripData.startKm} KM</span></p>
+                  <p><span className="text-gray-500 w-24 inline-block font-medium">End Odo:</span> <span className="font-mono">{tripData.endOdo || tripData.endKm} KM</span></p>
                   <p className="mt-1"><span className="text-gray-500 w-24 inline-block font-bold">Total Dist:</span> <span className="font-bold text-blue-700 print:text-gray-900">{tripData.distance} KM</span></p>
                 </div>
               </div>
@@ -102,16 +103,16 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
                     <td className="py-3 px-4 text-gray-500 text-right font-mono text-xs">
                       {tripData.billingMode === 'KM' 
                         ? `${tripData.distance} km × ₹${tripData.ratePerKm}/km`
-                        : `${tripData.numberOfDays} days × ₹${tripData.ratePerDay}/day`}
+                        : `${tripData.days || tripData.numberOfDays} days × ₹${tripData.ratePerDay}/day`}
                     </td>
                     <td className="py-3 px-4 text-right font-bold text-gray-900">₹{tripData.baseRent}</td>
                   </tr>
                   
                   {tripData.fuelCost > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-gray-800">Fuel Cost</td>
+                      <td className="py-3 px-4 font-medium text-gray-800">Fuel Cost <span className="text-xs text-gray-400 font-normal italic ml-1">(Excluded from total)</span></td>
                       <td className="py-3 px-4 text-gray-500 text-right font-mono text-xs">
-                        {tripData.litresFilled} litres × ₹{tripData.pricePerLitre}/L
+                        {tripData.fuelLitres || tripData.litresFilled} litres × ₹{tripData.fuelPrice || tripData.pricePerLitre}/L
                       </td>
                       <td className="py-3 px-4 text-right font-medium text-gray-900">₹{tripData.fuelCost}</td>
                     </tr>

@@ -7,6 +7,9 @@ import ReceiptModal from '../components/ReceiptModal';
 const initialForm = {
   vehicleId: '',
   date: new Date().toISOString().split('T')[0],
+  startTime: '',
+  endDate: new Date().toISOString().split('T')[0],
+  endTime: '',
   from: '',
   to: '',
   startOdo: '',
@@ -80,7 +83,7 @@ const NewTrip = () => {
     const driverAllowance = Number(form.driverAllowance) || 0;
     const otherCharges = Number(form.otherCharges) || 0;
     
-    const grandTotal = baseRent + fuelCost + tollTax + borderTax + driverAllowance + otherCharges;
+    const grandTotal = baseRent + tollTax + borderTax + driverAllowance + otherCharges;
 
     return { baseRent, fuelCost, tollTax, borderTax, driverAllowance, otherCharges, grandTotal };
   }, [form, distance, selectedVehicle]);
@@ -90,7 +93,9 @@ const NewTrip = () => {
     const messages = [];
 
     if (!form.vehicleId) { newErrors.vehicleId = 'Please select a vehicle'; messages.push('Vehicle must be selected'); }
-    if (!form.date) { newErrors.date = 'Date is required'; messages.push('Date must be selected'); }
+    if (!form.date) { newErrors.date = 'Start date is required'; messages.push('Start Date must be selected'); }
+    if (!form.endDate) { newErrors.endDate = 'End date is required'; messages.push('End Date must be selected'); }
+    if (!form.endTime) { newErrors.endTime = 'End time is required'; messages.push('End Time must be selected'); }
     if (!form.from) { newErrors.from = 'Starting location is required'; messages.push('From location is required'); }
     if (!form.to) { newErrors.to = 'Destination is required'; messages.push('To location is required'); }
     
@@ -255,10 +260,25 @@ const NewTrip = () => {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-              <div className="md:col-span-2">
-                <label className={labelClass}>Travel Date *</label>
+              <div>
+                <label className={labelClass}>Travel Start Date *</label>
                 <input type="date" name="date" value={form.date} onChange={handleChange} className={inputClass('date')} />
                 {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date}</p>}
+              </div>
+              <div>
+                <label className={labelClass}>Start Time</label>
+                <input type="time" name="startTime" value={form.startTime} onChange={handleChange} className={inputClass('startTime')} />
+              </div>
+
+              <div>
+                <label className={labelClass}>Travel End Date *</label>
+                <input type="date" name="endDate" value={form.endDate} onChange={handleChange} className={inputClass('endDate')} />
+                {errors.endDate && <p className="text-red-500 text-xs mt-1">{errors.endDate}</p>}
+              </div>
+              <div>
+                <label className={labelClass}>End Time *</label>
+                <input type="time" name="endTime" value={form.endTime} onChange={handleChange} className={inputClass('endTime')} />
+                {errors.endTime && <p className="text-red-500 text-xs mt-1">{errors.endTime}</p>}
               </div>
               
               <div>
@@ -433,7 +453,7 @@ const NewTrip = () => {
             <div className="relative z-10 flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-bold mb-1">Trip Estimate</h3>
-                <p className="text-slate-300 transform font-mono text-sm">{form.date}</p>
+                <p className="text-slate-300 transform font-mono text-sm">{form.date} {form.startTime} - {form.endDate} {form.endTime}</p>
               </div>
               <div className="bg-white/10 p-3 rounded-2xl border border-white/20">
                 <Receipt className="w-6 h-6 text-white" />
@@ -485,7 +505,7 @@ const NewTrip = () => {
               </div>
               
               <div className={`flex justify-between px-2 ${costs.fuelCost > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
-                <span>Fuel Cost</span>
+                <span>Fuel Cost <span className="text-xs text-orange-500">(Not in total)</span></span>
                 <span>₹{costs.fuelCost}</span>
               </div>
               <div className={`flex justify-between px-2 ${costs.tollTax > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>

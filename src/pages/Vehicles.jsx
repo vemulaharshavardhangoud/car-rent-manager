@@ -1,3 +1,4 @@
+// v1.1 - UI Cleanup
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info } from 'lucide-react';
@@ -122,7 +123,7 @@ const Vehicles = () => {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <Car className="w-5 h-5 text-blue-500" />
-                {editingId ? 'Edit Vehicle' : 'Add Vehicle'}
+                {editingId ? 'Update Fleet' : 'Add to Fleet'}
             </h2>
             {editingId && (
                 <button onClick={cancelEdit} className="text-xs font-bold text-blue-600 hover:text-blue-700">Add New Instead</button>
