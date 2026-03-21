@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Lock, Eye, EyeOff, Shield, Timer, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Lock, Eye, EyeOff, Shield, Timer, AlertTriangle, CheckCircle2, Cloud, Info } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 import * as storage from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
@@ -298,8 +298,45 @@ const Settings = () => {
             </select>
           </div>
         </div>
+        
+        {/* SECTION 4: CLOUD SYNC INFO & LIMITS */}
+        <div className="bg-blue-50/30 rounded-3xl shadow-sm border border-blue-100 overflow-hidden">
+          <div className="p-6 border-b border-blue-100 flex items-center gap-3 bg-blue-50">
+            <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><Cloud className="w-5 h-5" /></div>
+            <h2 className="text-lg font-black text-blue-800">Cloud Sync & Quotas</h2>
+          </div>
+          <div className="p-6">
+            <div className="flex items-start gap-4 mb-6">
+               <div className="mt-1 bg-amber-100 p-2 rounded-lg text-amber-600 shrink-0"><AlertTriangle className="w-4 h-4" /></div>
+               <div>
+                  <h4 className="font-bold text-slate-800 mb-1">Firebase Spark (Free) Plan Limits</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                     Your data is synchronized using the Firebase free tier. Please be aware of the following daily limits. If these are exceeded, sync may stop until the next day.
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                     {[
+                        { label: 'Data Storage', value: '1 GB Total', icon: Info },
+                        { label: 'Reads / Day', value: '50,000', icon: Info },
+                        { label: 'Writes / Day', value: '20,000', icon: Info },
+                        { label: 'Deletes / Day', value: '20,000', icon: Info },
+                     ].map((lim, i) => (
+                        <div key={i} className="bg-white/80 border border-blue-100 p-3 rounded-xl flex items-center justify-between">
+                           <span className="text-xs font-bold text-slate-500 uppercase">{lim.label}</span>
+                           <span className="text-sm font-black text-blue-700">{lim.value}</span>
+                        </div>
+                     ))}
+                  </div>
+                  
+                  <p className="text-[11px] text-slate-400 mt-4 italic font-medium">
+                     * This car rental app uses very small data packets, so these limits are extremely high for typical small-business usage.
+                  </p>
+               </div>
+            </div>
+          </div>
+        </div>
 
-        {/* SECTION 4: DANGER ZONE */}
+        {/* SECTION 5: DANGER ZONE */}
         <div className="bg-red-50/30 rounded-3xl shadow-sm border-2 border-red-100 overflow-hidden">
           <div className="p-6 border-b border-red-100 flex items-center gap-3 bg-red-50">
             <div className="bg-red-100 p-2 rounded-xl text-red-600"><AlertTriangle className="w-5 h-5" /></div>
