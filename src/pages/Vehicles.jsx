@@ -55,10 +55,10 @@ const Vehicles = () => {
     e.preventDefault();
     if (validate()) {
       if (editingId) {
-        updateVehicle(editingId, form);
+        await updateVehicle(editingId, form);
         showToast('Vehicle details updated');
       } else {
-        addVehicle(form);
+        await addVehicle(form);
         showToast('New vehicle added');
       }
       cancelEdit();
@@ -86,7 +86,7 @@ const Vehicles = () => {
   const confirmDelete = async (id, name, numberPlate) => {
     const ok = await requirePassword({ actionType: "deleteVehicle", actionLabel: "DELETE vehicle " + name + " (" + numberPlate + ")" });
     if (ok) {
-      deleteVehicle(id);
+      await deleteVehicle(id);
       if (editingId === id) cancelEdit();
     }
   };

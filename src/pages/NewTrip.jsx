@@ -146,12 +146,12 @@ const NewTrip = () => {
     }
   };
 
-  const saveConfirmedTrip = () => {
+  const saveConfirmedTrip = async () => {
     if (currentTripData) {
       if (editTripData) {
-        updateTrip(currentTripData.id, currentTripData);
+        await updateTrip(currentTripData.id, currentTripData);
       } else {
-        addTrip(currentTripData);
+        await addTrip(currentTripData);
       }
     }
   };

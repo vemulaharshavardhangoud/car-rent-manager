@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider, AppContext } from './context/AppContext';
 import * as emailApi from './utils/emailApi';
+import * as firestore from './utils/firestoreService';
 
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -37,10 +38,19 @@ function Layout() {
       // 1. Reminder: Starts Tomorrow
       if (b.status === 'Confirmed' && b.bookingStartDate === tomorrowStr) {
         const flag = `crm_sent_reminder_${b.id}`;
+        // Check local cache first for speed, then Firestore for cross-device sync
         if (!localStorage.getItem(flag)) {
-          console.log(`Sending reminder for ${b.id}`);
-          await emailApi.notifyReminder(vehicle, b);
-          localStorage.setItem(flag, 'true');
+          const alreadySent = await firestore.isNotificationSent(b.id, 'reminder');
+          if (!alreadySent) {
+            console.log(`Sending reminder for ${b.id}`);
+            const success = await emailApi.notifyReminder(vehicle, b);
+            if (success) {
+              await firestore.saveSentNotification({ bookingId: b.id, type: 'reminder' });
+              localStorage.setItem(flag, 'true');
+            }
+          } else {
+            localStorage.setItem(flag, 'true'); // Sync local cache
+          }
         }
       }
 
@@ -48,10 +58,18 @@ function Layout() {
       if (b.status === 'Confirmed' && b.bookingEndDate < todayStr) {
         const flag = `crm_sent_overdue_${b.id}`;
         if (!localStorage.getItem(flag)) {
-          const overdueDays = Math.ceil((today.getTime() - new Date(b.bookingEndDate).getTime()) / (1000 * 3600 * 24));
-          console.log(`Sending overdue alert for ${b.id} (${overdueDays} days)`);
-          await emailApi.notifyOverdue(vehicle, overdueDays);
-          localStorage.setItem(flag, 'true');
+          const alreadySent = await firestore.isNotificationSent(b.id, 'overdue');
+          if (!alreadySent) {
+            const overdueDays = Math.ceil((today.getTime() - new Date(b.bookingEndDate).getTime()) / (1000 * 3600 * 24));
+            console.log(`Sending overdue alert for ${b.id} (${overdueDays} days)`);
+            const success = await emailApi.notifyOverdue(vehicle, overdueDays);
+            if (success) {
+              await firestore.saveSentNotification({ bookingId: b.id, type: 'overdue' });
+              localStorage.setItem(flag, 'true');
+            }
+          } else {
+            localStorage.setItem(flag, 'true'); // Sync local cache
+          }
         }
       }
     });

@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import * as storage from '../utils/storage';
 import PasswordModal from '../components/PasswordModal';
+import * as firestore from '../utils/firestoreService';
 
 export const AppContext = createContext();
 
@@ -9,6 +10,11 @@ export const AppProvider = ({ children }) => {
   const [allTrips, setAllTrips] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
+
+  // Sync State
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [lastSyncedAt, setLastSyncedAt] = useState(null);
 
   // Admin Session State
   const [adminSession, setAdminSession] = useState({
@@ -33,25 +39,94 @@ export const AppProvider = ({ children }) => {
     loadAllData();
     
     // Global Settings Initialization
-    if (!localStorage.getItem('crm_admin_password')) {
-      localStorage.setItem('crm_admin_password', btoa('admin123'));
+    const initSettings = async () => {
+      const remoteSettings = await firestore.getSettingsFromFirestore();
+      if (remoteSettings) {
+        localStorage.setItem('crm_admin_password', remoteSettings.adminPassword);
+        localStorage.setItem('crm_protected_actions', JSON.stringify(remoteSettings.protectedActions));
+        localStorage.setItem('crm_session_duration', remoteSettings.sessionDuration.toString());
+      } else {
+        // Fallback or Initial Setup
+        if (!localStorage.getItem('crm_admin_password')) {
+          localStorage.setItem('crm_admin_password', btoa('admin123'));
+        }
+        if (!localStorage.getItem('crm_protected_actions')) {
+          const defaultToggles = {
+            deleteVehicle: true, deleteTrip: true, deleteBooking: true,
+            cancelBooking: true, editVehicle: true, editTrip: false,
+            editBooking: true, clearData: true
+          };
+          localStorage.setItem('crm_protected_actions', JSON.stringify(defaultToggles));
+        }
+        if (!localStorage.getItem('crm_session_duration')) {
+          localStorage.setItem('crm_session_duration', '5');
+        }
+        // Save defaults to firestore
+        firestore.saveSettingsToFirestore({
+          adminPassword: localStorage.getItem('crm_admin_password'),
+          protectedActions: JSON.parse(localStorage.getItem('crm_protected_actions')),
+          sessionDuration: localStorage.getItem('crm_session_duration')
+        });
+      }
+    };
+
+    initSettings();
+
+    // Listeners with error handling
+    setIsSyncing(true);
+    let unsubVehicles = () => {};
+    let unsubTrips = () => {};
+    let unsubBookings = () => {};
+    let unsubSettings = () => {};
+
+    try {
+      unsubVehicles = firestore.listenToVehicles((data) => {
+        setVehicles(data);
+        localStorage.setItem('crm_vehicles', JSON.stringify(data));
+        setLastSyncedAt(new Date());
+      });
+      
+      unsubTrips = firestore.listenToTrips((data) => {
+        setAllTrips(data);
+        localStorage.setItem('crm_all_trips', JSON.stringify(data));
+        setLastSyncedAt(new Date());
+      });
+      
+      unsubBookings = firestore.listenToBookings((data) => {
+        setBookings(data);
+        localStorage.setItem('crm_bookings', JSON.stringify(data));
+        setLastSyncedAt(new Date());
+      });
+      
+      unsubSettings = firestore.listenToSettings((data) => {
+        if (data) {
+          localStorage.setItem('crm_admin_password', data.adminPassword);
+          localStorage.setItem('crm_protected_actions', JSON.stringify(data.protectedActions));
+          localStorage.setItem('crm_session_duration', data.sessionDuration.toString());
+        }
+        setLastSyncedAt(new Date());
+      });
+    } catch (err) {
+      console.warn("Firestore listeners failed to initialize:", err);
+      showToast("Sync unavailable: Check Firebase config", "warning");
     }
-    if (!localStorage.getItem('crm_protected_actions')) {
-      const defaultToggles = {
-        deleteVehicle: true,
-        deleteTrip: true,
-        deleteBooking: true,
-        cancelBooking: true,
-        editVehicle: true,
-        editTrip: false,
-        editBooking: true,
-        clearData: true
-      };
-      localStorage.setItem('crm_protected_actions', JSON.stringify(defaultToggles));
-    }
-    if (!localStorage.getItem('crm_session_duration')) {
-      localStorage.setItem('crm_session_duration', '5');
-    }
+
+    setIsSyncing(false);
+
+    // Online Status
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      unsubVehicles();
+      unsubTrips();
+      unsubBookings();
+      unsubSettings();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   // Global Auth Guard Function
@@ -108,98 +183,184 @@ export const AppProvider = ({ children }) => {
     }, 3000);
   };
 
-  const addVehicle = (vehicle) => {
-    const saved = storage.saveVehicle(vehicle);
-    if (saved) {
-      setVehicles(storage.getAllVehicles());
-      showToast('Vehicle added successfully');
+  const addVehicle = async (vehicle) => {
+    try {
+      setIsSyncing(true);
+      const savedLocally = storage.saveVehicle(vehicle);
+      if (savedLocally) {
+        await firestore.saveVehicleToFirestore(savedLocally);
+        showToast('Vehicle added & synced successfully');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Offline: Saved locally but sync failed', 'warning');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  const updateVehicle = (id, updatedData) => {
-    const updated = storage.updateVehicle(id, updatedData);
-    if (updated) {
-      setVehicles(storage.getAllVehicles());
-      showToast('Vehicle updated successfully');
+  const updateVehicle = async (id, updatedData) => {
+    try {
+      setIsSyncing(true);
+      const updatedLocally = storage.updateVehicle(id, updatedData);
+      if (updatedLocally) {
+        await firestore.updateVehicleInFirestore(id, updatedData);
+        showToast('Vehicle updated & synced');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Offline: Updated locally', 'warning');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  const deleteVehicle = (id) => {
-    if (storage.deleteVehicle(id)) {
-      setVehicles(storage.getAllVehicles());
-      setAllTrips(storage.getAllTrips());
-      showToast('Vehicle deleted.', 'error');
+  const deleteVehicle = async (id) => {
+    try {
+      setIsSyncing(true);
+      if (storage.deleteVehicle(id)) {
+        await firestore.deleteVehicleFromFirestore(id);
+        showToast('Vehicle deleted & synced', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Offline: Deleted locally', 'warning');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  const addTrip = (trip) => {
-    const saved = storage.saveTrip(trip.vehicleId, trip);
-    if (saved) {
-      setAllTrips(storage.getAllTrips());
-      showToast('Trip added successfully');
+  const addTrip = async (trip) => {
+    try {
+      setIsSyncing(true);
+      const savedLocally = storage.saveTrip(trip.vehicleId, trip);
+      if (savedLocally) {
+        await firestore.saveTripToFirestore(savedLocally);
+        showToast('Trip recorded & synced');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Offline: Recorded locally', 'warning');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  const deleteTrip = (id) => {
-    const trip = allTrips.find(t => t.id === id);
-    if (trip && storage.deleteTripById(trip.vehicleId, id)) {
-      setAllTrips(storage.getAllTrips());
-      showToast('Trip deleted successfully');
+  const deleteTrip = async (id) => {
+    try {
+      setIsSyncing(true);
+      const trip = allTrips.find(t => t.id === id);
+      if (trip && storage.deleteTripById(trip.vehicleId, id)) {
+        await firestore.deleteTripFromFirestore(id);
+        showToast('Trip deleted & synced', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Offline: Deleted locally', 'warning');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  const updateTrip = (id, updatedData) => {
-    const trip = allTrips.find(t => t.id === id);
-    if (trip) {
-       const updated = storage.updateTrip(trip.vehicleId, id, updatedData);
-       if (updated) {
-          setAllTrips(storage.getAllTrips());
-          showToast('Trip updated successfully');
-       }
+  const updateTrip = async (id, updatedData) => {
+    try {
+      setIsSyncing(true);
+      const trip = allTrips.find(t => t.id === id);
+      if (trip) {
+        const updatedLocally = storage.updateTrip(trip.vehicleId, id, updatedData);
+        if (updatedLocally) {
+          await firestore.updateTripInFirestore(id, updatedData);
+          showToast('Trip updated & synced');
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Offline: Updated locally', 'warning');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  const addBooking = (bookingData) => {
-    const saved = storage.saveBooking(bookingData);
-    if (saved) {
-      setBookings(storage.getAllBookings());
-      setVehicles(storage.getAllVehicles()); // Refresh as status changed
-      showToast(`Booking ${saved.id} confirmed!`);
-      return saved;
+  const addBooking = async (bookingData) => {
+    try {
+      setIsSyncing(true);
+      const savedLocally = storage.saveBooking(bookingData);
+      if (savedLocally) {
+        await firestore.saveBookingToFirestore(savedLocally);
+        // Refresh vehicle status locally immediately if possible, though listener will take care
+        setVehicles(storage.getAllVehicles());
+        showToast(`Booking ${savedLocally.id} synced!`);
+        return savedLocally;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Offline: Booking saved locally', 'warning');
+    } finally {
+      setIsSyncing(false);
     }
     return null;
   };
 
-  const updateBooking = (id, updatedFields) => {
-    const updated = storage.updateBooking(id, updatedFields);
-    if (updated) {
-      setBookings(storage.getAllBookings());
-      setVehicles(storage.getAllVehicles()); // Refresh in case vehicle changed
-      showToast('Booking updated successfully');
-      return updated;
+  const updateBooking = async (id, updatedFields) => {
+    try {
+      setIsSyncing(true);
+      const updatedLocally = storage.updateBooking(id, updatedFields);
+      if (updatedLocally) {
+        await firestore.updateBookingInFirestore(id, updatedFields);
+        showToast('Booking updated & synced');
+        return updatedLocally;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Offline: Updated locally', 'warning');
+    } finally {
+      setIsSyncing(false);
     }
     return null;
   };
 
-  const cancelBooking = (id, cancellationData) => {
-    const updated = storage.cancelBooking(id, cancellationData);
-    if (updated) {
-      setBookings(storage.getAllBookings());
-      setVehicles(storage.getAllVehicles()); // Refresh as status changed
-      showToast('Booking cancelled', 'error');
-      return updated;
+  const cancelBooking = async (id, cancellationData) => {
+    try {
+      setIsSyncing(true);
+      const updatedLocally = storage.cancelBooking(id, cancellationData);
+      if (updatedLocally) {
+        await firestore.updateBookingInFirestore(id, updatedLocally);
+        showToast('Booking cancelled & synced', 'error');
+        return updatedLocally;
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSyncing(false);
     }
     return null;
   };
 
-  const deleteBooking = (id) => {
-    if (storage.deleteBooking(id)) {
-      setBookings(storage.getAllBookings());
-      setVehicles(storage.getAllVehicles()); // Refresh as status may reset
-      showToast('Booking deleted', 'error');
-      return true;
+  const deleteBooking = async (id) => {
+    try {
+      setIsSyncing(true);
+      if (storage.deleteBooking(id)) {
+        await firestore.deleteBookingFromFirestore(id);
+        showToast('Booking deleted & synced', 'error');
+        return true;
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSyncing(false);
     }
     return false;
+  };
+
+  const updateSettings = async (settings) => {
+    try {
+      setIsSyncing(true);
+      await firestore.saveSettingsToFirestore(settings);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   return (
@@ -219,10 +380,14 @@ export const AppProvider = ({ children }) => {
         updateBooking,
         cancelBooking,
         deleteBooking,
+        updateSettings,
         showToast,
         requirePassword,
         adminSession,
-        endAdminSession
+        endAdminSession,
+        isSyncing,
+        isOnline,
+        lastSyncedAt
       }}
     >
       {children}

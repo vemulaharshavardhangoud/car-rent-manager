@@ -162,14 +162,14 @@ const Bookings = () => {
     };
 
     if (editingId) {
-      const updated = updateBooking(editingId, bookingData);
+      const updated = await updateBooking(editingId, bookingData);
       if (updated) {
         setShowForm(false);
         setEditingId(null);
         setForm(initialForm);
       }
     } else {
-      const saved = addBooking(bookingData);
+      const saved = await addBooking(bookingData);
       if (saved) {
         // Email Notification
         try {
@@ -210,7 +210,7 @@ const Bookings = () => {
   const handleConfirmCancellation = async () => {
     if (!cancelForm.reason) return;
     
-    const updated = cancelBooking(cancelBookingItem.id, cancelForm);
+    const updated = await cancelBooking(cancelBookingItem.id, cancelForm);
     if (updated) {
        // Email Notification
        try {
@@ -227,7 +227,7 @@ const Bookings = () => {
   const handleDeleteClick = async (booking) => {
     const ok = await requirePassword({ actionType: "deleteBooking", actionLabel: "DELETE booking " + booking.id + " for " + booking.customerName });
     if (ok) {
-      deleteBooking(booking.id);
+      await deleteBooking(booking.id);
     }
   };
 
@@ -711,7 +711,7 @@ const Bookings = () => {
           onClose={() => setViewBooking(null)} 
           onEdit={() => { handleEdit(viewBooking); setViewBooking(null); }}
           onCancel={() => { handleCancelClick(viewBooking); setViewBooking(null); }}
-          onComplete={() => { updateBooking(viewBooking.id, { status: 'Completed' }); setViewBooking(null); }}
+          onComplete={async () => { await updateBooking(viewBooking.id, { status: 'Completed' }); setViewBooking(null); }}
           vehicles={vehicles}
         />
       )}

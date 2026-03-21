@@ -1,8 +1,10 @@
-import React from 'react';
-import { Menu, Bell } from 'lucide-react';
+import { Menu, Bell, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { AppContext } from '../context/AppContext';
+import { useContext } from 'react';
 
 const Header = ({ setSidebarOpen }) => {
+  const { isOnline, isSyncing, lastSyncedAt } = useContext(AppContext);
   const location = useLocation();
   
   const getPageTitle = () => {
@@ -11,6 +13,8 @@ const Header = ({ setSidebarOpen }) => {
       case '/vehicles': return 'Manage Vehicles';
       case '/newtrip': return 'Record a New Trip';
       case '/history': return 'Trip History';
+      case '/bookings': return 'Bookings';
+      case '/settings': return 'Settings';
       default: return 'CarRent Manager';
     }
   };
@@ -21,6 +25,14 @@ const Header = ({ setSidebarOpen }) => {
     month: 'long',
     day: 'numeric'
   });
+
+  const getTimeAgo = (date) => {
+    if (!date) return 'Never';
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    return `${minutes}m ago`;
+  };
 
   return (
     <header className="h-16 bg-white border-b border-gray-200 shadow-sm flex items-center justify-between px-4 lg:px-8 z-30 sticky top-0">
@@ -34,7 +46,28 @@ const Header = ({ setSidebarOpen }) => {
         <h1 className="text-xl font-bold font-semibold text-gray-800">{getPageTitle()}</h1>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-4 md:gap-6">
+        {/* Sync Indicator */}
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
+          {isOnline ? (
+            <>
+              {isSyncing ? (
+                <RefreshCw className="w-3.5 h-3.5 text-blue-500 animate-spin" />
+              ) : (
+                <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+              )}
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">
+                {isSyncing ? 'Syncing...' : `Synced ${getTimeAgo(lastSyncedAt)}`}
+              </span>
+            </>
+          ) : (
+            <>
+              <CloudOff className="w-3.5 h-3.5 text-red-400" />
+              <span className="text-[10px] font-bold text-red-400 uppercase tracking-tight">Offline Mode</span>
+            </>
+          )}
+        </div>
+
         <span className="text-sm text-gray-500 hidden md:block font-medium">{currentDate}</span>
         <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
           <Bell className="w-5 h-5" />

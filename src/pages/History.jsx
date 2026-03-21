@@ -127,7 +127,7 @@ const History = () => {
 
   const confirmDelete = async (trip) => {
     const ok = await requirePassword({ actionType: "deleteTrip", actionLabel: "DELETE trip from " + trip.fromLocation + " to " + trip.toLocation });
-    if (ok) deleteTrip(trip.id);
+    if (ok) await deleteTrip(trip.id);
   };
 
   // Date Formatting Helper

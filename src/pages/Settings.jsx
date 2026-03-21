@@ -5,7 +5,7 @@ import * as storage from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
-  const { showToast, requirePassword, endAdminSession } = useContext(AppContext);
+  const { showToast, requirePassword, endAdminSession, updateSettings } = useContext(AppContext);
   const navigate = useNavigate();
 
   // Settings State
@@ -30,7 +30,7 @@ const Settings = () => {
 
   // Initial Load
   useEffect(() => {
-    // Load last changed
+    // Load data from localStorage (initial cache)
     const changedAt = localStorage.getItem('crm_password_changed_at');
     if (changedAt) {
       setLastChanged(new Date(changedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
@@ -38,11 +38,9 @@ const Settings = () => {
       setLastChanged('Never (Using Default)');
     }
 
-    // Load toggles
     const savedToggles = localStorage.getItem('crm_protected_actions');
     if (savedToggles) setToggles(JSON.parse(savedToggles));
 
-    // Load session
     const savedDuration = localStorage.getItem('crm_session_duration');
     if (savedDuration) setSessionDuration(savedDuration);
   }, []);
@@ -76,14 +74,23 @@ const Settings = () => {
       return;
     }
 
-    // Success
-    localStorage.setItem('crm_admin_password', btoa(newPassword));
+    // Success - Save locally and to Firestore
+    const encodedPassword = btoa(newPassword);
     const now = new Date().toISOString();
-    localStorage.setItem('crm_password_changed_at', now);
-    setLastChanged(new Date(now).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
     
-    showToast('Password updated successfully!');
-    endAdminSession(); // Require new login
+    localStorage.setItem('crm_admin_password', encodedPassword);
+    localStorage.setItem('crm_password_changed_at', now);
+    
+    updateSettings({
+      adminPassword: encodedPassword,
+      passwordChangedAt: now,
+      protectedActions: toggles,
+      sessionDuration: sessionDuration
+    });
+
+    setLastChanged(new Date(now).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
+    showToast('Password updated & synced!');
+    endAdminSession(); 
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
@@ -92,27 +99,58 @@ const Settings = () => {
   const handleResetDefault = async () => {
     const confirmed = await requirePassword({ actionType: 'resetPassword', actionLabel: 'RESET Admin Password to default' });
     if (confirmed) {
-      localStorage.setItem('crm_admin_password', btoa('admin123'));
+      const defaultPass = btoa('admin123');
+      localStorage.setItem('crm_admin_password', defaultPass);
       localStorage.removeItem('crm_password_changed_at');
+      
+      updateSettings({
+        adminPassword: defaultPass,
+        passwordChangedAt: null,
+        protectedActions: toggles,
+        sessionDuration: sessionDuration
+      });
+
       setLastChanged('Never (Using Default)');
-      showToast('Password reset to default: admin123');
+      showToast('Password reset to default and synced');
       endAdminSession();
     }
   };
 
   // --- TOGGLE ACTIONS ---
-  const handleToggle = (key) => {
-    if (key === 'clearData') return; // Cannot turn off
+  const handleToggle = async (key) => {
+    if (key === 'clearData') return; 
+    
+    const ok = await requirePassword({ actionType: 'editSettings', actionLabel: `UPDATE security toggle for ${key}` });
+    if (!ok) return;
+
     const newToggles = { ...toggles, [key]: !toggles[key] };
     setToggles(newToggles);
     localStorage.setItem('crm_protected_actions', JSON.stringify(newToggles));
+    
+    updateSettings({
+      adminPassword: localStorage.getItem('crm_admin_password'),
+      protectedActions: newToggles,
+      sessionDuration: sessionDuration
+    });
+    showToast('Setting updated & synced');
   };
 
   // --- SESSION SETTINGS ---
-  const handleSessionChange = (e) => {
+  const handleSessionChange = async (e) => {
     const val = e.target.value;
+    
+    const ok = await requirePassword({ actionType: 'editSettings', actionLabel: 'CHANGE session timeout duration' });
+    if (!ok) return;
+
     setSessionDuration(val);
     localStorage.setItem('crm_session_duration', val);
+    
+    updateSettings({
+      adminPassword: localStorage.getItem('crm_admin_password'),
+      protectedActions: toggles,
+      sessionDuration: val
+    });
+    showToast('Session duration updated & synced');
   };
 
   // --- DANGER ZONE ---
