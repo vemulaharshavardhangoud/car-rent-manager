@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CarFront, PlusCircle, History, Settings, X, Car } from 'lucide-react';
+import { LayoutDashboard, CarFront, PlusCircle, History, Settings, X, Car, CalendarDays } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/vehicles', label: 'Vehicles', icon: CarFront },
+    { path: '/bookings', label: 'Bookings', icon: CalendarDays },
     { path: '/newtrip', label: 'New Trip', icon: PlusCircle },
     { path: '/history', label: 'History', icon: History },
   ];

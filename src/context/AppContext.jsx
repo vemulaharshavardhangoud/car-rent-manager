@@ -6,11 +6,13 @@ export const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [vehicles, setVehicles] = useState([]);
   const [allTrips, setAllTrips] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
 
   const loadAllData = () => {
     setVehicles(storage.getAllVehicles());
     setAllTrips(storage.getAllTrips());
+    setBookings(storage.getAllBookings());
   };
 
   useEffect(() => {
@@ -75,11 +77,55 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const addBooking = (bookingData) => {
+    const saved = storage.saveBooking(bookingData);
+    if (saved) {
+      setBookings(storage.getAllBookings());
+      setVehicles(storage.getAllVehicles()); // Refresh as status changed
+      showToast(`Booking ${saved.id} confirmed!`);
+      return saved;
+    }
+    return null;
+  };
+
+  const updateBooking = (id, updatedFields) => {
+    const updated = storage.updateBooking(id, updatedFields);
+    if (updated) {
+      setBookings(storage.getAllBookings());
+      setVehicles(storage.getAllVehicles()); // Refresh in case vehicle changed
+      showToast('Booking updated successfully');
+      return updated;
+    }
+    return null;
+  };
+
+  const cancelBooking = (id, cancellationData) => {
+    const updated = storage.cancelBooking(id, cancellationData);
+    if (updated) {
+      setBookings(storage.getAllBookings());
+      setVehicles(storage.getAllVehicles()); // Refresh as status changed
+      showToast('Booking cancelled', 'error');
+      return updated;
+    }
+    return null;
+  };
+
+  const deleteBooking = (id) => {
+    if (storage.deleteBooking(id)) {
+      setBookings(storage.getAllBookings());
+      setVehicles(storage.getAllVehicles()); // Refresh as status may reset
+      showToast('Booking deleted', 'error');
+      return true;
+    }
+    return false;
+  };
+
   return (
     <AppContext.Provider
       value={{
         vehicles,
         allTrips,
+        bookings,
         toast,
         addVehicle,
         updateVehicle,
@@ -87,6 +133,10 @@ export const AppProvider = ({ children }) => {
         addTrip,
         deleteTrip,
         updateTrip,
+        addBooking,
+        updateBooking,
+        cancelBooking,
+        deleteBooking,
         showToast,
       }}
     >

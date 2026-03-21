@@ -4,6 +4,8 @@
 
 const PREFIX = 'crm_';
 const VEHICLE_LIST_KEY = `${PREFIX}vehicle_list`;
+const BOOKINGS_KEY = `${PREFIX}bookings`;
+const NEXT_BOOKING_NUM_KEY = `${PREFIX}next_booking_number`;
 
 /**
  * Saves a new vehicle to localStorage.
@@ -442,5 +444,218 @@ export const getMonthlyStats = (year, month) => {
   } catch (error) {
     console.error(`Error calculating monthly stats for ${year}-${month}:`, error);
     return null;
+  }
+};
+
+/**
+ * Saves a new booking to localStorage and updates vehicle status.
+ * @param {Object} bookingData - The booking details.
+ * @returns {Object|null} The saved booking object, or null on failure.
+ */
+export const saveBooking = (bookingData) => {
+  try {
+    const bookings = JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]');
+    
+    // Auto-generate booking number and ID
+    const nextNum = Number(localStorage.getItem(NEXT_BOOKING_NUM_KEY) || '1');
+    const bookingId = `BK-${String(nextNum).padStart(3, '0')}`;
+    
+    const newBooking = {
+      ...bookingData,
+      id: bookingId,
+      bookingNumber: nextNum,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    bookings.push(newBooking);
+    localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+    localStorage.setItem(NEXT_BOOKING_NUM_KEY, String(nextNum + 1));
+    
+    // Update vehicle status to 'Booked'
+    if (bookingData.vehicleId) {
+      updateVehicle(bookingData.vehicleId, { bookingStatus: 'Booked' });
+    }
+    
+    return newBooking;
+  } catch (error) {
+    console.error("Error saving booking:", error);
+    return null;
+  }
+};
+
+/**
+ * Retrieves all bookings from localStorage.
+ * @returns {Array<Object>} Array of booking objects sorted by createdAt descending.
+ */
+export const getAllBookings = () => {
+  try {
+    const bookings = JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]');
+    return bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } catch (error) {
+    console.error("Error getting all bookings:", error);
+    return [];
+  }
+};
+
+/**
+ * Retrieves a single booking by its ID.
+ * @param {string} bookingId - The ID of the booking (e.g., BK-001).
+ * @returns {Object|null} The booking object or null if not found.
+ */
+export const getBookingById = (bookingId) => {
+  try {
+    const bookings = getAllBookings();
+    return bookings.find(b => b.id === bookingId) || null;
+  } catch (error) {
+    console.error(`Error getting booking ${bookingId}:`, error);
+    return null;
+  }
+};
+
+/**
+ * Updates an existing booking.
+ * @param {string} bookingId - The ID of the booking to update.
+ * @param {Object} updatedFields - The fields to update.
+ * @returns {Object|null} The updated booking object, or null if not found.
+ */
+export const updateBooking = (bookingId, updatedFields) => {
+  try {
+    const bookings = JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]');
+    const index = bookings.findIndex(b => b.id === bookingId);
+    if (index === -1) return null;
+    
+    // If vehicle changed, update both old and new vehicle statuses
+    const oldBooking = bookings[index];
+    if (updatedFields.vehicleId && updatedFields.vehicleId !== oldBooking.vehicleId) {
+      updateVehicle(oldBooking.vehicleId, { bookingStatus: 'Available' });
+      updateVehicle(updatedFields.vehicleId, { bookingStatus: 'Booked' });
+    }
+    
+    const updatedBooking = {
+      ...oldBooking,
+      ...updatedFields,
+      id: bookingId,
+      updatedAt: new Date().toISOString()
+    };
+    
+    bookings[index] = updatedBooking;
+    localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bookings));
+    return updatedBooking;
+  } catch (error) {
+    console.error(`Error updating booking ${bookingId}:`, error);
+    return null;
+  }
+};
+
+/**
+ * Cancels a booking and updates vehicle status to 'Available'.
+ * @param {string} bookingId - The ID of the booking.
+ * @param {Object} cancellationData - Details about the cancellation.
+ * @returns {Object|null} The updated booking object, or null on failure.
+ */
+export const cancelBooking = (bookingId, cancellationData) => {
+  try {
+    const booking = getBookingById(bookingId);
+    if (!booking) return null;
+    
+    const updated = updateBooking(bookingId, {
+      status: 'Cancelled',
+      cancellation: {
+        ...cancellationData,
+        cancelledAt: new Date().toISOString()
+      }
+    });
+    
+    if (updated && updated.vehicleId) {
+      updateVehicle(updated.vehicleId, { bookingStatus: 'Available' });
+    }
+    
+    return updated;
+  } catch (error) {
+    console.error(`Error cancelling booking ${bookingId}:`, error);
+    return null;
+  }
+};
+
+/**
+ * Deletes a booking from localStorage.
+ * @param {string} bookingId - The ID of the booking.
+ * @returns {boolean} True on success, false on failure.
+ */
+export const deleteBooking = (bookingId) => {
+  try {
+    const bookings = JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]');
+    const booking = bookings.find(b => b.id === bookingId);
+    
+    const updatedBookings = bookings.filter(b => b.id !== bookingId);
+    localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updatedBookings));
+    
+    // If the booking was active, reset vehicle status
+    if (booking && (booking.status === 'Confirmed' || booking.status === 'Pending')) {
+      updateVehicle(booking.vehicleId, { bookingStatus: 'Available' });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Error deleting booking ${bookingId}:`, error);
+    return false;
+  }
+};
+
+/**
+ * Retrieves all bookings for a specific vehicle.
+ * @param {string} vehicleId - The ID of the vehicle.
+ * @returns {Array<Object>} Sorted array of bookings for the vehicle.
+ */
+export const getBookingsForVehicle = (vehicleId) => {
+  try {
+    const bookings = getAllBookings();
+    return bookings.filter(b => b.vehicleId === vehicleId);
+  } catch (error) {
+    console.error(`Error getting bookings for vehicle ${vehicleId}:`, error);
+    return [];
+  }
+};
+
+/**
+ * Exports bookings as a CSV file.
+ * @param {Array<Object>} bookings - The bookings to export.
+ * @returns {boolean} True on success.
+ */
+export const exportBookingsAsCSV = (bookings) => {
+  try {
+    if (!bookings || bookings.length === 0) return false;
+    
+    const headers = [
+      'Booking ID', 'Status', 'Vehicle', 'Plate', 'Customer', 'Phone',
+      'Start Date', 'End Date', 'Days', 'Pickup Location', 'Drop Location',
+      'Cost', 'Advance', 'Payment Mode', 'Created At'
+    ];
+    
+    const rows = bookings.map(b => [
+      b.id, b.status, b.vehicleName, b.numberPlate, b.customerName, b.customerPhone,
+      b.bookingStartDate, b.bookingEndDate, b.bookingDays, b.pickupLocation, b.dropLocation,
+      b.estimatedCost, b.advancePaid, b.paymentMode, b.createdAt
+    ]);
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + headers.join(',') + '\n' 
+      + rows.map(r => r.map(cell => `"${cell || ''}"`).join(',')).join('\n');
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute('download', `bookings_export_${dateStr}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    return true;
+  } catch (error) {
+    console.error("Error exporting bookings:", error);
+    return false;
   }
 };
