@@ -9,9 +9,11 @@ import {
 import ConfirmDialog from '../components/ConfirmDialog';
 import ReceiptModal from '../components/ReceiptModal';
 import { exportTripsAsCSV } from '../utils/storage';
+import { usePasswordProtection } from '../hooks/usePasswordProtection';
 
 const History = () => {
   const { allTrips, vehicles, deleteTrip } = useContext(AppContext);
+  const { requirePassword } = usePasswordProtection();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -28,9 +30,6 @@ const History = () => {
 
   // View Receipt State
   const [viewTripData, setViewTripData] = useState(null);
-  
-  // Delete Dialog State
-  const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, id: null });
 
   // Handle URL Param for auto-selecting vehicle
   useEffect(() => {
@@ -121,15 +120,14 @@ const History = () => {
     exportTripsAsCSV(filteredTrips);
   };
 
-  const handleEdit = (trip) => {
-    navigate('/newtrip', { state: { editTripData: trip } });
+  const handleEdit = async (trip) => {
+    const ok = await requirePassword({ actionType: "editTrip", actionLabel: "EDIT trip from " + trip.fromLocation + " to " + trip.toLocation });
+    if (ok) navigate('/newtrip', { state: { editTripData: trip } });
   };
 
-  const handleDeleteConfirm = () => {
-    if (deleteDialog.id) {
-      deleteTrip(deleteDialog.id);
-    }
-    setDeleteDialog({ isOpen: false, id: null });
+  const confirmDelete = async (trip) => {
+    const ok = await requirePassword({ actionType: "deleteTrip", actionLabel: "DELETE trip from " + trip.fromLocation + " to " + trip.toLocation });
+    if (ok) deleteTrip(trip.id);
   };
 
   // Date Formatting Helper
@@ -281,7 +279,7 @@ const History = () => {
                           <button onClick={() => handleEdit(trip)} className="p-1.5 text-blue-400 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors" title="Edit Trip">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button onClick={() => setDeleteDialog({ isOpen: true, id: trip.id })} className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors" title="Delete Trip">
+                          <button onClick={() => confirmDelete(trip)} className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors" title="Delete Trip">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -399,14 +397,7 @@ const History = () => {
         </>
       )}
 
-      {/* Delete Dialog */}
-      <ConfirmDialog 
-        isOpen={deleteDialog.isOpen}
-        title="Delete Trip"
-        message="Are you sure you want to delete this trip? This cannot be undone."
-        onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteDialog({ isOpen: false, id: null })}
-      />
+      {/* Delete Dialog Removed in Favor of PasswordModal */}
 
       {/* Receipt Modal */}
       <ReceiptModal 

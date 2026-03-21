@@ -10,17 +10,17 @@ import {
   Eye, Pencil, X, Trash2, CheckCircle2, 
   AlertCircle, ArrowRight, Printer, AlertTriangle
 } from 'lucide-react';
-import ConfirmDialog from '../components/ConfirmDialog';
+import { usePasswordProtection } from '../hooks/usePasswordProtection';
 
 const Bookings = () => {
   const { vehicles, bookings, addBooking, updateBooking, cancelBooking, deleteBooking, showToast } = useContext(AppContext);
+  const { requirePassword } = usePasswordProtection();
 
   // UI States
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [viewBooking, setViewBooking] = useState(null);
   const [cancelBookingItem, setCancelBookingItem] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
 
   // Filter States
   const [searchTerm, setSearchTerm] = useState('');
@@ -184,21 +184,27 @@ const Bookings = () => {
     }
   };
 
-  const handleEdit = (booking) => {
-    setForm(booking);
-    setEditingId(booking.id);
-    setShowForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handleEdit = async (booking) => {
+    const ok = await requirePassword({ actionType: "editBooking", actionLabel: "EDIT booking " + booking.id + " for " + booking.customerName });
+    if (ok) {
+      setForm(booking);
+      setEditingId(booking.id);
+      setShowForm(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
-  const handleCancelClick = (booking) => {
-    setCancelBookingItem(booking);
-    setCancelForm({
-      cancellationDate: getToday(),
-      reason: 'Customer Request',
-      notes: '',
-      refundAmount: booking.advancePaid
-    });
+  const handleCancelClick = async (booking) => {
+    const ok = await requirePassword({ actionType: "cancelBooking", actionLabel: "CANCEL booking " + booking.id + " for " + booking.customerName });
+    if (ok) {
+      setCancelBookingItem(booking);
+      setCancelForm({
+        cancellationDate: getToday(),
+        reason: 'Customer Request',
+        notes: '',
+        refundAmount: booking.advancePaid
+      });
+    }
   };
 
   const handleConfirmCancellation = async () => {
@@ -218,13 +224,10 @@ const Bookings = () => {
     }
   };
 
-  const handleDeleteClick = (id) => {
-    setDeleteId(id);
-  };
-
-  const handleConfirmDelete = () => {
-    if (deleteBooking(deleteId)) {
-        setDeleteId(null);
+  const handleDeleteClick = async (booking) => {
+    const ok = await requirePassword({ actionType: "deleteBooking", actionLabel: "DELETE booking " + booking.id + " for " + booking.customerName });
+    if (ok) {
+      deleteBooking(booking.id);
     }
   };
 
@@ -397,7 +400,7 @@ const Bookings = () => {
                             <button onClick={() => setViewBooking(b)} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all" title="View Details"><Eye className="w-4 h-4" /></button>
                             <button onClick={() => handleEdit(b)} className="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" title="Edit"><Pencil className="w-4 h-4" /></button>
                             <button onClick={() => handleCancelClick(b)} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all" title="Cancel Booking"><X className="w-4 h-4" /></button>
-                            <button onClick={() => handleDeleteClick(b.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                            <button onClick={() => handleDeleteClick(b)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </td>
                       </tr>
@@ -770,15 +773,7 @@ const Bookings = () => {
         </div>
       )}
 
-      {deleteId && (
-        <ConfirmDialog 
-          isOpen={!!deleteId}
-          title="Delete Booking?"
-          message={`Are you sure you want to permanently delete booking #${deleteId}? This action cannot be undone.`}
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setDeleteId(null)}
-        />
-      )}
+      {/* Standard Delete Dialog removed in favor of PasswordModal flow */}
     </div>
   );
 };

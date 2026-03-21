@@ -80,7 +80,7 @@ const NewTrip = () => {
     const fuelCost = (Number(form.fuelLitres) || 0) * (Number(form.fuelPrice) || 0);
     const tollTax = Number(form.tollTax) || 0;
     const borderTax = Number(form.borderTax) || 0;
-    const driverAllowance = Number(form.driverAllowance) || 0;
+    const driverAllowance = (Number(form.driverAllowance) || 0) * (Number(form.days) || 1);
     const otherCharges = Number(form.otherCharges) || 0;
     
     const grandTotal = baseRent + tollTax + borderTax + driverAllowance + otherCharges;

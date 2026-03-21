@@ -9,6 +9,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { path: '/bookings', label: 'Bookings', icon: CalendarDays },
     { path: '/newtrip', label: 'New Trip', icon: PlusCircle },
     { path: '/history', label: 'History', icon: History },
+    { path: '/settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -62,9 +63,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
         <div className="p-4 border-t border-white/10 flex items-center justify-between text-gray-400">
           <span className="text-sm">v1.0</span>
-          <button className="p-2 hover:bg-white/10 hover:text-white rounded-full transition-colors">
+          <NavLink to="/settings" onClick={() => setIsOpen(false)} className={({isActive}) => `p-2 rounded-full transition-colors ${isActive ? 'text-white bg-white/20' : 'hover:bg-white/10 hover:text-white'}`}>
             <Settings className="w-5 h-5" />
-          </button>
+          </NavLink>
         </div>
       </aside>
     </>

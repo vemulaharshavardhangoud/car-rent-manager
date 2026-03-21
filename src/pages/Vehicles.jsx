@@ -2,8 +2,8 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info } from 'lucide-react';
-import ConfirmDialog from '../components/ConfirmDialog';
 import { useNavigate } from 'react-router-dom';
+import { usePasswordProtection } from '../hooks/usePasswordProtection';
 
 const initialForm = {
   name: '', type: '4-Wheeler', capacity: '', numberPlate: '', 
@@ -13,11 +13,11 @@ const initialForm = {
 
 const Vehicles = () => {
   const { vehicles, allTrips, addVehicle, updateVehicle, deleteVehicle, showToast } = useContext(AppContext);
+  const { requirePassword } = usePasswordProtection();
   const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
-  const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, id: null, name: '' });
 
   const validate = () => {
     let newErrors = {};
@@ -65,13 +65,16 @@ const Vehicles = () => {
     }
   };
 
-  const handleEdit = (vehicle) => {
-    setForm({
-      ...initialForm,
-      ...vehicle
-    });
-    setEditingId(vehicle.id);
-    setErrors({});
+  const handleEdit = async (vehicle) => {
+    const ok = await requirePassword({ actionType: "editVehicle", actionLabel: "EDIT vehicle " + vehicle.name });
+    if (ok) {
+      setForm({
+        ...initialForm,
+        ...vehicle
+      });
+      setEditingId(vehicle.id);
+      setErrors({});
+    }
   };
 
   const cancelEdit = () => {
@@ -80,14 +83,12 @@ const Vehicles = () => {
     setErrors({});
   };
 
-  const confirmDelete = (id, name) => {
-    setDeleteDialog({ isOpen: true, id, name });
-  };
-
-  const handleDelete = () => {
-    deleteVehicle(deleteDialog.id);
-    if (editingId === deleteDialog.id) cancelEdit();
-    setDeleteDialog({ isOpen: false, id: null, name: '' });
+  const confirmDelete = async (id, name, numberPlate) => {
+    const ok = await requirePassword({ actionType: "deleteVehicle", actionLabel: "DELETE vehicle " + name + " (" + numberPlate + ")" });
+    if (ok) {
+      deleteVehicle(id);
+      if (editingId === id) cancelEdit();
+    }
   };
 
   const getStats = (vehicleId) => {
@@ -268,7 +269,7 @@ const Vehicles = () => {
                     <button onClick={() => handleEdit(v)} className="py-3 flex justify-center items-center gap-2 text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 transition-colors">
                       <Edit className="w-4 h-4" /> Edit
                     </button>
-                    <button onClick={() => confirmDelete(v.id, v.name)} className="py-3 flex justify-center items-center gap-2 text-sm font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50/50 transition-colors">
+                    <button onClick={() => confirmDelete(v.id, v.name, v.numberPlate)} className="py-3 flex justify-center items-center gap-2 text-sm font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50/50 transition-colors">
                       <Trash2 className="w-4 h-4" /> Delete
                     </button>
                     <button onClick={() => navigate(`/history?vehicleId=${v.id}`)} className="py-3 flex justify-center items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
@@ -281,14 +282,6 @@ const Vehicles = () => {
           </div>
         )}
       </div>
-
-      <ConfirmDialog 
-        isOpen={deleteDialog.isOpen}
-        title="Delete Vehicle"
-        message={`Are you sure you want to delete ${deleteDialog.name}? This action cannot be undone.`}
-        onConfirm={handleDelete}
-        onCancel={() => setDeleteDialog({ isOpen: false, id: null, name: '' })}
-      />
     </div>
   );
 };

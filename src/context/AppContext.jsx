@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import * as storage from '../utils/storage';
+import PasswordModal from '../components/PasswordModal';
 
 export const AppContext = createContext();
 
@@ -9,6 +10,19 @@ export const AppProvider = ({ children }) => {
   const [bookings, setBookings] = useState([]);
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
 
+  // Admin Session State
+  const [adminSession, setAdminSession] = useState({
+    active: false,
+    expiresAt: null
+  });
+
+  // Password Modal State
+  const [passwordModalConfig, setPasswordModalConfig] = useState({
+    isOpen: false,
+    actionInfo: null,
+    resolve: null
+  });
+
   const loadAllData = () => {
     setVehicles(storage.getAllVehicles());
     setAllTrips(storage.getAllTrips());
@@ -17,6 +31,74 @@ export const AppProvider = ({ children }) => {
 
   useEffect(() => {
     loadAllData();
+    
+    // Global Settings Initialization
+    if (!localStorage.getItem('crm_admin_password')) {
+      localStorage.setItem('crm_admin_password', btoa('admin123'));
+    }
+    if (!localStorage.getItem('crm_protected_actions')) {
+      const defaultToggles = {
+        deleteVehicle: true,
+        deleteTrip: true,
+        deleteBooking: true,
+        cancelBooking: true,
+        editVehicle: true,
+        editTrip: false,
+        editBooking: true,
+        clearData: true
+      };
+      localStorage.setItem('crm_protected_actions', JSON.stringify(defaultToggles));
+    }
+    if (!localStorage.getItem('crm_session_duration')) {
+      localStorage.setItem('crm_session_duration', '5');
+    }
+  }, []);
+
+  // Global Auth Guard Function
+  const requirePassword = useCallback((actionInfo) => {
+    return new Promise((resolve) => {
+      const protectedActionsStr = localStorage.getItem('crm_protected_actions');
+      const protectedActions = protectedActionsStr ? JSON.parse(protectedActionsStr) : {};
+      
+      const isProtected = protectedActions[actionInfo.actionType] ?? true;
+
+      // clearData is absolutely protected no matter what settings say
+      if (actionInfo.actionType !== 'clearData' && !isProtected) {
+        return resolve(true);
+      }
+
+      // Check Active Session
+      if (adminSession.active && adminSession.expiresAt > Date.now()) {
+        return resolve(true);
+      }
+
+      // Prompt User
+      setPasswordModalConfig({ isOpen: true, actionInfo, resolve });
+    });
+  }, [adminSession]);
+
+  const handlePasswordSuccess = () => {
+    const durationSetting = localStorage.getItem('crm_session_duration') || '5';
+    let expiresAt = null;
+    
+    if (durationSetting === 'Until Page Refresh') {
+      expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 365; // Indefinitely
+    } else {
+      expiresAt = Date.now() + parseInt(durationSetting, 10) * 60 * 1000;
+    }
+
+    setAdminSession({ active: true, expiresAt });
+    if (passwordModalConfig.resolve) passwordModalConfig.resolve(true);
+    setPasswordModalConfig({ isOpen: false, actionInfo: null, resolve: null });
+  };
+
+  const handlePasswordCancel = () => {
+    if (passwordModalConfig.resolve) passwordModalConfig.resolve(false);
+    setPasswordModalConfig({ isOpen: false, actionInfo: null, resolve: null });
+  };
+
+  const endAdminSession = useCallback(() => {
+    setAdminSession({ active: false, expiresAt: null });
   }, []);
 
   const showToast = (message, type = 'success') => {
@@ -138,9 +220,18 @@ export const AppProvider = ({ children }) => {
         cancelBooking,
         deleteBooking,
         showToast,
+        requirePassword,
+        adminSession,
+        endAdminSession
       }}
     >
       {children}
+      <PasswordModal 
+        isOpen={passwordModalConfig.isOpen}
+        actionInfo={passwordModalConfig.actionInfo}
+        onConfirm={handlePasswordSuccess}
+        onCancel={handlePasswordCancel}
+      />
     </AppContext.Provider>
   );
 };

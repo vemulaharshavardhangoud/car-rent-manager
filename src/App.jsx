@@ -12,6 +12,7 @@ import Vehicles from './pages/Vehicles';
 import Bookings from './pages/Bookings';
 import NewTrip from './pages/NewTrip';
 import History from './pages/History';
+import Settings from './pages/Settings';
 
 function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -70,6 +71,7 @@ function Layout() {
             <Route path="/bookings" element={<Bookings />} />
             <Route path="/newtrip" element={<NewTrip />} />
             <Route path="/history" element={<History />} />
+            <Route path="/settings" element={<Settings />} />
           </Routes>
         </main>
       </div>
