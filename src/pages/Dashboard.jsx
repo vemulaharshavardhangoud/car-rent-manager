@@ -8,6 +8,7 @@ import {
   CarFront, Bike, Truck
 } from 'lucide-react';
 import ReceiptModal from '../components/ReceiptModal';
+import VehicleDetails from '../components/VehicleDetails';
 
 const Dashboard = () => {
   const { vehicles, allTrips } = useContext(AppContext);
@@ -15,6 +16,7 @@ const Dashboard = () => {
 
   // Modal State
   const [viewTripData, setViewTripData] = useState(null);
+  const [viewingVehicle, setViewingVehicle] = useState(null);
 
   // Global Stats
   const totalVehicles = vehicles.length;
@@ -68,6 +70,13 @@ const Dashboard = () => {
 
   // Format Helper
   const formatMoney = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val);
+
+  const getStats = (vehicleId) => {
+    const trips = allTrips.filter(t => t.vehicleId === vehicleId);
+    const totalKm = trips.reduce((sum, t) => sum + (Number(t.distance) || 0), 0);
+    const totalEarned = trips.reduce((sum, t) => sum + (Number(t.grandTotal) || 0), 0);
+    return { count: trips.length, totalKm, totalEarned };
+  };
 
   // Type Icon helper
   const getTypeStyle = (type) => {
@@ -254,16 +263,28 @@ const Dashboard = () => {
                    const { bg, text, icon: Icon } = getTypeStyle(v.type);
 
                    return (
-                     <div key={v.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-blue-200 transition-colors group">
-                       <div className="flex items-center gap-4 mb-4 md:mb-0">
-                         <div className={`p-3 rounded-xl ${bg}`}>
-                           <Icon className={`w-6 h-6 ${text}`} />
-                         </div>
-                         <div>
-                           <h4 className="font-bold text-gray-800">{v.name}</h4>
-                           <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block">{v.numberPlate}</span>
-                         </div>
-                       </div>
+                      <div 
+                        key={v.id} 
+                        onClick={() => setViewingVehicle(v)}
+                        className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition-all cursor-pointer group shadow-sm active:scale-[0.98]"
+                      >
+                        <div className="flex items-center gap-4 mb-4 md:mb-0">
+                          <div className={`relative w-14 h-14 rounded-xl overflow-hidden border border-gray-100 shadow-sm grow-0 shrink-0`}>
+                            {v.photos?.[0] ? (
+                              <img src={v.photos[0]} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className={`w-full h-full flex items-center justify-center ${bg}`}>
+                                <Icon className={`w-6 h-6 ${text}`} />
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                               {v.name} 
+                            </h4>
+                            <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block">{v.numberPlate}</span>
+                          </div>
+                        </div>
                        
                        <div className="flex-1 max-w-lg md:ml-12 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4 md:mb-0">
                          <div>
@@ -286,14 +307,20 @@ const Dashboard = () => {
                          </div>
                        </div>
 
-                       <div className="md:ml-4 flex-shrink-0">
-                         <button 
-                           onClick={() => navigate(`/history?vehicleId=${v.id}`)}
-                           className="text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition-colors w-full md:w-auto"
-                         >
-                           View History
-                         </button>
-                       </div>
+                        <div className="md:ml-4 flex-shrink-0 flex gap-2">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); navigate(`/history?vehicleId=${v.id}`); }}
+                            className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                          >
+                            History
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setViewingVehicle(v); }}
+                            className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-lg transition-all shadow-sm shadow-blue-100/50"
+                          >
+                            View Details
+                          </button>
+                        </div>
                      </div>
                    );
                  })
@@ -380,6 +407,15 @@ const Dashboard = () => {
         onSave={() => setViewTripData(null)}
         onNewTrip={() => navigate('/newtrip')}
       />
+
+      {/* Vehicle Details Modal */}
+      {viewingVehicle && (
+        <VehicleDetails 
+          vehicle={viewingVehicle} 
+          stats={getStats(viewingVehicle.id)} 
+          onClose={() => setViewingVehicle(null)} 
+        />
+      )}
 
     </div>
   );

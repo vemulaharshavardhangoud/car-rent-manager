@@ -253,9 +253,9 @@ const NewTrip = () => {
               {selectedVehicle && (
                 <div className="space-y-4 animate-fade-in">
                   {/* PHOTO PREVIEW (SMALL) */}
-                  {selectedVehicle.photo && (
+                  {selectedVehicle.photos && selectedVehicle.photos.length > 0 && (
                     <div className="w-full h-32 rounded-xl overflow-hidden border border-gray-200">
-                      <img src={selectedVehicle.photo} alt={selectedVehicle.name} className="w-full h-full object-cover" />
+                      <img src={selectedVehicle.photos[0]} alt={selectedVehicle.name} className="w-full h-full object-cover" />
                     </div>
                   )}
 

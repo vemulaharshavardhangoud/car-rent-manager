@@ -1,15 +1,16 @@
 // v1.2 - Photo Upload + AC/Non-AC Pricing
 import React, { useState, useContext, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer } from 'lucide-react';
+import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
+import VehicleDetails from '../components/VehicleDetails';
 
 const initialForm = {
   name: '', type: '4-Wheeler', capacity: '', numberPlate: '', 
   ratePerKm: '', ratePerDay: '', tankCapacity: '', color: '', notes: '',
   bookingStatus: 'Available',
-  photo: null,
+  photos: [],
   hasAC: false,
   ratePerKmAC: '', ratePerDayAC: ''
 };
@@ -21,6 +22,7 @@ const Vehicles = () => {
   const [form, setForm] = useState(initialForm);
   const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
+  const [viewingVehicle, setViewingVehicle] = useState(null);
   const fileInputRef = useRef(null);
 
   const validate = () => {
@@ -60,22 +62,37 @@ const Vehicles = () => {
   };
 
   const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      showToast('Photo must be smaller than 2MB', 'error');
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    
+    if (form.photos.length + files.length > 5) {
+      showToast('Maximum 5 photos allowed per vehicle', 'error');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setForm(prev => ({ ...prev, photo: ev.target.result }));
-    };
-    reader.readAsDataURL(file);
+
+    files.forEach(file => {
+      if (file.size > 800 * 1024) { // 800KB limit for base64
+        showToast(`Photo ${file.name} is too large (max 800KB)`, 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setForm(prev => ({ 
+          ...prev, 
+          photos: [...prev.photos, ev.target.result].slice(0, 5) 
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+    
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const removePhoto = () => {
-    setForm(prev => ({ ...prev, photo: null }));
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  const removePhoto = (index) => {
+    setForm(prev => ({
+      ...prev,
+      photos: prev.photos.filter((_, i) => i !== index)
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -160,41 +177,49 @@ const Vehicles = () => {
 
             {/* PHOTO UPLOAD */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vehicle Photo (Optional)</label>
-              {form.photo ? (
-                <div className="relative rounded-xl overflow-hidden border border-gray-200 group">
-                  <img src={form.photo} alt="Vehicle" className="w-full h-40 object-cover" />
-                  <button
-                    type="button"
-                    onClick={removePhoto}
-                    className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1.5 transition-all opacity-0 group-hover:opacity-100"
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex justify-between items-center">
+                <span>Vehicle Photos ({form.photos.length}/5)</span>
+                {form.photos.length < 5 && (
+                  <button 
+                    type="button" 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-xs text-blue-600 font-bold hover:underline"
                   >
-                    <X className="w-4 h-4" />
+                    + Add New
                   </button>
-                  <div className="absolute bottom-2 left-2">
+                )}
+              </label>
+              
+              <div className="flex flex-wrap gap-2.5">
+                {form.photos.map((src, idx) => (
+                  <div key={idx} className="relative w-[70px] h-[70px] rounded-lg overflow-hidden border border-gray-200 shadow-sm animate-scale-in">
+                    <img src={src} alt="Vehicle" className="w-full h-full object-cover" />
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="bg-black/60 hover:bg-black/80 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
+                      onClick={() => removePhoto(idx)}
+                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition-colors"
                     >
-                      <Camera className="w-3.5 h-3.5" /> Change Photo
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-32 border-2 border-dashed border-gray-200 hover:border-blue-400 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:text-blue-500 bg-gray-50 hover:bg-blue-50/30 transition-all cursor-pointer"
-                >
-                  <Camera className="w-8 h-8" />
-                  <span className="text-sm font-medium">Click to upload photo</span>
-                  <span className="text-xs">JPG, PNG up to 2MB</span>
-                </button>
-              )}
+                ))}
+                
+                {form.photos.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-[70px] h-[70px] border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-500 bg-gray-50 transition-all"
+                  >
+                    <Camera className="w-5 h-5" />
+                    <span className="text-[10px] font-bold">Add</span>
+                  </button>
+                )}
+              </div>
+
               <input
                 ref={fileInputRef}
                 type="file"
+                multiple
                 accept="image/*"
                 onChange={handlePhotoChange}
                 className="hidden"
@@ -347,40 +372,54 @@ const Vehicles = () => {
                   <div className={`h-1.5 ${topColor}`}></div>
 
                   {/* VEHICLE PHOTO */}
-                  {v.photo && (
-                    <div className="relative h-44 overflow-hidden bg-gray-100">
-                      <img src={v.photo} alt={v.name} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                      <div className="absolute bottom-2 right-2">
+                  {v.photos && v.photos.length > 0 && (
+                    <div className="relative h-44 overflow-hidden bg-gray-100 group">
+                      <img src={v.photos[0]} alt={v.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                      <div className="absolute bottom-3 left-4">
+                         <h4 className="text-white font-bold text-sm drop-shadow-md">{v.name}</h4>
+                         <p className="text-white/80 text-[10px] font-bold drop-shadow-md">{v.numberPlate}</p>
+                      </div>
+                      <div className="absolute top-3 right-3 flex flex-col gap-2 scale-90 group-hover:scale-100 transition-transform">
+                        {v.photos.length > 1 && (
+                          <span className="bg-black/40 text-white text-[10px] font-black px-2 py-1 rounded-md backdrop-blur-sm border border-white/20">+{v.photos.length - 1} photos</span>
+                        )}
                         {getStatusBadge(v.bookingStatus)}
                       </div>
                     </div>
                   )}
 
                   <div className="p-5 flex-1 relative">
-                    {!v.photo && (
-                      <div className="absolute top-4 right-4">
-                        {getStatusBadge(v.bookingStatus)}
+                    {(!v.photos || v.photos.length === 0) && (
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3 pr-10">
+                          <div className={`p-2.5 rounded-xl ${topColor} bg-opacity-10`}><TypeIcon className={`w-6 h-6 ${textBorder}`} /></div>
+                          <div>
+                            <h3 className="font-bold text-lg text-gray-900 leading-tight">{v.name}</h3>
+                            <span className="inline-block bg-gray-100 text-gray-700 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-gray-200 mt-1">
+                              {v.numberPlate}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="absolute top-4 right-4">{getStatusBadge(v.bookingStatus)}</div>
+                      </div>
+                    )}
+
+                    {v.photos && v.photos.length > 0 && (
+                      <div className="flex justify-between items-center mb-4">
+                        <div className={`px-3 py-1.5 rounded-xl ${topColor} bg-opacity-10 flex items-center gap-2 border border-${topColor.split('-')[1]}-200`}>
+                          <TypeIcon className={`w-4 h-4 ${textBorder}`} />
+                          <span className={`${textBorder} text-xs font-black uppercase tracking-widest`}>{v.type}</span>
+                        </div>
                       </div>
                     )}
                     
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2.5 rounded-xl ${topColor} bg-opacity-10`}><TypeIcon className={`w-6 h-6 ${textBorder}`} /></div>
-                        <div>
-                          <h3 className="font-bold text-lg text-gray-900 leading-tight pr-12">{v.name}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="inline-block bg-gray-100 text-gray-700 text-xs font-mono font-bold px-2 py-0.5 rounded-md border border-gray-200">
-                              {v.numberPlate}
-                            </span>
-                            {v.hasAC && (
-                              <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-md border border-blue-200">
-                                <Thermometer className="w-3 h-3" /> AC
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2 mb-4">
+                      {v.hasAC && (
+                        <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-md border border-blue-200">
+                          <Thermometer className="w-3 h-3" /> AC
+                        </span>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
@@ -421,15 +460,18 @@ const Vehicles = () => {
                     </div>
                   </div>
                   
-                  <div className="border-t border-gray-100 grid grid-cols-3 divide-x divide-gray-100 bg-gray-50/50">
-                    <button onClick={() => handleEdit(v)} className="py-3 flex justify-center items-center gap-2 text-sm font-semibold text-gray-600 hover:text-blue-600 hover:bg-blue-50/50 transition-colors">
-                      <Edit className="w-4 h-4" /> Edit
+                  <div className="border-t border-gray-100 grid grid-cols-4 divide-x divide-gray-100 bg-gray-50/50">
+                    <button onClick={() => setViewingVehicle(v)} className="py-3 flex justify-center items-center gap-2 text-[10px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all uppercase tracking-widest">
+                      <Eye className="w-3.5 h-3.5" /> Details
                     </button>
-                    <button onClick={() => confirmDelete(v.id, v.name, v.numberPlate)} className="py-3 flex justify-center items-center gap-2 text-sm font-semibold text-gray-600 hover:text-red-600 hover:bg-red-50/50 transition-colors">
-                      <Trash2 className="w-4 h-4" /> Delete
+                    <button onClick={() => handleEdit(v)} className="py-3 flex justify-center items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
+                      <Edit className="w-3.5 h-3.5" /> Edit
                     </button>
-                    <button onClick={() => navigate(`/history?vehicleId=${v.id}`)} className="py-3 flex justify-center items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors">
-                      <Clock className="w-4 h-4" /> History
+                    <button onClick={() => confirmDelete(v.id, v.name, v.numberPlate)} className="py-3 flex justify-center items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-red-600 transition-colors uppercase tracking-widest">
+                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                    </button>
+                    <button onClick={() => navigate(`/history?vehicleId=${v.id}`)} className="py-3 flex justify-center items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
+                      <Clock className="w-3.5 h-3.5" /> History
                     </button>
                   </div>
                 </div>
@@ -438,6 +480,10 @@ const Vehicles = () => {
           </div>
         )}
       </div>
+      {/* DETAILS MODAL */}
+      {viewingVehicle && (
+        <VehicleDetails vehicle={viewingVehicle} stats={getStats(viewingVehicle.id)} onClose={() => setViewingVehicle(null)} />
+      )}
     </div>
   );
 };
