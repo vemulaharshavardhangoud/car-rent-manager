@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { AppContext } from '../context/AppContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Car, MapPin, Calendar, Navigation, Receipt, Calculator, AlertCircle, TrendingUp, DollarSign, RefreshCw, Save } from 'lucide-react';
+import { Car, MapPin, Calendar, Navigation, Receipt, Calculator, AlertCircle, TrendingUp, DollarSign, RefreshCw, Save, Thermometer, Wind } from 'lucide-react';
 import ReceiptModal from '../components/ReceiptModal';
 
 const initialForm = {
@@ -25,7 +25,8 @@ const initialForm = {
   otherChargesLabel: '',
   customerName: '',
   customerPhone: '',
-  purpose: 'Personal'
+  purpose: 'Personal',
+  acMode: false
 };
 
 const NewTrip = () => {
@@ -70,10 +71,13 @@ const NewTrip = () => {
   const costs = useMemo(() => {
     let baseRent = 0;
     if (selectedVehicle) {
+      const useAC = form.acMode && selectedVehicle.hasAC;
+      const rateKm = useAC ? Number(selectedVehicle.ratePerKmAC) : Number(selectedVehicle.ratePerKm);
+      const rateDay = useAC ? Number(selectedVehicle.ratePerDayAC) : Number(selectedVehicle.ratePerDay);
       if (form.billingMode === 'KM') {
-        baseRent = distance * Number(selectedVehicle.ratePerKm);
+        baseRent = distance * rateKm;
       } else {
-        baseRent = (Number(form.days) || 1) * Number(selectedVehicle.ratePerDay);
+        baseRent = (Number(form.days) || 1) * rateDay;
       }
     }
     
@@ -231,22 +235,56 @@ const NewTrip = () => {
               </div>
 
               {selectedVehicle && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white rounded-xl border border-blue-100 shadow-sm animate-fade-in">
-                  <div>
-                    <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Type</span>
-                    <span className="font-semibold text-gray-800">{selectedVehicle.type}</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Capacity</span>
-                    <span className="font-semibold text-gray-800">{selectedVehicle.capacity} Seats</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Rate / KM</span>
-                    <span className="font-semibold text-gray-800">₹{selectedVehicle.ratePerKm}</span>
-                  </div>
-                  <div>
-                    <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Tank Capacity</span>
-                    <span className="font-semibold text-gray-800">{selectedVehicle.tankCapacity} L</span>
+                <div className="space-y-4 animate-fade-in">
+                  {/* PHOTO PREVIEW (SMALL) */}
+                  {selectedVehicle.photo && (
+                    <div className="w-full h-32 rounded-xl overflow-hidden border border-gray-200">
+                      <img src={selectedVehicle.photo} alt={selectedVehicle.name} className="w-full h-full object-cover" />
+                    </div>
+                  )}
+
+                  {/* AC SELECTION */}
+                  {selectedVehicle.hasAC && (
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setForm(prev => ({ ...prev, acMode: false }))}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border font-bold transition-all ${!form.acMode ? 'bg-white border-blue-500 text-blue-600 shadow-sm' : 'bg-gray-100 border-gray-200 text-gray-400 hover:bg-gray-200'}`}
+                      >
+                        <Wind className="w-4 h-4" /> Non-AC
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm(prev => ({ ...prev, acMode: true }))}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border font-bold transition-all ${form.acMode ? 'bg-blue-500 border-blue-600 text-white shadow-md' : 'bg-gray-100 border-gray-200 text-gray-400 hover:bg-gray-200'}`}
+                      >
+                        <Thermometer className="w-4 h-4" /> With AC
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                    <div>
+                      <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Type</span>
+                      <span className="font-semibold text-gray-800">{selectedVehicle.type}</span>
+                    </div>
+                    <div>
+                      <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Capacity</span>
+                      <span className="font-semibold text-gray-800">{selectedVehicle.capacity} Seats</span>
+                    </div>
+                    <div>
+                      <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Applied Rate</span>
+                      <span className="font-bold text-blue-600">
+                        ₹{form.billingMode === 'KM' 
+                          ? (form.acMode ? selectedVehicle.ratePerKmAC : selectedVehicle.ratePerKm) 
+                          : (form.acMode ? selectedVehicle.ratePerDayAC : selectedVehicle.ratePerDay)}
+                        <span className="text-[10px] text-gray-400 font-normal ml-0.5">/{form.billingMode}</span>
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Status</span>
+                      <span className="font-semibold text-green-600 text-xs">Available</span>
+                    </div>
                   </div>
                 </div>
               )}

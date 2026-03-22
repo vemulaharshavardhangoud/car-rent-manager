@@ -8,7 +8,7 @@ import {
   MapPin, Clock, CreditCard, Info, 
   ChevronLeft, ChevronRight, MoreVertical, 
   Eye, Pencil, X, Trash2, CheckCircle2, 
-  AlertCircle, ArrowRight, Printer, AlertTriangle
+  AlertCircle, ArrowRight, Printer, AlertTriangle, Wind, Thermometer
 } from 'lucide-react';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 
@@ -54,7 +54,8 @@ const Bookings = () => {
     advancePaid: 0,
     paymentMode: 'Cash',
     status: 'Confirmed',
-    specialInstructions: ''
+    specialInstructions: '',
+    acMode: false
   };
   const [form, setForm] = useState(initialForm);
   const [formErrors, setFormErrors] = useState({});
@@ -85,12 +86,16 @@ const Bookings = () => {
 
   const estimatedCost = useMemo(() => {
     if (!selectedVehicle) return 0;
+    const useAC = form.acMode && selectedVehicle.hasAC;
+    const rateDay = useAC ? (Number(selectedVehicle.ratePerDayAC) || 0) : (Number(selectedVehicle.ratePerDay) || 0);
+    const rateKm = useAC ? (Number(selectedVehicle.ratePerKmAC) || 0) : (Number(selectedVehicle.ratePerKm) || 0);
+
     if (form.billingMode === 'perDay') {
-      return bookingDays * (Number(selectedVehicle.ratePerDay) || 0);
+      return bookingDays * rateDay;
     } else {
-      return (Number(form.estimatedDistance) || 0) * (Number(selectedVehicle.ratePerKm) || 0);
+      return (Number(form.estimatedDistance) || 0) * rateKm;
     }
-  }, [selectedVehicle, form.billingMode, bookingDays, form.estimatedDistance]);
+  }, [selectedVehicle, form.billingMode, bookingDays, form.estimatedDistance, form.acMode]);
 
   // Filtering Logic
   const filteredBookings = useMemo(() => {
@@ -470,20 +475,42 @@ const Bookings = () => {
                     {formErrors.vehicleId && <p className="text-red-500 text-[10px] mt-1 font-bold">{formErrors.vehicleId}</p>}
 
                     {selectedVehicle && (
-                       <div className="mt-3 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-                          <div className="flex justify-between items-start mb-2">
-                             <div>
-                                <span className="text-[10px] font-black text-blue-400 uppercase">{selectedVehicle.type} • {selectedVehicle.capacity} Seats</span>
-                                <h4 className="font-bold text-blue-900">{selectedVehicle.name}</h4>
-                             </div>
-                             <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${selectedVehicle.bookingStatus === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                {selectedVehicle.bookingStatus || 'Available'}
-                             </span>
+                       <div className="mt-3 space-y-3">
+                          <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                            <div className="flex justify-between items-start mb-2">
+                                <div>
+                                    <span className="text-[10px] font-black text-blue-400 uppercase">{selectedVehicle.type} • {selectedVehicle.capacity} Seats</span>
+                                    <h4 className="font-bold text-blue-900">{selectedVehicle.name}</h4>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${selectedVehicle.bookingStatus === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {selectedVehicle.bookingStatus || 'Available'}
+                                </span>
+                            </div>
+                            <div className="flex gap-4 text-[10px] font-bold text-blue-700 mt-2 pt-2 border-t border-blue-100/50">
+                                <span>Day: ₹{selectedVehicle.ratePerDay}</span>
+                                <span>KM: ₹{selectedVehicle.ratePerKm}</span>
+                                {selectedVehicle.hasAC && <span className="text-blue-500">AC: ₹{selectedVehicle.ratePerDayAC}/Day</span>}
+                            </div>
                           </div>
-                          <div className="flex gap-4 text-[10px] font-bold text-blue-700 mt-2 pt-2 border-t border-blue-100/50">
-                             <span>Rate/KM: ₹{selectedVehicle.ratePerKm}</span>
-                             <span>Rate/Day: ₹{selectedVehicle.ratePerDay}</span>
-                          </div>
+
+                          {selectedVehicle.hasAC && (
+                            <div className="flex p-1 bg-slate-100 rounded-2xl">
+                              <button 
+                                  type="button"
+                                  onClick={() => setForm(prev => ({ ...prev, acMode: false }))}
+                                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold text-[10px] transition-all ${!form.acMode ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+                              >
+                                  <Wind className="w-3 h-3" /> Non-AC
+                              </button>
+                              <button 
+                                  type="button"
+                                  onClick={() => setForm(prev => ({ ...prev, acMode: true }))}
+                                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold text-[10px] transition-all ${form.acMode ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-500'}`}
+                              >
+                                  <Thermometer className="w-3 h-3" /> With AC
+                              </button>
+                            </div>
+                          )}
                        </div>
                     )}
                   </div>
