@@ -45,6 +45,22 @@ const NewTrip = () => {
     return vehicles.find(v => v.id === form.vehicleId) || null;
   }, [form.vehicleId, vehicles]);
 
+  // AUTO-CALCULATE DAYS
+  useEffect(() => {
+    if (form.date && form.endDate) {
+      const start = new Date(form.date);
+      const end = new Date(form.endDate);
+      const diff = end.getTime() - start.getTime();
+      const calculatedDays = Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
+      const finalDays = calculatedDays >= 1 ? calculatedDays : 1;
+      
+      // Only update if it actually changed to avoid loop
+      if (form.days !== finalDays) {
+        setForm(prev => ({ ...prev, days: finalDays }));
+      }
+    }
+  }, [form.date, form.endDate]);
+
   const handleChange = (e) => {
     const { name, value, type } = e.target;
     let finalValue = value;

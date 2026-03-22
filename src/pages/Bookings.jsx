@@ -76,8 +76,8 @@ const Bookings = () => {
     const start = new Date(form.bookingStartDate);
     const end = new Date(form.bookingEndDate);
     const diff = end.getTime() - start.getTime();
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    return days >= 0 ? days : 0;
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
+    return days >= 1 ? days : 1;
   }, [form.bookingStartDate, form.bookingEndDate]);
 
   const selectedVehicle = useMemo(() => {
