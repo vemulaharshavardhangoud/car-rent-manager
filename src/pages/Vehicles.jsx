@@ -460,18 +460,18 @@ const Vehicles = () => {
                     </div>
                   </div>
                   
-                  <div className="border-t border-gray-100 grid grid-cols-4 divide-x divide-gray-100 bg-gray-50/50">
-                    <button onClick={() => setViewingVehicle(v)} className="py-3 flex justify-center items-center gap-2 text-[10px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all uppercase tracking-widest">
-                      <Eye className="w-3.5 h-3.5" /> Details
+                  <div className="border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-100 bg-gray-50/50">
+                    <button onClick={() => setViewingVehicle(v)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all uppercase tracking-widest">
+                      <Eye className="w-4 h-4" /> Details
                     </button>
-                    <button onClick={() => handleEdit(v)} className="py-3 flex justify-center items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
-                      <Edit className="w-3.5 h-3.5" /> Edit
+                    <button onClick={() => handleEdit(v)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
+                      <Edit className="w-4 h-4" /> Edit
                     </button>
-                    <button onClick={() => confirmDelete(v.id, v.name, v.numberPlate)} className="py-3 flex justify-center items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-red-600 transition-colors uppercase tracking-widest">
-                      <Trash2 className="w-3.5 h-3.5" /> Delete
+                    <button onClick={() => confirmDelete(v.id, v.name, v.numberPlate)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-gray-500 hover:text-red-600 transition-colors uppercase tracking-widest">
+                      <Trash2 className="w-4 h-4" /> Delete
                     </button>
-                    <button onClick={() => navigate(`/history?vehicleId=${v.id}`)} className="py-3 flex justify-center items-center gap-2 text-[10px] font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
-                      <Clock className="w-3.5 h-3.5" /> History
+                    <button onClick={() => navigate(`/history?vehicleId=${v.id}`)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
+                      <Clock className="w-4 h-4" /> History
                     </button>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import { AppContext } from '../context/AppContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Car, MapPin, Calendar, Navigation, Receipt, Calculator, AlertCircle, TrendingUp, DollarSign, RefreshCw, Save, Thermometer, Wind } from 'lucide-react';
 import ReceiptModal from '../components/ReceiptModal';
+import CostComparison from '../components/CostComparison';
 
 const initialForm = {
   vehicleId: '',
@@ -204,10 +205,10 @@ const NewTrip = () => {
   const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 pb-12 animate-fade-in items-start">
+    <div className="flex flex-col md:flex-row gap-8 pb-12 animate-fade-in items-start">
       
       {/* LEFT COLUMN: FORM */}
-      <div className="w-full lg:w-[60%] bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
+      <div className="w-full md:w-[60%] bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
           <div className="bg-blue-50 p-2.5 rounded-xl">
             <Calculator className="w-6 h-6 text-blue-600" />
@@ -498,8 +499,8 @@ const NewTrip = () => {
         </form>
       </div>
 
-      {/* RIGHT COLUMN: PREVIEW */}
-      <div className="w-full lg:w-[40%] shrink-0 lg:sticky lg:top-24 mt-8 lg:mt-0">
+      {/* RIGHT COLUMN: ESTIMATE */}
+      <div className="w-full md:w-[35%] shrink-0 sticky top-4 mt-8 lg:mt-0">
         <div className="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-100 overflow-hidden">
           
           <div className="bg-slate-900 text-white p-6 relative overflow-hidden">
@@ -579,6 +580,14 @@ const NewTrip = () => {
                 <span>₹{costs.otherCharges}</span>
               </div>
             </div>
+
+            <CostComparison 
+              vehicle={selectedVehicle} 
+              distance={distance} 
+              days={form.days} 
+              activeMode={form.billingMode} 
+              activeAC={form.acMode} 
+            />
 
             <div className="mt-8 pt-4 border-t-2 border-dashed border-gray-200">
                <div className="flex justify-between items-center px-2">

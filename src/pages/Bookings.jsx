@@ -11,6 +11,7 @@ import {
   AlertCircle, ArrowRight, Printer, AlertTriangle, Wind, Thermometer
 } from 'lucide-react';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
+import CostComparison from '../components/CostComparison';
 
 const Bookings = () => {
   const { vehicles, bookings, addBooking, updateBooking, cancelBooking, deleteBooking, showToast } = useContext(AppContext);
@@ -327,11 +328,12 @@ const Bookings = () => {
         </button>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-8">
+      <div className="flex flex-col md:flex-row gap-8">
         {/* LEFT PANEL: BOOKINGS LIST */}
-        <div className="flex-1 w-full order-2 xl:order-1">
+        <div className="flex-1 w-full order-2 md:order-1">
           <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View (Hidden on Mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="bg-slate-50/50 border-b border-slate-100">
                   <tr className="text-slate-400 text-[11px] font-black uppercase tracking-wider">
@@ -415,6 +417,61 @@ const Bookings = () => {
               </table>
             </div>
 
+            {/* Mobile Card View (Hidden on Desktop) */}
+            <div className="md:hidden divide-y divide-slate-100">
+              {paginatedBookings.length === 0 ? (
+                <div className="p-10 text-center flex flex-col items-center">
+                  <CalendarDays className="w-12 h-12 text-slate-200 mb-2" />
+                  <p className="text-slate-400 font-bold">No bookings found</p>
+                </div>
+              ) : (
+                paginatedBookings.map((b) => (
+                  <div key={b.id} className="p-4 active:bg-slate-50 transition-colors" onClick={() => setViewBooking(b)}>
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <span className="text-[10px] font-black text-blue-500 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-wider">#{b.id}</span>
+                        <h4 className="font-bold text-slate-800 mt-1">{b.customerName}</h4>
+                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><Phone className="w-3 h-3" /> {b.customerPhone}</p>
+                      </div>
+                      {getStatusBadge(b.status)}
+                    </div>
+                    
+                    <div className="bg-slate-50 rounded-xl p-3 mb-4 space-y-2">
+                       <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400 font-medium">Vehicle</span>
+                          <span className="font-bold text-slate-700">{b.vehicleName} <span className="text-[10px] font-mono text-slate-400">({b.numberPlate})</span></span>
+                       </div>
+                       <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400 font-medium">Dates</span>
+                          <span className="font-bold text-slate-700">{b.bookingStartDate} → {b.bookingEndDate}</span>
+                       </div>
+                       <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400 font-medium tracking-tight">Advance Paid</span>
+                          <span className="font-black text-emerald-600">₹{b.advancePaid}</span>
+                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                       <button onClick={() => setViewBooking(b)} className="flex-1 py-2.5 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                          <Eye className="w-3.5 h-3.5" /> View
+                       </button>
+                       <button onClick={() => handleEdit(b)} className="flex-1 py-2.5 bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-600 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2">
+                          <Pencil className="w-3.5 h-3.5" /> Edit
+                       </button>
+                       <div className="flex gap-2">
+                          <button onClick={() => handleCancelClick(b)} className="p-2.5 bg-slate-100 hover:bg-orange-50 text-slate-600 hover:text-orange-600 rounded-xl transition-all" title="Cancel">
+                            <X className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDeleteClick(b)} className="p-2.5 bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-500 rounded-xl transition-all" title="Delete">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                       </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
             {/* PAGINATION */}
             {totalPages > 1 && (
               <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-white">
@@ -441,10 +498,13 @@ const Bookings = () => {
           </div>
         </div>
 
-        {/* RIGHT PANEL: ADD/EDIT FORM */}
+        {/* RIGHT PANEL: ADD/EDIT FORM (Slide-over on Mobile) */}
         {showForm && (
-          <div className="w-full xl:w-[450px] shrink-0 order-1 xl:order-2 animate-fade-in-right">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden sticky top-4">
+          <div className="fixed inset-0 z-[60] md:relative md:inset-auto md:z-auto md:w-[450px] md:order-2">
+            {/* Backdrop for Mobile */}
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm md:hidden" onClick={() => setShowForm(false)}></div>
+            
+            <div className="fixed bottom-0 left-0 right-0 top-12 bg-white rounded-t-[40px] shadow-2xl overflow-hidden md:sticky md:top-4 md:rounded-3xl md:shadow-sm md:border md:border-slate-100 animate-slide-up md:animate-fade-in-right">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <h2 className="text-xl font-black text-slate-800 tracking-tight">
                   {editingId ? `Edit Booking #${editingId}` : 'New Booking'}
@@ -644,6 +704,14 @@ const Bookings = () => {
                       />
                     </div>
                   )}
+
+                  <CostComparison 
+                    vehicle={selectedVehicle} 
+                    distance={form.estimatedDistance} 
+                    days={bookingDays} 
+                    activeMode={form.billingMode} 
+                    activeAC={form.acMode} 
+                  />
 
                   {/* Est Cost */}
                   <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex justify-between items-center">

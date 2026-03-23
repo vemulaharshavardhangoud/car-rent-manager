@@ -185,7 +185,8 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
+                {/* Desktop View */}
+                <table className="hidden md:table w-full text-sm text-left">
                   <thead className="text-xs text-gray-400 uppercase bg-white border-b border-gray-100">
                     <tr>
                       <th className="px-5 py-3 font-semibold">Vehicle</th>
@@ -232,6 +233,35 @@ const Dashboard = () => {
                     ))}
                   </tbody>
                 </table>
+
+                {/* Mobile View */}
+                <div className="md:hidden divide-y divide-gray-50 px-4">
+                  {recentTrips.map(trip => (
+                    <div 
+                      key={trip.id} 
+                      onClick={() => setViewTripData(trip)}
+                      className="py-4 active:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                         <div>
+                            <span className="font-bold text-gray-800">{trip.vehicleName}</span>
+                            <span className="text-[10px] text-gray-400 ml-2 font-mono">({trip.numberPlate})</span>
+                         </div>
+                         <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
+                           {new Date(trip.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                         </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs mt-1">
+                        <div className="flex items-center gap-1 text-gray-500 max-w-[60%] overflow-hidden">
+                          <span className="truncate">{trip.fromLocation}</span>
+                          <ArrowRight className="w-2.5 h-2.5 flex-shrink-0" />
+                          <span className="truncate">{trip.toLocation}</span>
+                        </div>
+                        <div className="font-black text-green-600">₹{formatMoney(trip.grandTotal)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

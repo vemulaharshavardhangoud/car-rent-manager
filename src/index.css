@@ -6,10 +6,41 @@
   --color-active-nav: #3b82f6;
   --color-main-bg: #f1f5f9;
   --color-card-bg: #ffffff;
+  --sidebar-width: 280px;
+  --header-height: 70px;
+  --primary-blue: #2563eb;
+  --secondary-slate: #1e293b;
   --color-primary: #3b82f6;
   --color-danger: #ef4444;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
+}
+
+/* Mobile Helpers */
+@media (max-width: 768px) {
+  .mobile-hide { display: none !important; }
+  .mobile-stack { flex-direction: column !important; }
+  .mobile-touch-target { min-height: 44px; min-width: 44px; }
+  .mobile-font-sm { font-size: 0.75rem !important; }
+}
+
+@media (min-width: 769px) {
+  .desktop-hide { display: none !important; }
+}
+
+/* Custom Scrollbar for Mobile Tables */
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 20px;
 }
 
 @layer base {
