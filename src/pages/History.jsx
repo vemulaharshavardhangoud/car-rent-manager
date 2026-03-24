@@ -4,7 +4,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { 
   Search, Filter, Calendar, MapPin, 
   Trash2, Edit, Eye, Download, ChevronLeft, 
-  ChevronRight, ArrowRight, Route
+  ChevronRight, ArrowRight, Route, X
 } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 import ReceiptModal from '../components/ReceiptModal';
@@ -12,6 +12,8 @@ import { exportTripsAsCSV } from '../utils/storage';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 
 const History = () => {
+  const formatMoney = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val);
+
   const { allTrips, vehicles, deleteTrip } = useContext(AppContext);
   const { requirePassword } = usePasswordProtection();
   const location = useLocation();
@@ -147,31 +149,35 @@ const History = () => {
   };
 
   return (
-    <div className="w-full pb-12 animate-fade-in relative flex flex-col min-h-full">
+    <div className="w-full pb-12 animate-fade-in relative">
+
       
       {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 sticky top-16 z-20">
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-center mb-4">
-          <div className="flex gap-4 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 z-20">
+
+        <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-between items-center">
+          <div className="flex flex-wrap md:flex-nowrap gap-4 flex-grow items-center">
+
+
             {/* Vehicle Select */}
             <select 
               value={vehicleId} 
               onChange={(e) => setVehicleId(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px]"
+              className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:min-w-[200px] md:w-auto"
             >
               <option value="">All Vehicles</option>
               {vehicles.map(v => <option key={v.id} value={v.id}>{v.name} — {v.numberPlate}</option>)}
             </select>
 
             {/* Date Range */}
-            <div className="flex items-center gap-2 border border-gray-200 rounded-lg pr-2 bg-white flex-shrink-0">
-               <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="px-3 py-2 text-sm bg-transparent focus:outline-none rounded-l-lg border-r border-gray-200" title="From Date" />
-               <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="px-3 py-2 text-sm bg-transparent focus:outline-none" title="To Date" />
+            <div className="flex items-center gap-2 border border-gray-200 rounded-lg pr-2 bg-white w-full sm:w-auto flex-shrink-0">
+               <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="flex-1 px-3 py-2 text-sm bg-transparent focus:outline-none rounded-l-lg border-r border-gray-200 min-w-0" title="From Date" />
+               <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="flex-1 px-3 py-2 text-sm bg-transparent focus:outline-none min-w-0" title="To Date" />
                <button onClick={clearDates} className="text-gray-400 hover:text-red-500 px-2 text-xs font-semibold" title="Clear Dates">X</button>
             </div>
             
             {/* Search */}
-            <div className="relative min-w-[200px] flex-shrink-0">
+            <div className="relative flex-grow">
               <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
               <input 
                 type="text" 
@@ -191,38 +197,45 @@ const History = () => {
             <select 
               value={sortBy} 
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+              className="px-4 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-full md:w-auto flex-shrink-0"
             >
               <option>Latest First</option>
               <option>Oldest First</option>
               <option>Highest Amount</option>
               <option>Lowest Amount</option>
               <option>Longest Distance</option>
-            </select>
-          </div>
+          </select>
+        </div>
 
-          <button onClick={handleExportCSV} className="w-full lg:w-auto px-4 py-2 bg-slate-900 text-white text-sm font-semibold rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 flex-shrink-0">
+        <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
+          <button onClick={handleExportCSV} className="w-full md:w-auto px-6 py-2.5 bg-slate-900 text-white text-sm font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200">
             <Download className="w-4 h-4" /> Export CSV
           </button>
         </div>
       </div>
 
+    </div>
+
       {filteredTrips.length === 0 ? (
-        <div className="bg-white flex flex-col items-center justify-center p-16 rounded-2xl shadow-sm border border-gray-100 flex-1 min-h-[400px]">
-          <div className="bg-gray-100 p-6 rounded-full mb-6">
-            <Route className="w-16 h-16 text-gray-400" />
+        <div className="bg-white flex flex-col items-center justify-center p-8 rounded-2xl shadow-sm border border-gray-100 min-h-[300px]">
+          <div className="bg-gray-50 p-4 rounded-full mb-4">
+            <Route className="w-10 h-10 text-gray-300" />
           </div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">No trips found for the selected filters</h3>
-          <p className="text-gray-500 mb-8">{vehicleId && allTrips.filter(t => t.vehicleId === vehicleId).length === 0 ? "This vehicle has no trip records yet." : "Adjust your filters or add a new trip."}</p>
-          <Link to="/newtrip" className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors">
-            Record First Trip
+          <h3 className="text-base font-black text-gray-800 mb-1 text-center">No matching trips</h3>
+          <p className="text-gray-400 text-[10px] mb-6 text-center max-w-[200px] font-bold uppercase tracking-wider">
+            {vehicleId ? "This vehicle hasn't been active in this period." : "Adjust your filters to see results."}
+          </p>
+          <Link to="/newtrip" className="px-5 py-2.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-100">
+            Record Trip
           </Link>
         </div>
       ) : (
         <>
-          {/* TRIP TABLE */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6 flex-1">
-            <div className="overflow-x-auto">
+          {/* TRIP LIST CONTENT */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6">
+
+            {/* Desktop Table View (Hidden on Mobile) */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
                   <tr>
@@ -288,6 +301,45 @@ const History = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View (Hidden on Desktop) */}
+            <div className="md:hidden divide-y divide-gray-100">
+              {currentTrips.map((trip) => (
+                <div key={trip.id} onClick={() => setViewTripData(trip)} className="p-4 active:bg-blue-50 transition-colors">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="font-bold text-gray-900 leading-tight">{trip.vehicleName}</div>
+                      <div className="text-[10px] text-gray-400 font-mono mt-0.5">{trip.numberPlate}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Date</div>
+                      <div className="text-xs font-semibold text-gray-700">{formatDate(trip.date)}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-3">
+                    <div className="bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 overflow-hidden">
+                       <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest block mb-1">Route</span>
+                       <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 truncate">
+                         {trip.fromLocation} → {trip.toLocation}
+                       </div>
+                    </div>
+                    <div className="bg-green-50/50 p-2.5 rounded-xl border border-green-100/50">
+                       <span className="text-[9px] text-green-500 font-black uppercase tracking-widest block mb-1">Total Bill</span>
+                       <div className="text-sm font-black text-green-700">₹{trip.grandTotal?.toLocaleString()}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[10px] text-gray-500 px-1">
+                    <div className="flex items-center gap-3">
+                       <span><b className="text-gray-900">{trip.distance}</b> KM</span>
+                       {trip.hasAC && <span className="text-blue-600 font-black uppercase">AC Mode</span>}
+                    </div>
+                    <button className="text-blue-600 font-black uppercase tracking-widest flex items-center gap-1">Details <Eye className="w-3 h-3" /></button>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* Pagination */}
@@ -362,9 +414,9 @@ const History = () => {
               <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
                 <Route className="w-5 h-5 text-gray-500" /> Vehicle Trip Timeline
               </h3>
-              <div className="relative pl-4 overflow-x-auto pb-4">
+              <div className="relative pl-4 overflow-x-auto pb-4 max-w-full">
                 <div className="absolute left-[39px] sm:left-[50%] sm:-ml-px top-0 bottom-0 w-0.5 bg-gray-200 hidden sm:block"></div>
-                <div className="flex sm:flex-col gap-6 sm:gap-4 relative w-max sm:w-full">
+                <div className="flex flex-row sm:flex-col gap-6 sm:gap-4 relative w-max sm:w-full">
                   {/* Timeline is easier to read vertically, the prompt says "horizontal line" but typically horizontal timeline cards overflow quickly on responsive. To respect "horizontal line", we can make it a horizontal scrollable row and plot nodes on a horizontal axis. */}
                   {currentTrips.slice(0, 10).map((t, i) => (
                     <div key={t.id} className="relative flex flex-col items-center group w-64 flex-shrink-0">

@@ -14,6 +14,8 @@ import Bookings from './pages/Bookings';
 import NewTrip from './pages/NewTrip';
 import History from './pages/History';
 import Settings from './pages/Settings';
+import BottomNav from './components/BottomNav';
+
 
 function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -82,7 +84,8 @@ function Layout() {
       <div className="flex-1 flex flex-col lg:pl-[250px] transition-spacing duration-300">
         <Header setSidebarOpen={setIsSidebarOpen} />
         
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#f1f5f9] p-4 lg:p-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#f1f5f9] p-4 lg:p-8 pb-32 lg:pb-8 max-w-screen-overflow">
+
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vehicles" element={<Vehicles />} />
@@ -94,8 +97,11 @@ function Layout() {
         </main>
       </div>
 
+      <BottomNav setSidebarOpen={setIsSidebarOpen} />
       <Toast />
     </div>
+
+
   );
 }
 
