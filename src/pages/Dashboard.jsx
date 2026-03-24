@@ -96,7 +96,7 @@ const Dashboard = () => {
       </div>
 
       {/* SECTION 1 - TOP STATS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl shadow-sm border-l-4 border-l-blue-500 p-5 hover:shadow-md transition-shadow group cursor-default">
           <div className="flex justify-between items-start">
             <div>
@@ -108,32 +108,6 @@ const Dashboard = () => {
             </div>
           </div>
           <p className="text-xs text-gray-400 mt-3 font-medium">{totalVehicles > 0 ? `${totalVehicles} Active` : 'No vehicles added'}</p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border-l-4 border-l-emerald-500 p-5 hover:shadow-md transition-shadow group cursor-default">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-500 text-sm font-semibold mb-1">Total Trips</p>
-              <h3 className="text-3xl font-bold text-gray-800">{totalTrips}</h3>
-            </div>
-            <div className="p-3 bg-emerald-50 rounded-lg group-hover:bg-emerald-100 transition-colors">
-              <Map className="w-6 h-6 text-emerald-500" />
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 mt-3 font-medium">{totalTrips > 0 ? `${totalTrips} Recorded` : 'No trips yet'}</p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border-l-4 border-l-orange-500 p-5 hover:shadow-md transition-shadow group cursor-default">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-500 text-sm font-semibold mb-1">Total KM Driven</p>
-              <h3 className="text-3xl font-bold text-gray-800">{formatMoney(totalKm)}</h3>
-            </div>
-            <div className="p-3 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
-              <Route className="w-6 h-6 text-orange-500" />
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 mt-3 font-medium">Across all vehicles</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border-l-4 border-l-purple-500 p-5 hover:shadow-md transition-shadow group cursor-default">

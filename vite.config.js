@@ -7,3 +7,4 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/car-rent-manager/'
 })
+// Refresh

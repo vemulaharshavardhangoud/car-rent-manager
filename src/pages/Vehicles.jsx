@@ -1,7 +1,7 @@
 // v1.2 - Photo Upload + AC/Non-AC Pricing
 import React, { useState, useContext, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight, Map, Route } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import VehicleDetails from '../components/VehicleDetails';
@@ -24,6 +24,11 @@ const Vehicles = () => {
   const [editingId, setEditingId] = useState(null);
   const [viewingVehicle, setViewingVehicle] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Global Fleet Stats
+  const totalTrips = allTrips?.length || 0;
+  const totalKm = (allTrips || []).reduce((sum, t) => sum + (Number(t.distance)||0), 0);
+  const formatMoney = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val);
 
   const validate = () => {
     let newErrors = {};
@@ -355,7 +360,30 @@ const Vehicles = () => {
       </div>
 
       {/* RIGHT SIDE: LIST */}
-      <div className="flex-1">
+      <div className="flex-1 space-y-4">
+        {vehicles.length > 0 && (
+          <div className="grid grid-cols-2 gap-4 mb-2">
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
+              <div className="p-3 bg-emerald-50 rounded-xl">
+                <Map className="w-5 h-5 text-emerald-500" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Total Trips</p>
+                <p className="text-xl font-black text-gray-800">{totalTrips}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
+              <div className="p-3 bg-orange-50 rounded-xl">
+                <Route className="w-5 h-5 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Total KM Driven</p>
+                <p className="text-xl font-black text-gray-800">{formatMoney(totalKm)}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {vehicles.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center h-full min-h-[500px]">
             <div className="bg-blue-50/50 p-6 rounded-full mb-5"><Car className="w-20 h-20 text-blue-500/80 stroke-[1.5]" /></div>
