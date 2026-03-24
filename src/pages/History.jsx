@@ -62,7 +62,13 @@ const History = () => {
       const lowerQ = searchQuery.toLowerCase();
       result = result.filter(t => 
         (t.fromLocation || '').toLowerCase().includes(lowerQ) || 
-        (t.toLocation || '').toLowerCase().includes(lowerQ)
+        (t.toLocation || '').toLowerCase().includes(lowerQ) ||
+        (t.from || '').toLowerCase().includes(lowerQ) || 
+        (t.to || '').toLowerCase().includes(lowerQ) ||
+        (t.vehicleName || '').toLowerCase().includes(lowerQ) ||
+        (t.numberPlate || '').toLowerCase().includes(lowerQ) ||
+        (t.customerName || '').toLowerCase().includes(lowerQ) ||
+        (t.receiptNumber || '').toLowerCase().includes(lowerQ)
       );
     }
 
@@ -262,9 +268,9 @@ const History = () => {
                       </td>
                       <td className="px-4 py-4 max-w-[200px]">
                         <div className="flex items-center gap-2 text-gray-800 font-medium">
-                          <span className="truncate">{trip.fromLocation}</span>
-                          <ArrowRight className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                          <span className="truncate">{trip.toLocation}</span>
+                              <span>{trip.from || trip.fromLocation}</span>
+                              <ArrowRight className="w-3 h-3 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                              <span>{trip.to || trip.toLocation}</span>
                         </div>
                       </td>
                       <td className="px-4 py-4 text-right font-mono text-gray-500 text-xs">
@@ -322,7 +328,7 @@ const History = () => {
                     <div className="bg-gray-50/50 p-2.5 rounded-xl border border-gray-100 overflow-hidden">
                        <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest block mb-1">Route</span>
                        <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 truncate">
-                         {trip.fromLocation} → {trip.toLocation}
+                         {trip.from || trip.fromLocation} → {trip.to || trip.toLocation}
                        </div>
                     </div>
                     <div className="bg-green-50/50 p-2.5 rounded-xl border border-green-100/50">
