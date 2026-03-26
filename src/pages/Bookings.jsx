@@ -9,7 +9,7 @@ import {
   MapPin, Clock, CreditCard, Info, 
   ChevronLeft, ChevronRight, MoreVertical, 
   Eye, Pencil, X, Trash2, CheckCircle2, 
-  AlertCircle, ArrowRight, Printer, AlertTriangle, Wind, Thermometer
+  AlertCircle, ArrowRight, Printer, AlertTriangle, Wind, Thermometer, TrendingUp
 } from 'lucide-react';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import CostComparison from '../components/CostComparison';

@@ -11,9 +11,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [ownerPassword, setOwnerPassword] = useState('123456'); // Default fallback
 
-  // Load session from localStorage on mount
+  // Load session from sessionStorage on mount
   useEffect(() => {
-    const savedSession = localStorage.getItem('crm_session');
+    const savedSession = sessionStorage.getItem('crm_session');
     if (savedSession) {
       setSession(JSON.parse(savedSession));
     }
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
       console.log('Login Success!');
       const newSession = { role: 'OWNER', name: 'Owner' };
       setSession(newSession);
-      localStorage.setItem('crm_session', JSON.stringify(newSession));
+      sessionStorage.setItem('crm_session', JSON.stringify(newSession));
       return true;
     }
     console.log('Login Failed - Mismatch');
@@ -54,13 +54,13 @@ export const AuthProvider = ({ children }) => {
   const loginAsCustomer = () => {
     const newSession = { role: 'CUSTOMER', name: 'Customer' };
     setSession(newSession);
-    localStorage.setItem('crm_session', JSON.stringify(newSession));
+    sessionStorage.setItem('crm_session', JSON.stringify(newSession));
     return true;
   };
 
   const logout = () => {
     setSession(null);
-    localStorage.removeItem('crm_session');
+    sessionStorage.removeItem('crm_session');
   };
 
   const value = {

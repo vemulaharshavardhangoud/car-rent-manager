@@ -177,9 +177,9 @@ const Vehicles = () => {
     <div className="flex flex-col lg:flex-row gap-6 pb-12 animate-fade-in items-start">
       {/* LEFT SIDE: FORM */}
       <div className="w-full lg:w-[440px] shrink-0 space-y-4">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-card-bg p-6 rounded-2xl shadow-sm border border-border-main">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
               <Car className="w-5 h-5 text-blue-500" />
               {editingId ? 'Update Fleet' : 'Add to Fleet'}
             </h2>
@@ -192,7 +192,7 @@ const Vehicles = () => {
 
             {/* PHOTO UPLOAD */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex justify-between items-center">
+              <label className="block text-sm font-semibold text-text-main mb-1.5 flex justify-between items-center">
                 <span>Vehicle Photos ({form.photos.length}/5)</span>
                 {form.photos.length < 5 && (
                   <button 
@@ -223,7 +223,7 @@ const Vehicles = () => {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-[70px] h-[70px] border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-blue-400 hover:text-blue-500 bg-gray-50 transition-all"
+                    className="w-[70px] h-[70px] border-2 border-dashed border-border-main rounded-lg flex flex-col items-center justify-center text-text-muted hover:border-blue-400 hover:text-blue-500 bg-main-bg transition-all"
                   >
                     <Camera className="w-5 h-5" />
                     <span className="text-[10px] font-bold">Add</span>
@@ -242,14 +242,14 @@ const Vehicles = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vehicle Name *</label>
+              <label className="block text-sm font-semibold text-text-main mb-1.5">Vehicle Name *</label>
               <input name="name" value={form.name} onChange={handleChange} placeholder="e.g. Maruti Swift, Toyota Innova" className={inputClass('name')} />
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Vehicle Type *</label>
+                <label className="block text-sm font-semibold text-text-main mb-1.5">Vehicle Type *</label>
                 <select name="type" value={form.type} onChange={handleChange} className={inputClass('type')}>
                   <option value="2-Wheeler">2-Wheeler</option>
                   <option value="4-Wheeler">4-Wheeler</option>
@@ -297,10 +297,10 @@ const Vehicles = () => {
                 </div>
                 <input type="checkbox" name="hasAC" checked={form.hasAC} onChange={handleChange} className="hidden" />
                 <div>
-                  <p className="text-sm font-bold text-gray-700 flex items-center gap-1.5">
+                  <p className="text-sm font-bold text-text-main flex items-center gap-1.5">
                     <Thermometer className="w-4 h-4 text-blue-500" /> This vehicle has AC
                   </p>
-                  <p className="text-xs text-gray-400">Set different rates for AC usage</p>
+                  <p className="text-xs text-text-muted">Set different rates for AC usage</p>
                 </div>
               </label>
 
@@ -327,12 +327,12 @@ const Vehicles = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tank Capacity (L)</label>
+                <label className="block text-sm font-semibold text-text-main mb-1.5">Tank Capacity (L)</label>
                 <input type="number" name="tankCapacity" value={form.tankCapacity} onChange={handleChange} placeholder="40" className={inputClass('tankCapacity')} />
                 {errors.tankCapacity && <p className="text-red-500 text-xs mt-1">{errors.tankCapacity}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Color *</label>
+                <label className="block text-sm font-semibold text-text-main mb-1.5">Color *</label>
                 <input name="color" value={form.color} onChange={handleChange} placeholder="White" className={inputClass('color')} />
                 {errors.color && <p className="text-red-500 text-xs mt-1">{errors.color}</p>}
               </div>
@@ -373,22 +373,22 @@ const Vehicles = () => {
       <div className="flex-1 space-y-4">
         {vehicles.length > 0 && (
           <div className="grid grid-cols-2 gap-6 mb-6">
-            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow group">
-              <div className="p-4 bg-blue-50 rounded-2xl group-hover:bg-blue-600 transition-colors">
+            <div className="bg-card-bg rounded-[2rem] p-6 shadow-sm border border-border-main flex items-center gap-5 hover:shadow-md transition-shadow group">
+              <div className="p-4 bg-blue-50 dark:bg-blue-500/10 rounded-2xl group-hover:bg-blue-600 transition-colors">
                 <Map className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 mb-1">Total Vehicle Trips</p>
-                <p className="text-3xl font-black text-slate-900 leading-none">{totalTrips}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-black text-text-muted mb-1">Total Vehicle Trips</p>
+                <p className="text-3xl font-black text-text-main leading-none">{totalTrips}</p>
               </div>
             </div>
-            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow group">
-              <div className="p-4 bg-emerald-50 rounded-2xl group-hover:bg-emerald-600 transition-colors">
+            <div className="bg-card-bg rounded-[2rem] p-6 shadow-sm border border-border-main flex items-center gap-5 hover:shadow-md transition-shadow group">
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl group-hover:bg-emerald-600 transition-colors">
                 <Route className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 mb-1">Total Distance (KM)</p>
-                <p className="text-3xl font-black text-slate-900 leading-none">{formatMoney(totalKm)}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-black text-text-muted mb-1">Total Distance (KM)</p>
+                <p className="text-3xl font-black text-text-main leading-none">{formatMoney(totalKm)}</p>
               </div>
             </div>
           </div>
@@ -400,16 +400,16 @@ const Vehicles = () => {
               <input 
                 type="text" 
                 placeholder="Search Fleet (Name or Plate)..."
-                className="w-full pl-12 pr-4 py-3 bg-white rounded-2xl border border-gray-100 focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-sm"
+                className="w-full pl-12 pr-4 py-3 bg-card-bg rounded-2xl border border-border-main focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-sm text-text-main"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
-              <CarFront className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+              <CarFront className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-blue-500 transition-colors" />
            </div>
            <select 
              value={statusFilter}
              onChange={e => setStatusFilter(e.target.value)}
-             className="px-4 py-3 bg-white rounded-2xl border border-gray-100 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/5"
+             className="px-4 py-3 bg-card-bg rounded-2xl border border-border-main font-bold text-sm text-text-main focus:outline-none focus:ring-4 focus:ring-blue-500/5"
            >
              <option value="All">All Status</option>
              <option value="Available">Available</option>
@@ -420,20 +420,21 @@ const Vehicles = () => {
            <select 
              value={typeFilter}
              onChange={e => setTypeFilter(e.target.value)}
-             className="px-4 py-3 bg-white rounded-2xl border border-gray-100 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/5"
+             className="px-4 py-3 bg-card-bg rounded-2xl border border-border-main font-bold text-sm text-text-main focus:outline-none focus:ring-4 focus:ring-blue-500/5"
            >
              <option value="All">All Types</option>
              <option value="2-Wheeler">2-Wheeler</option>
              <option value="4-Wheeler">4-Wheeler</option>
+             <option value="6-Wheeler">6-Wheeler</option>
              <option value="Heavy Vehicle">Heavy</option>
            </select>
         </div>
 
         {filteredVehicles.length === 0 ? (
-          <div className="bg-white p-12 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center h-full min-h-[500px]">
-            <div className="bg-blue-50/50 p-6 rounded-full mb-5"><Car className="w-20 h-20 text-blue-500/80 stroke-[1.5]" /></div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-3">No vehicles added yet</h3>
-            <p className="text-gray-500 max-w-sm text-center">Add your first vehicle using the form to start tracking your fleet and trips.</p>
+          <div className="bg-card-bg p-12 rounded-2xl shadow-sm border border-border-main flex flex-col items-center justify-center text-center h-full min-h-[500px]">
+            <div className="bg-blue-50 dark:bg-blue-500/10 p-6 rounded-full mb-5"><Car className="w-20 h-20 text-blue-500/80 stroke-[1.5]" /></div>
+            <h3 className="text-2xl font-bold text-text-main mb-3">No vehicles added yet</h3>
+            <p className="text-text-muted max-w-sm text-center">Add your first vehicle using the form to start tracking your fleet and trips.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -441,7 +442,7 @@ const Vehicles = () => {
               const { color: topColor, textBorder, icon: TypeIcon } = getTypeStyle(v.type);
               const stats = getStats(v.id);
               return (
-                <div key={v.id} className="bg-white rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden flex flex-col hover:border-gray-200 transition-colors animate-fade-in-up">
+                <div key={v.id} className="bg-card-bg rounded-2xl shadow-sm border border-border-main overflow-hidden flex flex-col hover:border-blue-500/20 transition-colors animate-fade-in-up">
                   <div className={`h-1.5 ${topColor}`}></div>
 
                   {/* VEHICLE PHOTO */}
@@ -506,44 +507,43 @@ const Vehicles = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
-                      <div className="bg-gray-50 rounded-lg px-3 py-2">
-                        <span className="text-gray-400 block text-[10px] uppercase tracking-wider font-semibold mb-0.5">Non-AC Rate/KM</span>
-                        <span className="font-bold text-gray-800">₹{v.ratePerKm}</span>
+                      <div className="bg-main-bg rounded-lg px-3 py-2">
+                        <span className="text-text-muted block text-[10px] uppercase tracking-wider font-semibold mb-0.5">Non-AC Rate/KM</span>
+                        <span className="font-bold text-text-main">₹{v.ratePerKm}</span>
                       </div>
-                      <div className="bg-gray-50 rounded-lg px-3 py-2">
-                        <span className="text-gray-400 block text-[10px] uppercase tracking-wider font-semibold mb-0.5">Non-AC Rate/Day</span>
-                        <span className="font-bold text-gray-800">₹{v.ratePerDay}</span>
+                      <div className="bg-main-bg rounded-lg px-3 py-2">
+                        <span className="text-text-muted block text-[10px] uppercase tracking-wider font-semibold mb-0.5">Non-AC Rate/Day</span>
+                        <span className="font-bold text-text-main">₹{v.ratePerDay}</span>
                       </div>
                       {v.hasAC && (
                         <>
-                          <div className="bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">
-                            <span className="text-blue-400 block text-[10px] uppercase tracking-wider font-semibold mb-0.5">AC Rate/KM</span>
-                            <span className="font-bold text-blue-700">₹{v.ratePerKmAC}</span>
+                          <div className="bg-blue-500/10 rounded-lg px-3 py-2 border border-blue-500/20">
+                            <span className="text-blue-500 block text-[10px] uppercase tracking-wider font-semibold mb-0.5">AC Rate/KM</span>
+                            <span className="font-bold text-blue-600 dark:text-blue-400">₹{v.ratePerKmAC}</span>
                           </div>
-                          <div className="bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">
-                            <span className="text-blue-400 block text-[10px] uppercase tracking-wider font-semibold mb-0.5">AC Rate/Day</span>
-                            <span className="font-bold text-blue-700">₹{v.ratePerDayAC}</span>
+                          <div className="bg-blue-500/10 rounded-lg px-3 py-2 border border-blue-500/20">
+                            <span className="text-blue-500 block text-[10px] uppercase tracking-wider font-semibold mb-0.5">AC Rate/Day</span>
+                            <span className="font-bold text-blue-600 dark:text-blue-400">₹{v.ratePerDayAC}</span>
                           </div>
                         </>
                       )}
-                      <div className="bg-gray-50 rounded-lg px-3 py-2">
-                        <span className="text-gray-400 block text-[10px] uppercase tracking-wider font-semibold mb-0.5">Type / Seats</span>
-                        <span className="font-medium text-gray-800">{v.type} / {v.capacity}</span>
+                      <div className="bg-main-bg rounded-lg px-3 py-2">
+                        <span className="text-text-muted block text-[10px] uppercase tracking-wider font-semibold mb-0.5">Type / Seats</span>
+                        <span className="font-medium text-text-main">{v.type} / {v.capacity}</span>
                       </div>
-                      <div className="bg-gray-50 rounded-lg px-3 py-2">
-                        <span className="text-gray-400 block text-[10px] uppercase tracking-wider font-semibold mb-0.5">Color / Tank</span>
-                        <span className="font-medium text-gray-800">{v.color} / {v.tankCapacity}L</span>
+                      <div className="bg-main-bg rounded-lg px-3 py-2">
+                        <span className="text-text-muted block text-[10px] uppercase tracking-wider font-semibold mb-0.5">Color / Tank</span>
+                        <span className="font-medium text-text-main">{v.color} / {v.tankCapacity}L</span>
                       </div>
                     </div>
-
-                    <div className="bg-gray-50/80 rounded-xl p-4 grid grid-cols-3 gap-3 text-center text-sm border border-gray-100/50">
-                      <div><span className="block text-2xl font-bold text-blue-600 mb-0.5">{stats.count}</span><span className="text-xs font-medium text-gray-500 uppercase tracking-widest">Trips</span></div>
-                      <div className="border-x border-gray-200/60"><span className="block text-2xl font-bold text-gray-800 mb-0.5">{stats.totalKm}</span><span className="text-xs font-medium text-gray-500 uppercase tracking-widest">KM</span></div>
-                      <div><span className="block text-2xl font-bold text-green-600 mb-0.5">₹{stats.totalEarned}</span><span className="text-xs font-medium text-gray-500 uppercase tracking-widest">Earned</span></div>
+                    <div className="bg-main-bg rounded-xl p-4 grid grid-cols-3 gap-3 text-center text-sm border border-border-main">
+                      <div><span className="block text-2xl font-bold text-blue-600 mb-0.5">{stats.count}</span><span className="text-xs font-medium text-text-muted uppercase tracking-widest">Trips</span></div>
+                      <div className="border-x border-border-main"><span className="block text-2xl font-bold text-text-main mb-0.5">{stats.totalKm}</span><span className="text-xs font-medium text-text-muted uppercase tracking-widest">KM</span></div>
+                      <div><span className="block text-2xl font-bold text-green-600 mb-0.5">₹{stats.totalEarned}</span><span className="text-xs font-medium text-text-muted uppercase tracking-widest">Earned</span></div>
                     </div>
                   </div>
                   
-                  <div className="border-t border-gray-100 grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-100 bg-gray-50/50">
+                  <div className="border-t border-border-main grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-border-main bg-main-bg/30">
                     <button onClick={() => setViewingVehicle(v)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all uppercase tracking-widest">
                       <Eye className="w-4 h-4" /> Details
                     </button>

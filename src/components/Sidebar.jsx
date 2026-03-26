@@ -47,7 +47,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-black tracking-tight text-text-main leading-none">CarRent <span className="text-blue-600">Pro</span></span>
-              <span className="text-[9px] font-bold text-text-muted tracking-[0.2em] uppercase mt-1">{isAdmin ? 'Owner' : 'Customer'}</span>
+              <span className="text-[10px] font-black text-text-muted/70 tracking-[0.2em] uppercase mt-1.5">{isAdmin ? 'Owner Portal' : 'Customer Portal'}</span>
             </div>
           </div>
           <button 
