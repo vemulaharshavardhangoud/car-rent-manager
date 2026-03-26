@@ -31,6 +31,8 @@ const Bookings = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [vehicleFilter, setVehicleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
 
   // Handle URL parameters
   useEffect(() => {
@@ -41,7 +43,9 @@ const Bookings = () => {
     }
   }, [location]);
 
-  // Sorting
+  // Pagination & Sorting
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
 
   // Form State
@@ -168,12 +172,28 @@ const Bookings = () => {
     
     // Check vehicle availability if active booking
     if (selectedVehicle && (form.status === 'Booked' || form.status === 'Confirmed')) {
-        const isConflict = vehicles.find(v => v.id === form.vehicleId && (v.bookingStatus === 'Booked' || v.bookingStatus === 'On Trip') && v.id !== editingId);
-        // This is a simple check, real app would check date ranges. For now follow user rule: "If selected vehicle status is Booked/On Trip... do not allow"
-        if (selectedVehicle.bookingStatus === 'Booked' || selectedVehicle.bookingStatus === 'On Trip') {
-             // Only error if it's NOT the booking we are currently editing
-             const currentBookingForVehicle = bookings.find(b => b.vehicleId === form.vehicleId && b.status === 'Confirmed' && b.id !== editingId);
-             if (currentBookingForVehicle) errors.vehicleId = 'This vehicle is currently unavailable';
+        // Robust Date Range Conflict Check
+        const start = new Date(`${form.bookingStartDate}T${form.pickupTime || '00:00'}`);
+        const end = new Date(`${form.bookingEndDate}T${form.returnTime || '23:59'}`);
+
+        const hasConflict = bookings.find(b => {
+          if (b.vehicleId !== form.vehicleId) return false;
+          if (b.id === editingId) return false; // Don't conflict with itself
+          if (b.status === 'Rejected' || b.status === 'Cancelled') return false;
+
+          const bStart = new Date(`${b.bookingStartDate}T${b.pickupTime || '00:00'}`);
+          const bEnd = new Date(`${b.bookingEndDate}T${b.returnTime || '23:59'}`);
+
+          return (start < bEnd && end > bStart);
+        });
+
+        if (hasConflict) {
+          errors.vehicleId = 'This vehicle has an overlapping booking for these dates';
+        }
+
+        // Secondary check: Current global status (legacy guard)
+        if (selectedVehicle.status === 'On Trip' && !editingId) {
+             errors.vehicleId = 'This vehicle is currently on a trip';
         }
     }
 
@@ -596,8 +616,8 @@ const Bookings = () => {
                                     <span className="text-[10px] font-black text-blue-400 uppercase">{selectedVehicle.type} • {selectedVehicle.capacity} Seats</span>
                                     <h4 className="font-bold text-blue-900">{selectedVehicle.name}</h4>
                                 </div>
-                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${selectedVehicle.bookingStatus === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                    {selectedVehicle.bookingStatus || 'Available'}
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${selectedVehicle.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {selectedVehicle.status || 'Available'}
                                 </span>
                             </div>
                             <div className="flex gap-4 text-[10px] font-bold text-blue-700 mt-2 pt-2 border-t border-blue-100/50">

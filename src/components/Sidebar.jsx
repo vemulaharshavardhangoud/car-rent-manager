@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CarFront, PlusCircle, History, Settings, X, Car, CalendarDays, User, Users, DollarSign, Search } from 'lucide-react';
+import { LayoutDashboard, CarFront, PlusCircle, History, Settings, X, Car, CalendarDays, User, Users, DollarSign, Search, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-  const { isAdmin, isCustomer } = useAuth();
+  const { isAdmin, isCustomer, logout } = useAuth();
 
   const ownerItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -79,21 +79,34 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           ))}
         </div>
 
-        {isAdmin && (
-          <div className="p-6 border-t border-border-main bg-main-bg/10 flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Version</span>
-              <span className="text-xs font-bold text-text-main mt-0.5">2.0.4-Premium</span>
+        <div className="p-4 border-t border-border-main bg-main-bg/10 flex flex-col gap-2">
+          {isAdmin && (
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Version</span>
+                <span className="text-xs font-bold text-text-main mt-0.5">2.0.4-Premium</span>
+              </div>
+              <NavLink 
+                to="/settings" 
+                onClick={() => setIsOpen(false)} 
+                className={({isActive}) => `p-3 rounded-xl transition-all ${isActive ? 'text-blue-600 bg-blue-500/10' : 'text-text-muted hover:bg-blue-500/10 hover:text-blue-600'}`}
+              >
+                <Settings className="w-5 h-5" />
+              </NavLink>
             </div>
-            <NavLink 
-              to="/settings" 
-              onClick={() => setIsOpen(false)} 
-              className={({isActive}) => `p-3 rounded-xl transition-all ${isActive ? 'text-blue-600 bg-blue-500/10' : 'text-text-muted hover:bg-blue-500/10 hover:text-blue-600'}`}
-            >
-              <Settings className="w-5 h-5" />
-            </NavLink>
-          </div>
-        )}
+          )}
+          
+          <button 
+            onClick={() => {
+              logout();
+              setIsOpen(false);
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-all font-bold text-sm"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Log Out</span>
+          </button>
+        </div>
       </aside>
     </>
   );

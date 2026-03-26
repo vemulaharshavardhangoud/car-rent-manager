@@ -1,24 +1,24 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, Car, History, Menu, DollarSign, CalendarDays } from 'lucide-react';
+import { Home, Users, Car, History, Menu, DollarSign, CalendarDays, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const BottomNav = ({ setSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { isAdmin, isCustomer } = useAuth();
+  const { isAdmin, isCustomer, logout } = useAuth();
 
   const navItems = isAdmin ? [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: Users, label: 'Customers', path: '/customers' },
     { icon: Car, label: 'Vehicles', path: '/vehicles' },
     { icon: DollarSign, label: 'Finance', path: '/expenses' },
+    { icon: LogOut, label: 'Logout', path: 'LOGOUT_ACTION' },
     { icon: Menu, label: 'Menu', path: 'MENU_TOGGLE' },
   ] : [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Car, label: 'Availability', path: '/vehicles' },
-    { icon: CalendarDays, label: 'Bookings', path: '/my-bookings' },
+    { icon: LogOut, label: 'Logout', path: 'LOGOUT_ACTION' },
     { icon: Menu, label: 'Menu', path: 'MENU_TOGGLE' },
   ];
 
@@ -31,7 +31,11 @@ const BottomNav = ({ setSidebarOpen }) => {
         return (
           <button
             key={item.label}
-            onClick={() => isMenu ? setSidebarOpen(true) : navigate(item.path)}
+            onClick={() => {
+              if (isMenu) setSidebarOpen(true);
+              else if (item.path === 'LOGOUT_ACTION') logout();
+              else navigate(item.path);
+            }}
             className={`flex flex-col items-center gap-1.5 min-w-[64px] py-1 transition-all active:scale-90 ${
               isActive ? 'text-blue-600' : 'text-gray-500'
             }`}

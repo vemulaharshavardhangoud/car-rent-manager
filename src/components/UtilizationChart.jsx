@@ -7,9 +7,9 @@ import {
 const UtilizationChart = ({ vehicles, allTrips }) => {
   // Data for Pie Chart: Operational Status
   const statusData = [
-    { name: 'Available', value: vehicles.filter(v => v.bookingStatus === 'Available').length },
-    { name: 'On Trip', value: vehicles.filter(v => v.bookingStatus === 'On Trip' || v.bookingStatus === 'Booked').length },
-    { name: 'Maintenance', value: vehicles.filter(v => v.bookingStatus === 'Under Maintenance').length },
+    { name: 'Available', value: vehicles.filter(v => v.status === 'Available').length },
+    { name: 'On Trip', value: vehicles.filter(v => v.status === 'On Trip' || v.status === 'Booked').length },
+    { name: 'Maintenance', value: vehicles.filter(v => v.status === 'Under Maintenance').length },
   ].filter(d => d.value > 0);
 
   // Status Colors: Available (Emerald), On Trip (Blue), Maintenance (Slate)

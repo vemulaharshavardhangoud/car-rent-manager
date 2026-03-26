@@ -20,11 +20,11 @@
 }
 
 :root {
-  --main-bg: #f1f5f9;
+  --main-bg: #f8fafc;
   --card-bg: #ffffff;
   --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border-color: #e2e8f0;
+  --text-muted: #4b5563;
+  --border-color: #d1d5db;
   --sidebar-bg: #1e293b;
 }
 

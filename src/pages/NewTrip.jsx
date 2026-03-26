@@ -31,7 +31,7 @@ const initialForm = {
 };
 
 const NewTrip = () => {
-  const { vehicles, addTrip, updateTrip, showToast } = useContext(AppContext);
+  const { vehicles, bookings, addTrip, updateTrip, showToast } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation();
   const editTripData = location.state?.editTripData;
@@ -131,6 +131,26 @@ const NewTrip = () => {
     if (form.days === '' || Number(form.days) < 1) {
       newErrors.days = 'At least 1 day required';
       messages.push('Number of days must be at least 1');
+    }
+
+    // Check for Booking Conflicts
+    if (selectedVehicle && !editTripData) {
+      const start = new Date(`${form.date}T${form.startTime || '00:00'}`);
+      const end = new Date(`${form.endDate}T${form.endTime || '23:59'}`);
+
+      const hasBooking = bookings.find(b => {
+        if (b.vehicleId !== form.vehicleId) return false;
+        if (b.status === 'Rejected' || b.status === 'Cancelled') return false;
+
+        const bStart = new Date(`${b.bookingStartDate}T${b.pickupTime || '00:00'}`);
+        const bEnd = new Date(`${b.bookingEndDate}T${b.returnTime || '23:59'}`);
+
+        return (start < bEnd && end > bStart);
+      });
+
+      if (hasBooking) {
+        messages.push(`Warning: This vehicle has a Confirmed Booking for these dates (by ${hasBooking.customerName})`);
+      }
     }
 
     setErrors(newErrors);
@@ -504,16 +524,15 @@ const NewTrip = () => {
       {/* RIGHT COLUMN: ESTIMATE */}
       <div className="w-full md:w-[35%] shrink-0 md:sticky md:top-4 mt-8 lg:mt-0">
         <div className="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-100 overflow-hidden">
-          
-          <div className="bg-slate-900 text-white p-6 relative overflow-hidden">
-            <div className="absolute -right-10 -top-10 bg-white/10 w-40 h-40 rounded-full blur-2xl"></div>
+          <div className="bg-card-bg text-text-main p-6 relative overflow-hidden border-b border-border-main">
+            <div className="absolute -right-10 -top-10 bg-blue-500/10 w-40 h-40 rounded-full blur-2xl"></div>
             <div className="relative z-10 flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-bold mb-1">Trip Estimate</h3>
-                <p className="text-slate-300 transform font-mono text-sm">{form.date} {form.startTime} - {form.endDate} {form.endTime}</p>
+                <h3 className="text-xl font-black mb-1">Trip Estimate</h3>
+                <p className="text-text-muted transform font-mono text-xs">{form.date} {form.startTime} - {form.endDate} {form.endTime}</p>
               </div>
-              <div className="bg-white/10 p-3 rounded-2xl border border-white/20">
-                <Receipt className="w-6 h-6 text-white" />
+              <div className="bg-blue-500/10 p-3 rounded-2xl border border-blue-500/10">
+                <Receipt className="w-6 h-6 text-blue-500" />
               </div>
             </div>
           </div>
@@ -601,7 +620,7 @@ const NewTrip = () => {
             <div className="mt-8 space-y-3">
               <button 
                 onClick={handlePreview} 
-                className="w-full py-4 bg-slate-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors"
+                className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
               >
                 <Save className="w-5 h-5" /> Calculate & Preview
               </button>

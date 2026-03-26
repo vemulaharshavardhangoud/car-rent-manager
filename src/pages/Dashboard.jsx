@@ -194,30 +194,30 @@ const Dashboard = () => {
       </div>
 
       {/* SECTION 1 - HERO STATS (Premium Vehicles Display) */}
-      <div className="relative overflow-hidden bg-slate-950 rounded-[2.5rem] p-6 md:p-10 text-white shadow-2xl transition-all hover:shadow-blue-500/10 group">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-600/20 rounded-full blur-[100px] group-hover:bg-blue-500/30 transition-colors"></div>
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-purple-600/10 rounded-full blur-[80px]"></div>
+      <div className="relative overflow-hidden bg-card-bg border border-border-main rounded-[2.5rem] p-6 md:p-10 text-text-main shadow-xl transition-all hover:shadow-blue-500/5 group">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] group-hover:bg-blue-500/20 transition-colors"></div>
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-purple-500/10 rounded-full blur-[80px]"></div>
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/20 border border-blue-400/30 rounded-full">
-              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-300">Vehicle Operations</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Vehicle Operations</span>
             </div>
             <h3 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
-              Manage your <span className="text-blue-400">Vehicles</span> from one place.
+              Manage your <span className="text-blue-600">Vehicles</span> from one place.
             </h3>
-            <p className="text-slate-400 max-w-md font-medium text-sm">
-              You currently have <span className="text-white font-bold">{totalVehicles} active vehicles</span> in your system.
+            <p className="text-text-muted max-w-md font-medium text-sm">
+              You currently have <span className="text-text-main font-bold">{totalVehicles} active vehicles</span> in your system.
             </p>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="text-right">
-              <span className="block text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-1">Active Vehicles</span>
-              <div className="text-7xl md:text-8xl font-black text-white tracking-tighter leading-none flex items-baseline">
+              <span className="block text-[10px] font-black uppercase tracking-[0.3em] text-text-muted mb-1">Active Vehicles</span>
+              <div className="text-7xl md:text-8xl font-black text-text-main tracking-tighter leading-none flex items-baseline">
                 {totalVehicles}
-                <span className="text-2xl md:text-3xl text-blue-500 ml-2">V</span>
+                <span className="text-2xl md:text-3xl text-blue-600 ml-2">V</span>
               </div>
             </div>
             <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl flex items-center justify-center rotate-6 shadow-xl shadow-blue-500/20 group-hover:rotate-0 transition-transform duration-500">
@@ -288,7 +288,7 @@ const Dashboard = () => {
         <button onClick={() => navigate('/vehicles')} className="group flex items-center gap-3 bg-card-bg hover:bg-blue-600 text-text-main hover:text-white px-6 py-3.5 rounded-2xl font-bold shadow-sm transition-all border border-border-main hover:border-blue-600 active:scale-95">
           <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Add New Vehicle
         </button>
-        <button onClick={() => navigate('/newtrip')} className="flex items-center gap-3 bg-slate-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold shadow-lg transition-all active:scale-95">
+        <button onClick={() => navigate('/newtrip')} className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95">
           <PlusCircle className="w-5 h-5" /> Record New Trip
         </button>
         <button onClick={() => navigate('/history')} className="flex items-center gap-3 bg-card-bg hover:bg-main-bg text-text-main border border-border-main px-6 py-3.5 rounded-2xl font-bold shadow-sm transition-all active:scale-95">

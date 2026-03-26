@@ -61,7 +61,7 @@ const Settings = () => {
     }
 
     const storedPass = localStorage.getItem('crm_admin_password');
-    const isCurrentValid = storedPass ? atob(storedPass) === currentPassword : currentPassword === 'admin123';
+    const isCurrentValid = storedPass ? atob(storedPass) === currentPassword : currentPassword === '123456';
 
     if (!isCurrentValid) {
       showToast('Current PIN is incorrect', 'error');
@@ -98,7 +98,7 @@ const Settings = () => {
   const handleResetDefault = async () => {
     const confirmed = await requirePassword({ actionType: 'resetPassword', actionLabel: 'RESET Admin PIN to default' });
     if (confirmed) {
-      const defaultPass = btoa('admin123');
+      const defaultPass = btoa('123456');
       localStorage.setItem('crm_admin_password', defaultPass);
       localStorage.removeItem('crm_password_changed_at');
       
@@ -160,7 +160,7 @@ const Settings = () => {
       const success = storage.clearAllData();
       if (success) {
         showToast('All data has been cleared', 'success');
-        localStorage.setItem('crm_admin_password', btoa('admin123')); // ensure app continues to work smoothly on fresh load
+        localStorage.setItem('crm_admin_password', btoa('123456')); // ensure app continues to work smoothly on fresh load
         // Note: storage.clearAllData removes ALL localStorage including the password. So I am putting default back immediately.
         setTimeout(() => window.location.reload(), 500); // hard reset state
       }

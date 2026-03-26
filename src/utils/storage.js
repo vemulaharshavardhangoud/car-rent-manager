@@ -384,6 +384,10 @@ export const saveTrip = (vehicleId, tripData) => {
     trips.push(newTrip);
     
     localStorage.setItem(tripsKey, JSON.stringify(trips));
+
+    // Update vehicle status to 'On Trip'
+    updateVehicle(vehicleId, { status: 'On Trip' });
+
     return newTrip;
   } catch (error) {
     console.error(`Error saving trip for vehicle ${vehicleId}:`, error);

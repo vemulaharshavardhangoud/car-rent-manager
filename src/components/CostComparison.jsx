@@ -61,10 +61,10 @@ const CostComparison = ({ vehicle, distance, days, activeMode, activeAC }) => {
   return (
     <div className="mt-8 space-y-4">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] flex items-center gap-2">
+        <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] flex items-center gap-2">
           <Zap className="w-3.5 h-3.5" /> Compare Possibilities
         </h4>
-        <span className="text-[9px] font-bold text-blue-500 bg-blue-50 px-2 py-0.5 rounded-full">Live Estimation</span>
+        <span className="text-[9px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/10">Live Estimation</span>
       </div>
       
       <div className="grid grid-cols-2 gap-3">
@@ -73,16 +73,16 @@ const CostComparison = ({ vehicle, distance, days, activeMode, activeAC }) => {
           const isCheapest = cheapest && s.total === cheapest.total && !s.disabled;
           
           if (s.disabled) return (
-            <div key={idx} className="p-3 bg-gray-50 rounded-2xl border border-dashed border-gray-200 opacity-40 flex flex-col justify-center items-center text-center">
-              <span className="text-[9px] font-bold text-gray-400 uppercase">{s.label}</span>
-              <span className="text-[8px] text-gray-400 mt-1 italic">N/A</span>
+            <div key={idx} className="p-3 bg-main-bg rounded-2xl border border-dashed border-border-main opacity-40 flex flex-col justify-center items-center text-center">
+              <span className="text-[9px] font-bold text-text-muted uppercase">{s.label}</span>
+              <span className="text-[8px] text-text-muted mt-1 italic">N/A</span>
             </div>
           );
 
           return (
             <div 
               key={idx} 
-              className={`relative p-4 rounded-2xl border-2 transition-all ${active ? 'bg-white border-blue-600 shadow-lg shadow-blue-100 ring-4 ring-blue-50' : 'bg-gray-50 border-transparent hover:border-gray-200'}`}
+              className={`relative p-4 rounded-2xl border-2 transition-all ${active ? 'bg-card-bg border-blue-600 shadow-lg shadow-blue-500/10 ring-4 ring-blue-500/5' : 'bg-main-bg border-transparent hover:border-border-main'}`}
             >
               {active && (
                 <div className="absolute -top-2 -right-2 bg-blue-600 text-white p-1 rounded-full shadow-md z-10">
@@ -97,16 +97,16 @@ const CostComparison = ({ vehicle, distance, days, activeMode, activeAC }) => {
               )}
 
               <div className="flex items-center gap-2 mb-2">
-                <s.icon className={`w-3 h-3 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
-                <span className={`text-[9px] font-black uppercase tracking-wider ${active ? 'text-blue-900' : 'text-gray-500'}`}>{s.label}</span>
+                <s.icon className={`w-3 h-3 ${active ? 'text-blue-600' : 'text-text-muted'}`} />
+                <span className={`text-[9px] font-black uppercase tracking-wider ${active ? 'text-blue-600' : 'text-text-muted'}`}>{s.label}</span>
               </div>
               
               <div className="flex items-baseline gap-1">
-                <span className={`text-lg font-black ${active ? 'text-blue-700' : 'text-gray-800'}`}>₹{Math.round(s.total)}</span>
+                <span className={`text-lg font-black ${active ? 'text-blue-600' : 'text-text-main'}`}>₹{Math.round(s.total)}</span>
               </div>
               
               <div className="mt-1 flex justify-between items-center">
-                <span className={`text-[8px] font-bold ${active ? 'text-blue-400' : 'text-gray-400'}`}>₹{s.rate}/{s.mode}</span>
+                <span className={`text-[8px] font-bold ${active ? 'text-blue-500' : 'text-text-muted'}`}>₹{s.rate}/{s.mode}</span>
                 {active && <span className="text-[9px] font-black text-blue-600 animate-bounce">●</span>}
               </div>
             </div>

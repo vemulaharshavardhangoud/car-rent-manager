@@ -18,20 +18,20 @@ const CustomerDashboard = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-black text-white tracking-tight">Customer <span className="text-blue-600">Dashboard</span></h1>
-        <p className="text-slate-400 font-medium">Welcome back! Here's a quick look at our fleet status.</p>
+        <h1 className="text-3xl font-black text-text-main tracking-tight">Customer <span className="text-blue-600">Dashboard</span></h1>
+        <p className="text-text-muted font-medium">Welcome back! Here's a quick look at our fleet status.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-slate-900 border border-white/5 rounded-[2rem] p-8 shadow-xl hover:bg-slate-800/50 transition-all group overflow-hidden relative">
+          <div key={index} className="bg-card-bg border border-border-main rounded-[2rem] p-8 shadow-xl hover:shadow-2xl transition-all group overflow-hidden relative">
             <div className={`absolute top-0 right-0 w-32 h-32 ${stat.bg} blur-[80px] -mr-16 -mt-16 group-hover:blur-[100px] transition-all`}></div>
             <div className="relative z-10">
               <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                 <stat.icon className={`w-7 h-7 ${stat.color}`} />
               </div>
-              <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">{stat.label}</p>
-              <h3 className="text-4xl font-black text-white tracking-tighter">{stat.value}</h3>
+              <p className="text-text-muted text-xs font-black uppercase tracking-widest mb-1">{stat.label}</p>
+              <h3 className="text-4xl font-black text-text-main tracking-tighter">{stat.value}</h3>
             </div>
           </div>
         ))}

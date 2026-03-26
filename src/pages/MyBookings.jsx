@@ -28,23 +28,23 @@ const MyBookings = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20">
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in pb-20 text-text-main">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-black text-white tracking-tight">My <span className="text-blue-600">Bookings</span></h1>
-        <p className="text-slate-400 font-medium">Track your rental requests and trip status.</p>
+        <h1 className="text-3xl font-black tracking-tight">My <span className="text-blue-600">Bookings</span></h1>
+        <p className="text-text-muted font-medium">Track your rental requests and trip status.</p>
       </div>
 
       {/* Search Bar */}
-      <div className="bg-slate-900 border border-white/5 rounded-[2.5rem] p-8 shadow-xl">
+      <div className="bg-card-bg border border-border-main rounded-[2.5rem] p-8 shadow-xl">
         <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative group">
-            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-blue-500 transition-colors" />
             <input 
               type="tel"
               placeholder="Enter your 10-digit phone number..."
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="w-full bg-slate-950 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white font-medium focus:border-blue-500 outline-none transition-all"
+              className="w-full bg-main-bg border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-main font-medium focus:border-blue-500 outline-none transition-all"
               required
             />
           </div>
@@ -62,17 +62,17 @@ const MyBookings = () => {
         <div className="space-y-6">
           <div className="flex items-center gap-2 px-4">
             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-            <h2 className="text-sm font-black text-white uppercase tracking-[0.2em]">Found {myBookings.length} Bookings</h2>
+            <h2 className="text-sm font-black text-text-main uppercase tracking-[0.2em]">Found {myBookings.length} Bookings</h2>
           </div>
 
           <div className="grid grid-cols-1 gap-6">
             {myBookings.map((booking) => (
-              <div key={booking.id} className="bg-slate-900 border border-white/5 rounded-[2.5rem] p-8 hover:bg-slate-800/50 transition-all group overflow-hidden relative">
+              <div key={booking.id} className="bg-card-bg border border-border-main rounded-[2.5rem] p-8 hover:shadow-2xl transition-all group overflow-hidden relative">
                 <div className="flex flex-col md:flex-row justify-between gap-8">
                   {/* Left: Info */}
                   <div className="flex-1 space-y-6">
                     <div className="flex items-center justify-between md:justify-start gap-4">
-                      <div className="bg-slate-950 p-2 px-4 rounded-xl border border-white/5">
+                      <div className="bg-main-bg p-2 px-4 rounded-xl border border-border-main">
                         <span className="text-xs font-black text-blue-500 tracking-widest">{booking.id}</span>
                       </div>
                       <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor(booking.status)}`}>
@@ -81,23 +81,23 @@ const MyBookings = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <h3 className="text-2xl font-black text-white tracking-tight">{booking.vehicleName}</h3>
-                      <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{booking.numberPlate}</p>
+                      <h3 className="text-2xl font-black text-text-main tracking-tight">{booking.vehicleName}</h3>
+                      <p className="text-text-muted text-xs font-bold uppercase tracking-widest">{booking.numberPlate}</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center gap-3">
-                        <Calendar className="w-5 h-5 text-slate-500" />
+                        <Calendar className="w-5 h-5 text-text-muted" />
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Dates</span>
-                          <span className="text-sm text-white font-bold">{booking.bookingStartDate} to {booking.bookingEndDate}</span>
+                          <span className="text-[10px] text-text-muted font-bold uppercase tracking-tight">Dates</span>
+                          <span className="text-sm text-text-main font-bold">{booking.bookingStartDate} to {booking.bookingEndDate}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <IndianRupee className="w-5 h-5 text-emerald-500" />
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Est. Cost</span>
-                          <span className="text-sm text-white font-bold">₹{booking.totalAmount}</span>
+                          <span className="text-[10px] text-text-muted font-bold uppercase tracking-tight">Est. Cost</span>
+                          <span className="text-sm text-text-main font-bold">₹{booking.totalAmount}</span>
                         </div>
                       </div>
                     </div>
@@ -135,12 +135,12 @@ const MyBookings = () => {
             ))}
 
             {myBookings.length === 0 && (
-              <div className="bg-slate-900 border border-white/5 rounded-[2.5rem] p-20 text-center">
-                <div className="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <Calendar className="w-10 h-10 text-slate-600" />
+              <div className="bg-card-bg border border-border-main rounded-[2.5rem] p-20 text-center">
+                <div className="w-20 h-20 bg-main-bg rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <Calendar className="w-10 h-10 text-text-muted opacity-40" />
                 </div>
-                <h3 className="text-2xl font-black text-white tracking-tight mb-2">No bookings found</h3>
-                <p className="text-slate-500 font-medium">We couldn't find any bookings for {phoneNumber}.</p>
+                <h3 className="text-2xl font-black text-text-main tracking-tight mb-2">No bookings found</h3>
+                <p className="text-text-muted font-medium">We couldn't find any bookings for {phoneNumber}.</p>
               </div>
             )}
           </div>
@@ -149,8 +149,8 @@ const MyBookings = () => {
 
       {/* Helper Note */}
       <div className="bg-blue-600/5 border border-blue-500/10 rounded-3xl p-6 flex gap-4">
-        <Info className="w-6 h-6 text-blue-400 shrink-0" />
-        <p className="text-xs text-slate-400 font-medium leading-relaxed">
+        <Info className="w-6 h-6 text-blue-500 shrink-0" />
+        <p className="text-xs text-text-muted font-medium leading-relaxed">
           Need to change or cancel your booking? Please contact our support team or the vehicle owner directly. 
           Customers cannot modify bookings once submitted to ensure coordination with our fleet management.
         </p>

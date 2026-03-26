@@ -38,9 +38,9 @@ const PasswordModal = ({ isOpen, actionInfo, onConfirm, onCancel }) => {
     let isValid = false;
     
     // Check if stored format is base64 or plain
-    const decodedStored = storedPass ? atob(storedPass) : 'admin123';
+    const decodedStored = storedPass ? atob(storedPass) : '123456';
     
-    if (currentPin === decodedStored || currentPin === 'admin123') isValid = true;
+    if (currentPin === decodedStored || currentPin === '123456') isValid = true;
 
     if (isValid) {
       onConfirm(currentPin);

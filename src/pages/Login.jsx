@@ -25,11 +25,15 @@ const Login = () => {
   const handleOwnerLogin = (e) => {
     e.preventDefault();
     setLoading(true);
+    // The actual loginAsOwner function is defined in AuthContext.js
+    // This console log traces the input to the login function from the Login component
+    console.log('handleOwnerLogin called with password:', password);
     const success = loginAsOwner(password);
+    console.log('HandleOwnerLogin Result:', success);
     if (success) {
       navigate('/');
     } else {
-      setError('Incorrect Owner Password. Please try again.');
+      setError(`Incorrect Owner Password. (Debug: v6.0.1)`);
     }
     setLoading(false);
   };
