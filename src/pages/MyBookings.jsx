@@ -6,6 +6,13 @@ const MyBookings = () => {
   const { bookings } = useContext(AppContext);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [searched, setSearched] = useState(false);
+  const [cancellingId, setCancellingId] = useState(null);
+  const { cancelBooking } = useContext(AppContext);
+
+  const handleCancelRequest = async (id) => {
+    await cancelBooking(id, { reason: 'Cancelled by customer', date: new Date().toISOString() });
+    setCancellingId(null);
+  };
 
   const myBookings = bookings.filter(b => b.customerPhone === phoneNumber);
 
@@ -101,14 +108,68 @@ const MyBookings = () => {
                         </div>
                       </div>
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border-main/50">
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-5 h-5 text-blue-400" />
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-text-muted font-bold uppercase tracking-tight">Pickup Location</span>
+                          <span className="text-xs text-text-main font-medium">{booking.pickupLocation || 'Not specified'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-5 h-5 text-emerald-400" />
+                        <div className="flex flex-col">
+                          <span className="text-[10px] text-text-muted font-bold uppercase tracking-tight">Return Location</span>
+                          <span className="text-xs text-text-main font-medium">{booking.returnLocation || 'Not specified'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {booking.specialInstructions && (
+                      <div className="p-4 bg-main-bg/50 rounded-2xl border border-border-main text-xs italic text-text-muted">
+                        <Info className="w-4 h-4 inline-block mr-2 text-blue-500" />
+                        {booking.specialInstructions}
+                      </div>
+                    )}
                   </div>
 
                   {/* Right: Message/CTA */}
-                  <div className="flex flex-col justify-center items-center md:items-end md:w-64 border-t md:border-t-0 md:border-l border-white/5 pt-8 md:pt-0 md:pl-8">
+                  <div className="flex flex-col justify-center items-center md:items-end md:w-64 border-t md:border-t-0 md:border-l border-border-main/50 pt-8 md:pt-0 md:pl-8">
                     {booking.status === 'Pending' && (
-                      <div className="text-center md:text-right space-y-2">
-                        <p className="text-sm text-slate-300 font-medium">Seeking Approval</p>
-                        <p className="text-xs text-slate-500 leading-relaxed italic">The owner will contact you shortly to confirm your booking.</p>
+                      <div className="text-center md:text-right space-y-4">
+                        {cancellingId === booking.id ? (
+                          <div className="space-y-3 animate-in fade-in zoom-in duration-300">
+                            <p className="text-[10px] text-red-500 font-black uppercase tracking-widest">Confirm Cancellation?</p>
+                            <div className="flex gap-2 justify-center md:justify-end">
+                              <button 
+                                onClick={() => handleCancelRequest(booking.id)}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-500/20"
+                              >
+                                Yes, Cancel
+                              </button>
+                              <button 
+                                onClick={() => setCancellingId(null)}
+                                className="px-4 py-2 bg-main-bg border border-border-main text-text-muted rounded-lg text-[10px] font-black uppercase tracking-widest hover:border-text-muted transition-all"
+                              >
+                                Back
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="space-y-1">
+                              <p className="text-sm text-blue-500 font-bold">Seeking Approval</p>
+                              <p className="text-[10px] text-text-muted leading-relaxed italic">The owner will contact you shortly to confirm your booking.</p>
+                            </div>
+                            <button 
+                              onClick={() => setCancellingId(booking.id)}
+                              className="w-full md:w-auto px-6 py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                            >
+                              Cancel Request
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                     {booking.status === 'Confirmed' && (

@@ -51,7 +51,12 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-createRoot(document.getElementById('root')).render(
+// Ensure singleton root for HMR and duplicate script protection
+if (!window.reactRoot) {
+  window.reactRoot = createRoot(document.getElementById('root'));
+}
+
+window.reactRoot.render(
   <ErrorBoundary>
     <App />
   </ErrorBoundary>

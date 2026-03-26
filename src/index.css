@@ -23,8 +23,8 @@
   --main-bg: #f8fafc;
   --card-bg: #ffffff;
   --text-main: #0f172a;
-  --text-muted: #4b5563;
-  --border-color: #d1d5db;
+  --text-muted: #334155; /* Darker Slate for better contrast */
+  --border-color: #cbd5e1;
   --sidebar-bg: #1e293b;
 }
 
@@ -32,7 +32,7 @@
   --main-bg: #0f172a;
   --card-bg: #1e293b;
   --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --text-muted: #cbd5e1; /* Lighter for better contrast in dark mode */
   --border-color: #334155;
   --sidebar-bg: #020617;
 }

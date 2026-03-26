@@ -191,10 +191,6 @@ const Bookings = () => {
           errors.vehicleId = 'This vehicle has an overlapping booking for these dates';
         }
 
-        // Secondary check: Current global status (legacy guard)
-        if (selectedVehicle.status === 'On Trip' && !editingId) {
-             errors.vehicleId = 'This vehicle is currently on a trip';
-        }
     }
 
     setFormErrors(errors);
@@ -326,13 +322,13 @@ const Bookings = () => {
       {/* PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Vehicle Bookings</h1>
-          <p className="text-slate-500 font-medium">Manage all vehicle booking and cancellation dates</p>
+          <h1 className="text-3xl font-black text-text-main tracking-tight">Vehicle Bookings</h1>
+          <p className="text-text-muted font-medium">Manage all vehicle booking and cancellation dates</p>
         </div>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => storage.exportBookingsAsCSV(filteredBookings)}
-            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all shadow-sm"
+            className="flex items-center gap-2 bg-card-bg border border-border-main text-text-main px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-main-bg transition-all shadow-sm"
           >
             <Download className="w-4 h-4" /> Export CSV
           </button>
@@ -346,23 +342,23 @@ const Bookings = () => {
       </div>
 
       {/* FILTER BAR */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-8 flex flex-wrap items-center gap-4">
+      <div className="bg-card-bg p-4 rounded-2xl shadow-sm border border-border-main mb-8 flex flex-wrap items-center gap-4">
         <div className="relative flex-1 min-w-[250px]">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-text-muted" />
           <input 
             type="text" 
             placeholder="Search by customer, phone, or vehicle..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all text-sm"
+            className="w-full pl-10 pr-4 py-2 bg-main-bg border border-border-main rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all text-sm text-text-main"
           />
-          {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"><X className="w-4 h-4" /></button>}
+          {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5 text-text-muted hover:text-text-main"><X className="w-4 h-4" /></button>}
         </div>
 
         <select 
           value={vehicleFilter} 
           onChange={(e) => setVehicleFilter(e.target.value)}
-          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="bg-main-bg border border-border-main rounded-xl px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-blue-100"
         >
           <option value="all">All Vehicles</option>
           {vehicles.map(v => <option key={v.id} value={v.id}>{v.name} - {v.numberPlate}</option>)}
@@ -371,7 +367,7 @@ const Bookings = () => {
         <select 
           value={statusFilter} 
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
+          className="bg-main-bg border border-border-main rounded-xl px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-blue-100"
         >
           <option value="all">All Status</option>
           <option value="Confirmed">Confirmed</option>
@@ -381,9 +377,9 @@ const Bookings = () => {
         </select>
 
         <div className="flex items-center gap-2">
-          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm" />
-          <span className="text-slate-400 text-xs font-bold uppercase">To</span>
-          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm" />
+          <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="bg-main-bg border border-border-main rounded-xl px-3 py-2 text-sm text-text-main" />
+          <span className="text-text-muted text-xs font-bold uppercase">To</span>
+          <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="bg-main-bg border border-border-main rounded-xl px-3 py-2 text-sm text-text-main" />
         </div>
 
         <button 
@@ -396,13 +392,13 @@ const Bookings = () => {
 
       <div className="flex flex-col md:flex-row gap-8">
         {/* LEFT PANEL: BOOKINGS LIST */}
-        <div className="flex-1 w-full order-2 md:order-1">
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="flex-1 w-full order-2 md:order-1 text-text-main">
+          <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
             {/* Desktop Table View (Hidden on Mobile) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-slate-50/50 border-b border-slate-100">
-                  <tr className="text-slate-400 text-[11px] font-black uppercase tracking-wider">
+                <thead className="bg-main-bg/50 border-b border-border-main">
+                  <tr className="text-text-muted text-[11px] font-black uppercase tracking-wider">
                     <th className="px-6 py-4">Booking ID</th>
                     <th className="px-6 py-4">Vehicle</th>
                     <th className="px-6 py-4">Customer</th>
@@ -412,7 +408,7 @@ const Bookings = () => {
                     <th className="px-6 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-border-main/50">
                   {paginatedBookings.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="px-6 py-20 text-center">
@@ -433,17 +429,24 @@ const Bookings = () => {
                     paginatedBookings.map((b, idx) => (
                       <tr 
                         key={b.id} 
-                        className={`hover:bg-slate-50/80 transition-colors cursor-pointer group ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}
+                        className={`hover:bg-main-bg transition-colors cursor-pointer group ${idx % 2 === 0 ? 'bg-card-bg' : 'bg-main-bg/30'}`}
                         onClick={() => setViewBooking(b)}
                       >
                         <td className="px-6 py-5">
-                          <span className="font-black text-slate-800">{b.id}</span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-black text-text-main">{b.id}</span>
+                            {b.source === 'Customer Portal' && (
+                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-500/10 text-indigo-600 text-[8px] font-black uppercase tracking-tight rounded-md border border-indigo-500/20 w-fit">
+                                <User className="w-2 h-2" /> Customer Request
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-5">
                           <div>
-                            <div className="font-bold text-slate-700">{b.vehicleName}</div>
-                            <div className="text-xs text-slate-400 font-mono">{b.numberPlate}</div>
-                            <span className="mt-1 inline-block px-2 py-0.5 bg-slate-100 text-[9px] font-black rounded uppercase text-slate-500">{b.vehicleType}</span>
+                            <div className="font-bold text-text-main">{b.vehicleName}</div>
+                            <div className="text-xs text-text-muted font-mono">{b.numberPlate}</div>
+                            <span className="mt-1 inline-block px-2 py-0.5 bg-main-bg text-[9px] font-black rounded uppercase text-text-muted">{b.vehicleType}</span>
                           </div>
                         </td>
                         <td className="px-6 py-5">
@@ -578,14 +581,14 @@ const Bookings = () => {
             {/* Backdrop for Mobile */}
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm md:hidden" onClick={() => setShowForm(false)}></div>
             
-            <div className="fixed bottom-0 left-0 right-0 top-12 bg-white rounded-t-[40px] shadow-2xl flex flex-col md:sticky md:top-4 md:rounded-3xl md:shadow-sm md:border md:border-slate-100 animate-slide-up md:animate-fade-in-right">
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
-                <h2 className="text-xl font-black text-slate-800 tracking-tight">
+            <div className="fixed bottom-0 left-0 right-0 top-12 bg-card-bg rounded-t-[40px] shadow-2xl flex flex-col md:sticky md:top-4 md:rounded-3xl md:shadow-sm md:border md:border-border-main animate-slide-up md:animate-fade-in-right">
+              <div className="p-6 border-b border-border-main flex items-center justify-between bg-main-bg/50 shrink-0">
+                <h2 className="text-xl font-black text-text-main tracking-tight">
                   {editingId ? `Edit Booking #${editingId}` : 'New Booking'}
                 </h2>
                 <button 
                   onClick={() => { setShowForm(false); setEditingId(null); setForm(initialForm); }}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-white rounded-xl transition-all"
+                  className="p-2 text-text-muted hover:text-text-main hover:bg-card-bg rounded-xl transition-all"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -595,13 +598,13 @@ const Bookings = () => {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Vehicle Selection */}
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Select Vehicle *</label>
+                    <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Select Vehicle *</label>
                     <select 
                       name="vehicleId" 
                       required
                       value={form.vehicleId} 
                       onChange={(e) => setForm(prev => ({ ...prev, vehicleId: e.target.value }))}
-                      className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-slate-700 ${formErrors.vehicleId ? 'border-red-300' : 'border-slate-100'}`}
+                      className={`w-full px-4 py-3 bg-main-bg border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-text-main ${formErrors.vehicleId ? 'border-red-300' : 'border-border-main'}`}
                     >
                       <option value="">Choose a vehicle</option>
                       {vehicles.map(v => <option key={v.id} value={v.id}>{v.name} - {v.numberPlate}</option>)}
@@ -610,36 +613,36 @@ const Bookings = () => {
 
                     {selectedVehicle && (
                        <div className="mt-3 space-y-3">
-                          <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+                          <div className="p-4 bg-blue-500/5 rounded-2xl border border-blue-500/10">
                             <div className="flex justify-between items-start mb-2">
                                 <div>
                                     <span className="text-[10px] font-black text-blue-400 uppercase">{selectedVehicle.type} • {selectedVehicle.capacity} Seats</span>
-                                    <h4 className="font-bold text-blue-900">{selectedVehicle.name}</h4>
+                                    <h4 className="font-bold text-text-main">{selectedVehicle.name}</h4>
                                 </div>
-                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${selectedVehicle.status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${selectedVehicle.status === 'Available' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
                                     {selectedVehicle.status || 'Available'}
                                 </span>
                             </div>
-                            <div className="flex gap-4 text-[10px] font-bold text-blue-700 mt-2 pt-2 border-t border-blue-100/50">
+                            <div className="flex gap-4 text-[10px] font-bold text-blue-500 mt-2 pt-2 border-t border-blue-500/10">
                                 <span>Day: ₹{selectedVehicle.ratePerDay}</span>
                                 <span>KM: ₹{selectedVehicle.ratePerKm}</span>
-                                {selectedVehicle.hasAC && <span className="text-blue-500">AC: ₹{selectedVehicle.ratePerDayAC}/Day</span>}
+                                {selectedVehicle.hasAC && <span className="text-blue-400">AC: ₹{selectedVehicle.ratePerDayAC}/Day</span>}
                             </div>
                           </div>
 
                           {selectedVehicle.hasAC && (
-                            <div className="flex p-1 bg-slate-100 rounded-2xl">
+                            <div className="flex p-1 bg-main-bg rounded-2xl">
                               <button 
                                   type="button"
                                   onClick={() => setForm(prev => ({ ...prev, acMode: false }))}
-                                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold text-[10px] transition-all ${!form.acMode ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+                                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold text-[10px] transition-all ${!form.acMode ? 'bg-card-bg text-blue-600 shadow-sm' : 'text-text-muted'}`}
                               >
                                   <Wind className="w-3 h-3" /> Non-AC
                               </button>
                               <button 
                                   type="button"
                                   onClick={() => setForm(prev => ({ ...prev, acMode: true }))}
-                                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold text-[10px] transition-all ${form.acMode ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-500'}`}
+                                  className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl font-bold text-[10px] transition-all ${form.acMode ? 'bg-blue-600 text-white shadow-sm' : 'text-text-muted'}`}
                               >
                                   <Thermometer className="w-3 h-3" /> With AC
                               </button>
@@ -652,29 +655,29 @@ const Bookings = () => {
                   {/* Customer Details */}
                   <div className="grid grid-cols-1 gap-4">
                     <div className="relative">
-                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Customer Name *</label>
+                      <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Customer Name *</label>
                       <input 
                         type="text" 
                         placeholder="Full name or lookup..."
                         value={form.customerName}
                         onFocus={() => setShowCustomerList(true)}
                         onChange={(e) => setForm(prev => ({ ...prev, customerName: e.target.value }))}
-                        className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-slate-700 ${formErrors.customerName ? 'border-red-300' : 'border-slate-100'}`}
+                        className={`w-full px-4 py-3 bg-main-bg border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-text-main ${formErrors.customerName ? 'border-red-300' : 'border-border-main'}`}
                       />
                       {showCustomerList && filteredCustomers.length > 0 && (
-                        <div className="absolute z-50 left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in">
+                        <div className="absolute z-50 left-0 right-0 top-full mt-2 bg-card-bg border border-border-main rounded-2xl shadow-xl overflow-hidden animate-fade-in">
                           {filteredCustomers.map(c => (
                             <button
                               key={c.id}
                               type="button"
                               onClick={() => selectCustomer(c)}
-                              className="w-full px-5 py-4 text-left hover:bg-blue-50 transition-colors flex items-center justify-between group"
+                              className="w-full px-5 py-4 text-left hover:bg-blue-500/5 transition-colors flex items-center justify-between group"
                             >
                               <div>
-                                <p className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{c.name}</p>
-                                <p className="text-[10px] text-slate-400 font-bold">{c.phone}</p>
+                                <p className="font-bold text-text-main group-hover:text-blue-600 transition-colors">{c.name}</p>
+                                <p className="text-[10px] text-text-muted font-bold">{c.phone}</p>
                               </div>
-                              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-all group-hover:translate-x-1" />
+                              <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-blue-400 transition-all group-hover:translate-x-1" />
                             </button>
                           ))}
                         </div>
@@ -683,24 +686,24 @@ const Bookings = () => {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Phone *</label>
+                            <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Phone *</label>
                             <input 
                                 type="tel" 
                                 placeholder="10 Digits"
                                 value={form.customerPhone}
                                 onChange={(e) => setForm(prev => ({ ...prev, customerPhone: e.target.value }))}
-                                className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-slate-700 ${formErrors.customerPhone ? 'border-red-300' : 'border-slate-100'}`}
+                                className={`w-full px-4 py-3 bg-main-bg border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-text-main ${formErrors.customerPhone ? 'border-red-300' : 'border-border-main'}`}
                             />
                             {formErrors.customerPhone && <p className="text-red-500 text-[10px] mt-1 font-bold">{formErrors.customerPhone}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Email</label>
+                            <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Email</label>
                             <input 
                                 type="email" 
                                 placeholder="Optional"
                                 value={form.customerEmail}
                                 onChange={(e) => setForm(prev => ({ ...prev, customerEmail: e.target.value }))}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-700"
+                                className="w-full px-4 py-3 bg-main-bg border border-border-main rounded-xl font-bold text-text-main"
                             />
                         </div>
                     </div>
@@ -729,8 +732,8 @@ const Bookings = () => {
                   </div>
 
                   {/* Calculated Days */}
-                  <div className="p-3 bg-blue-600 rounded-2xl flex items-center justify-between text-white shadow-lg shadow-blue-200">
-                    <span className="text-xs font-black uppercase">Total Duration</span>
+                  <div className="p-3 bg-blue-600 rounded-2xl flex items-center justify-between text-white shadow-lg shadow-blue-500/20">
+                    <span className="text-xs font-black uppercase tracking-widest">Total Duration</span>
                     <span className="text-lg font-black">{bookingDays} Days</span>
                   </div>
 
@@ -815,17 +818,17 @@ const Bookings = () => {
                   {/* Payment */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Advance Paid (₹)</label>
+                      <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Advance Paid (₹)</label>
                       <input 
                         type="number" 
                         value={form.advancePaid}
                         onChange={(e) => setForm(prev => ({ ...prev, advancePaid: Number(e.target.value) }))}
-                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-700" 
+                        className="w-full px-4 py-3 bg-main-bg border border-border-main rounded-xl font-bold text-text-main" 
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Payment Mode</label>
-                      <select value={form.paymentMode} onChange={(e) => setForm(prev => ({ ...prev, paymentMode: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-700">
+                      <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Payment Mode</label>
+                      <select value={form.paymentMode} onChange={(e) => setForm(prev => ({ ...prev, paymentMode: e.target.value }))} className="w-full px-4 py-3 bg-main-bg border border-border-main rounded-xl font-bold text-text-main">
                         <option>Cash</option>
                         <option>UPI</option>
                         <option>Bank Transfer</option>
@@ -837,8 +840,8 @@ const Bookings = () => {
 
                   {/* Status */}
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Booking Status</label>
-                    <select value={form.status} onChange={(e) => setForm(prev => ({ ...prev, status: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-700">
+                    <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Booking Status</label>
+                    <select value={form.status} onChange={(e) => setForm(prev => ({ ...prev, status: e.target.value }))} className="w-full px-4 py-3 bg-main-bg border border-border-main rounded-xl font-bold text-text-main">
                       <option value="Confirmed">Confirmed</option>
                       <option value="Pending">Pending</option>
                       <option value="Cancelled">Cancelled</option>
@@ -847,13 +850,13 @@ const Bookings = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Special Instructions</label>
+                    <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Special Instructions</label>
                     <textarea 
                       placeholder="Any notes..."
                       value={form.specialInstructions}
                       onChange={(e) => setForm(prev => ({ ...prev, specialInstructions: e.target.value }))}
                       rows="3"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-700 text-sm focus:outline-none"
+                      className="w-full px-4 py-3 bg-main-bg border border-border-main rounded-xl font-bold text-text-main text-sm focus:outline-none"
                     ></textarea>
                   </div>
 

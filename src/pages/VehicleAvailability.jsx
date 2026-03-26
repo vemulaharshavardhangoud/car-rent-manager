@@ -54,6 +54,22 @@ const VehicleAvailability = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredVehicles.map((vehicle) => (
           <div key={vehicle.id} className="bg-card-bg border border-border-main rounded-[2.5rem] overflow-hidden group hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 flex flex-col">
+            {/* Vehicle Photo */}
+            <div className="relative h-48 overflow-hidden">
+              {vehicle.photos && vehicle.photos.length > 0 ? (
+                <img 
+                  src={vehicle.photos[0]} 
+                  alt={vehicle.name} 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                />
+              ) : (
+                <div className="w-full h-full bg-main-bg flex items-center justify-center">
+                  <Car className="w-12 h-12 text-text-muted opacity-20" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-card-bg via-transparent to-transparent opacity-60"></div>
+            </div>
+
             <div className="p-8 pb-0">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex flex-col gap-1">

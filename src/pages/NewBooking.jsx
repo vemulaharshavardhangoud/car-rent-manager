@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { 
   Car, User, Phone, Calendar, Clock, AlertCircle, 
-  CheckCircle2, ArrowRight, IndianRupee, Info 
+  CheckCircle2, ArrowRight, IndianRupee, Info, MapPin, Wind
 } from 'lucide-react';
 
 const NewBooking = () => {
@@ -21,8 +21,12 @@ const NewBooking = () => {
     customerPhone: '',
     pickupDate: '',
     pickupTime: '10:00',
+    pickupLocation: '',
     returnDate: '',
     returnTime: '10:00',
+    returnLocation: '',
+    customerEmail: '',
+    specialInstructions: '',
     useAC: false,
   });
 
@@ -30,6 +34,7 @@ const NewBooking = () => {
   const [conflict, setConflict] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [bookingId, setBookingId] = useState('');
+  const [submittedVehicleName, setSubmittedVehicleName] = useState('');
 
   const selectedVehicle = vehicles.find(v => v.id === formData.vehicleId);
 
@@ -39,13 +44,15 @@ const NewBooking = () => {
       const start = new Date(`${formData.pickupDate}T${formData.pickupTime}`);
       const end = new Date(`${formData.returnDate}T${formData.returnTime}`);
       
-      if (end > start) {
-        // Estimation
-        const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (end >= start) {
+        // Estimation (Match Owner Portal logic: ceil(diff) + 1, min 1)
+        const diffTime = Math.max(0, end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
+        
         if (selectedVehicle) {
-          const dailyRate = formData.useAC ? (selectedVehicle.ratePerDayAC || selectedVehicle.ratePerDay) : selectedVehicle.ratePerDay;
-          setEstimatedCost(diffDays * dailyRate);
+          const rateDay = formData.useAC ? (Number(selectedVehicle.ratePerDayAC) || Number(selectedVehicle.ratePerDay) || 0) : (Number(selectedVehicle.ratePerDay) || 0);
+          const total = diffDays * rateDay;
+          setEstimatedCost(total);
         }
 
         // Conflict Check
@@ -89,14 +96,16 @@ const NewBooking = () => {
       bookingEndDate: formData.returnDate,
       status: 'Pending',
       totalAmount: estimatedCost,
-      estimatedCost: estimatedCost, // Consistent with owner view
-      useAC: formData.useAC,
-      source: 'Customer Portal'
+      estimatedCost: estimatedCost,
+      source: 'Customer Portal',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
     const result = await addBooking(newBooking);
     if (result) {
       setBookingId(result.id);
+      setSubmittedVehicleName(`${selectedVehicle.name} (${selectedVehicle.numberPlate})`);
       setIsSubmitted(true);
       showToast('Booking request submitted successfully!');
     }
@@ -122,7 +131,7 @@ const NewBooking = () => {
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Vehicle</p>
-              <p className="text-sm font-bold">{selectedVehicle?.name} ({selectedVehicle?.numberPlate})</p>
+              <p className="text-sm font-bold text-text-main">{submittedVehicleName}</p>
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-text-muted mb-1">Duration</p>
@@ -167,9 +176,11 @@ const NewBooking = () => {
                 className="w-full bg-main-bg border border-border-main rounded-2xl py-4 px-6 text-text-main font-medium focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
                 required
               >
-                <option value="" disabled>Choose a vehicle...</option>
+                <option value="" disabled className="bg-card-bg">Choose a vehicle...</option>
                 {vehicles.map(v => (
-                  <option key={v.id} value={v.id}>{v.name} ({v.numberPlate}) - ₹{v.ratePerDay}/day</option>
+                  <option key={v.id} value={v.id} className="bg-card-bg">
+                    {v.name} ({v.numberPlate}) - {v.status || 'Available'} - ₹{v.ratePerDay}/day
+                  </option>
                 ))}
               </select>
             </div>
@@ -191,7 +202,7 @@ const NewBooking = () => {
                     type="checkbox" 
                     checked={formData.useAC}
                     onChange={(e) => setFormData({...formData, useAC: e.target.checked})}
-                    className="w-6 h-6 rounded-lg bg-slate-950 border-white/5 text-blue-600 focus:ring-blue-500"
+                    className="w-6 h-6 rounded-lg bg-main-bg border-border-main text-blue-600 focus:ring-blue-500"
                   />
                 </label>
               </div>
@@ -230,6 +241,52 @@ const NewBooking = () => {
                     required
                   />
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                <User className="w-4 h-4" /> Email Address (Optional)
+              </label>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-blue-500 transition-colors" />
+                <input 
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.customerEmail}
+                  onChange={(e) => setFormData({...formData, customerEmail: e.target.value})}
+                  className="w-full bg-main-bg border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-main font-medium focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Locations */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-main-bg/50 rounded-[2rem] border border-border-main">
+              <div className="space-y-4">
+                <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-blue-500" /> Pickup Location
+                </label>
+                <input 
+                  type="text"
+                  placeholder="Where should we bring the car?"
+                  value={formData.pickupLocation}
+                  onChange={(e) => setFormData({...formData, pickupLocation: e.target.value})}
+                  className="w-full bg-main-bg border border-border-main rounded-xl py-3 px-4 text-text-main text-sm focus:border-blue-500 outline-none transition-all"
+                  required
+                />
+              </div>
+              <div className="space-y-4">
+                <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-emerald-500" /> Return Location
+                </label>
+                <input 
+                  type="text"
+                  placeholder="Where will you return it?"
+                  value={formData.returnLocation}
+                  onChange={(e) => setFormData({...formData, returnLocation: e.target.value})}
+                  className="w-full bg-main-bg border border-border-main rounded-xl py-3 px-4 text-text-main text-sm focus:border-emerald-500 outline-none transition-all"
+                  required
+                />
               </div>
             </div>
 
@@ -278,6 +335,19 @@ const NewBooking = () => {
                 </div>
               </div>
             </div>
+
+            {/* Special Instructions */}
+            <div className="space-y-4">
+              <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                <Info className="w-4 h-4" /> Special Instructions
+              </label>
+              <textarea 
+                placeholder="Any special requests or details about your trip?"
+                value={formData.specialInstructions}
+                onChange={(e) => setFormData({...formData, specialInstructions: e.target.value})}
+                className="w-full bg-main-bg border border-border-main rounded-2xl py-4 px-6 text-text-main font-medium focus:border-blue-500 outline-none transition-all min-h-[120px]"
+              />
+            </div>
           </div>
         </div>
 
@@ -316,7 +386,7 @@ const NewBooking = () => {
               disabled={!!conflict || !formData.vehicleId || !formData.pickupDate || !formData.returnDate}
               className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-3 ${
                 conflict || !formData.vehicleId
-                  ? 'bg-slate-800 text-slate-600 cursor-not-allowed opacity-50'
+                  ? 'bg-main-bg border border-border-main text-text-muted cursor-not-allowed opacity-50'
                   : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-blue-500/10'
               }`}
             >

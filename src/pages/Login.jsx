@@ -57,7 +57,7 @@ const Login = () => {
             <CarFront className="w-10 h-10 text-white -rotate-12" />
           </div>
           <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-3">CarRent Manager</h1>
-          <p className="text-slate-400 font-medium lg:text-lg">Choose Your Portal</p>
+          <p className="text-slate-200 font-medium lg:text-lg">Choose Your Portal</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 px-2">
@@ -150,7 +150,7 @@ const Login = () => {
           </div>
         )}
 
-        <p className="text-center mt-12 text-slate-600 text-xs font-bold uppercase tracking-widest">
+        <p className="text-center mt-12 text-slate-400 text-xs font-bold uppercase tracking-widest">
           Version 6.0.0 • Secured Access System
         </p>
       </div>

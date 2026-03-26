@@ -31,13 +31,13 @@ const ProtectedRoute = ({ children, requiredRole }) => {
             <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
               <ShieldAlert className="w-10 h-10 text-red-500" />
             </div>
-            <h1 className="text-3xl font-black text-white mb-4 tracking-tight">Access Denied</h1>
-            <p className="text-slate-400 max-w-md mx-auto font-medium">
-              You do not have the required <span className="text-red-400 font-bold">OWNER</span> privileges to view this high-security module.
+            <h1 className="text-3xl font-black text-text-main mb-4 tracking-tight">Access Denied</h1>
+            <p className="text-text-muted max-w-md mx-auto font-medium">
+              You do not have the required <span className="text-red-500 font-bold">OWNER</span> privileges to view this high-security module.
             </p>
             <button 
               onClick={() => window.history.back()}
-              className="mt-8 bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-8 rounded-2xl transition-all"
+              className="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-2xl transition-all shadow-lg shadow-blue-500/10"
             >
               Go Back
             </button>
