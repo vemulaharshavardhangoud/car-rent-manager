@@ -31,7 +31,8 @@
 */
 
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCJoT3LlFx80qOrqbgxfxa8jswNM5Gw1UI",
@@ -46,18 +47,31 @@ const firebaseConfig = {
 const isConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY";
 
 let db = null;
+let auth = null;
 
 if (isConfigured) {
   try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
-    console.log("✅ Firebase connected successfully.");
+    auth = getAuth(app);
+    
+    // Enable offline persistence
+    enableIndexedDbPersistence(db).catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.warn("Multiple tabs open, persistence can only be enabled in one tab at a time.");
+      } else if (err.code === 'unimplemented') {
+        console.warn("The current browser does not support all of the features required to enable persistence.");
+      }
+    });
+    
+    console.log("✅ Firebase connected successfully with Auth and offline persistence.");
   } catch (err) {
     console.warn("⚠️ Firebase failed to initialize:", err.message);
     db = null;
+    auth = null;
   }
 } else {
   console.warn("⚠️ Firebase not configured. Running in offline/local mode.");
 }
 
-export { db };
+export { db, auth };

@@ -6,6 +6,245 @@ const PREFIX = 'crm_';
 const VEHICLE_LIST_KEY = `${PREFIX}vehicle_list`;
 const BOOKINGS_KEY = `${PREFIX}bookings`;
 const NEXT_BOOKING_NUM_KEY = `${PREFIX}next_booking_number`;
+const DRIVER_LIST_KEY = `${PREFIX}driver_list`;
+const CUSTOMER_LIST_KEY = `${PREFIX}customer_list`;
+const EXPENSE_LIST_KEY = `${PREFIX}expense_list`;
+const FUEL_LOGS_PREFIX = `${PREFIX}fuel_logs_`;
+
+/**
+ * Saves a new driver to localStorage.
+ */
+export const saveDriver = (driverData) => {
+  try {
+    const id = "d_" + Date.now();
+    const newDriver = { ...driverData, id, createdAt: new Date().toISOString() };
+    localStorage.setItem(`${PREFIX}driver_${id}`, JSON.stringify(newDriver));
+    const list = JSON.parse(localStorage.getItem(DRIVER_LIST_KEY) || '[]');
+    list.push(id);
+    localStorage.setItem(DRIVER_LIST_KEY, JSON.stringify(list));
+    return newDriver;
+  } catch (error) {
+    console.error("Error saving driver:", error);
+    return null;
+  }
+};
+
+/**
+ * Retrieves all drivers.
+ */
+export const getAllDrivers = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(DRIVER_LIST_KEY) || '[]');
+    return list.map(id => JSON.parse(localStorage.getItem(`${PREFIX}driver_${id}`)))
+               .filter(d => d !== null)
+               .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } catch (error) {
+    console.error("Error getting drivers:", error);
+    return [];
+  }
+};
+
+/**
+ * Updates a driver.
+ */
+export const updateDriver = (id, updatedFields) => {
+  try {
+    const data = localStorage.getItem(`${PREFIX}driver_${id}`);
+    if (!data) return null;
+    const updated = { ...JSON.parse(data), ...updatedFields, updatedAt: new Date().toISOString() };
+    localStorage.setItem(`${PREFIX}driver_${id}`, JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    console.error("Error updating driver:", error);
+    return null;
+  }
+};
+
+/**
+ * Deletes a driver.
+ */
+export const deleteDriver = (id) => {
+  try {
+    localStorage.removeItem(`${PREFIX}driver_${id}`);
+    const list = JSON.parse(localStorage.getItem(DRIVER_LIST_KEY) || '[]');
+    localStorage.setItem(DRIVER_LIST_KEY, JSON.stringify(list.filter(dId => dId !== id)));
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Saves a fuel log for a vehicle.
+ */
+export const saveFuelLog = (vehicleId, fuelData) => {
+  try {
+    const id = "f_" + Date.now();
+    const newLog = { ...fuelData, id, vehicleId, createdAt: new Date().toISOString() };
+    const key = `${FUEL_LOGS_PREFIX}${vehicleId}`;
+    const logs = JSON.parse(localStorage.getItem(key) || '[]');
+    logs.push(newLog);
+    localStorage.setItem(key, JSON.stringify(logs));
+    return newLog;
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * Gets fuel logs for a vehicle.
+ */
+export const getFuelLogsForVehicle = (vehicleId) => {
+  try {
+    const key = `${FUEL_LOGS_PREFIX}${vehicleId}`;
+    return JSON.parse(localStorage.getItem(key) || '[]').sort((a,b) => new Date(b.date) - new Date(a.date));
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * Deletes a fuel log.
+ */
+export const deleteFuelLog = (vehicleId, id) => {
+  try {
+    const key = `${FUEL_LOGS_PREFIX}${vehicleId}`;
+    const logs = JSON.parse(localStorage.getItem(key) || '[]');
+    localStorage.setItem(key, JSON.stringify(logs.filter(l => l.id !== id)));
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Saves a new customer.
+ */
+export const saveCustomer = (customerData) => {
+  try {
+    const id = customerData.id || "c_" + Date.now();
+    const newCustomer = { ...customerData, id, createdAt: new Date().toISOString() };
+    localStorage.setItem(`${PREFIX}customer_${id}`, JSON.stringify(newCustomer));
+    const list = JSON.parse(localStorage.getItem(CUSTOMER_LIST_KEY) || '[]');
+    if (!list.includes(id)) {
+      list.push(id);
+      localStorage.setItem(CUSTOMER_LIST_KEY, JSON.stringify(list));
+    }
+    return newCustomer;
+  } catch (error) {
+    console.error("Error saving customer:", error);
+    return null;
+  }
+};
+
+/**
+ * Retrieves all customers.
+ */
+export const getAllCustomers = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(CUSTOMER_LIST_KEY) || '[]');
+    return list.map(id => {
+      const data = localStorage.getItem(`${PREFIX}customer_${id}`);
+      return data ? JSON.parse(data) : null;
+    }).filter(c => c !== null)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * Updates a customer.
+ */
+export const updateCustomer = (id, updatedFields) => {
+  try {
+    const data = localStorage.getItem(`${PREFIX}customer_${id}`);
+    if (!data) return null;
+    const updated = { ...JSON.parse(data), ...updatedFields, updatedAt: new Date().toISOString() };
+    localStorage.setItem(`${PREFIX}customer_${id}`, JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * Deletes a customer.
+ */
+export const deleteCustomer = (id) => {
+  try {
+    localStorage.removeItem(`${PREFIX}customer_${id}`);
+    const list = JSON.parse(localStorage.getItem(CUSTOMER_LIST_KEY) || '[]');
+    localStorage.setItem(CUSTOMER_LIST_KEY, JSON.stringify(list.filter(cId => cId !== id)));
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Saves a new expense.
+ */
+export const saveExpense = (expenseData) => {
+  try {
+    const id = expenseData.id || "exp_" + Date.now();
+    const newExpense = { ...expenseData, id, createdAt: new Date().toISOString() };
+    localStorage.setItem(`${PREFIX}expense_${id}`, JSON.stringify(newExpense));
+    const list = JSON.parse(localStorage.getItem(EXPENSE_LIST_KEY) || '[]');
+    if (!list.includes(id)) {
+      list.push(id);
+      localStorage.setItem(EXPENSE_LIST_KEY, JSON.stringify(list));
+    }
+    return newExpense;
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * Retrieves all expenses.
+ */
+export const getAllExpenses = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(EXPENSE_LIST_KEY) || '[]');
+    return list.map(id => {
+      const data = localStorage.getItem(`${PREFIX}expense_${id}`);
+      return data ? JSON.parse(data) : null;
+    }).filter(e => e !== null)
+      .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+  } catch (error) {
+    return [];
+  }
+};
+
+/**
+ * Updates an expense.
+ */
+export const updateExpense = (id, updatedFields) => {
+  try {
+    const data = localStorage.getItem(`${PREFIX}expense_${id}`);
+    if (!data) return null;
+    const updated = { ...JSON.parse(data), ...updatedFields, updatedAt: new Date().toISOString() };
+    localStorage.setItem(`${PREFIX}expense_${id}`, JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    return null;
+  }
+};
+
+/**
+ * Deletes an expense.
+ */
+export const deleteExpense = (id) => {
+  try {
+    localStorage.removeItem(`${PREFIX}expense_${id}`);
+    const list = JSON.parse(localStorage.getItem(EXPENSE_LIST_KEY) || '[]');
+    localStorage.setItem(EXPENSE_LIST_KEY, JSON.stringify(list.filter(eId => eId !== id)));
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
 
 /**
  * Saves a new vehicle to localStorage.
@@ -474,7 +713,7 @@ export const saveBooking = (bookingData) => {
     
     // Update vehicle status to 'Booked'
     if (bookingData.vehicleId) {
-      updateVehicle(bookingData.vehicleId, { bookingStatus: 'Booked' });
+      updateVehicle(bookingData.vehicleId, { status: 'Booked' });
     }
     
     return newBooking;
@@ -528,8 +767,8 @@ export const updateBooking = (bookingId, updatedFields) => {
     // If vehicle changed, update both old and new vehicle statuses
     const oldBooking = bookings[index];
     if (updatedFields.vehicleId && updatedFields.vehicleId !== oldBooking.vehicleId) {
-      updateVehicle(oldBooking.vehicleId, { bookingStatus: 'Available' });
-      updateVehicle(updatedFields.vehicleId, { bookingStatus: 'Booked' });
+      updateVehicle(oldBooking.vehicleId, { status: 'Available' });
+      updateVehicle(updatedFields.vehicleId, { status: 'Booked' });
     }
     
     const updatedBooking = {
@@ -568,7 +807,7 @@ export const cancelBooking = (bookingId, cancellationData) => {
     });
     
     if (updated && updated.vehicleId) {
-      updateVehicle(updated.vehicleId, { bookingStatus: 'Available' });
+      updateVehicle(updated.vehicleId, { status: 'Available' });
     }
     
     return updated;
@@ -593,7 +832,7 @@ export const deleteBooking = (bookingId) => {
     
     // If the booking was active, reset vehicle status
     if (booking && (booking.status === 'Confirmed' || booking.status === 'Pending')) {
-      updateVehicle(booking.vehicleId, { bookingStatus: 'Available' });
+      updateVehicle(booking.vehicleId, { status: 'Available' });
     }
     
     return true;

@@ -137,7 +137,8 @@ const NewTrip = () => {
     
     if (messages.length > 0) {
       setErrorBoxMessages(messages);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const mainElement = document.querySelector('main');
+      if (mainElement) mainElement.scrollTo({ top: 0, behavior: 'smooth' });
       return false;
     }
     
@@ -182,7 +183,8 @@ const NewTrip = () => {
     setErrors({});
     setErrorBoxMessages([]);
     setIsModalOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const mainElement = document.querySelector('main');
+    if (mainElement) mainElement.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (vehicles.length === 0) {
@@ -205,7 +207,7 @@ const NewTrip = () => {
   const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 pb-12 animate-fade-in items-start">
+    <div className="flex flex-col md:flex-row gap-8 pb-24 md:pb-12 animate-fade-in items-start">
       
       {/* LEFT COLUMN: FORM */}
       <div className="w-full md:w-[60%] bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
@@ -500,7 +502,7 @@ const NewTrip = () => {
       </div>
 
       {/* RIGHT COLUMN: ESTIMATE */}
-      <div className="w-full md:w-[35%] shrink-0 sticky top-4 mt-8 lg:mt-0">
+      <div className="w-full md:w-[35%] shrink-0 md:sticky md:top-4 mt-8 lg:mt-0">
         <div className="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-100 overflow-hidden">
           
           <div className="bg-slate-900 text-white p-6 relative overflow-hidden">

@@ -1,16 +1,24 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, User, Car, History, Menu } from 'lucide-react';
+import { Home, Users, Car, History, Menu, DollarSign, CalendarDays } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const BottomNav = ({ setSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const navItems = [
+  const { isAdmin, isCustomer } = useAuth();
+
+  const navItems = isAdmin ? [
     { icon: Home, label: 'Home', path: '/' },
-    { icon: User, label: 'You', path: '/settings' },
-    { icon: Car, label: 'Fleet', path: '/vehicles' },
-    { icon: History, label: 'Trips', path: '/history' },
+    { icon: Users, label: 'Customers', path: '/customers' },
+    { icon: Car, label: 'Vehicles', path: '/vehicles' },
+    { icon: DollarSign, label: 'Finance', path: '/expenses' },
+    { icon: Menu, label: 'Menu', path: 'MENU_TOGGLE' },
+  ] : [
+    { icon: Home, label: 'Home', path: '/' },
+    { icon: Car, label: 'Availability', path: '/vehicles' },
+    { icon: CalendarDays, label: 'Bookings', path: '/my-bookings' },
     { icon: Menu, label: 'Menu', path: 'MENU_TOGGLE' },
   ];
 

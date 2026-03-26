@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider, AppContext } from './context/AppContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import * as emailApi from './utils/emailApi';
 import * as firestore from './utils/firestoreService';
 
@@ -12,19 +15,29 @@ import Dashboard from './pages/Dashboard';
 import Vehicles from './pages/Vehicles';
 import Bookings from './pages/Bookings';
 import NewTrip from './pages/NewTrip';
+import Drivers from './pages/Drivers';
 import History from './pages/History';
+import Customers from './pages/Customers';
+import Expenses from './pages/Expenses';
 import Settings from './pages/Settings';
+import Login from './pages/Login';
 import BottomNav from './components/BottomNav';
 
+import CustomerDashboard from './pages/CustomerDashboard';
+import VehicleAvailability from './pages/VehicleAvailability';
+import NewBooking from './pages/NewBooking';
+import MyBookings from './pages/MyBookings';
+import { useAuth } from './context/AuthContext';
 
 function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { bookings, vehicles } = useContext(AppContext);
+  const { isAdmin, isCustomer } = useAuth();
 
   // Automated Email Triggers (Reminders & Overdue)
   useEffect(() => {
-    if (bookings.length === 0 || vehicles.length === 0) return;
-
+    if (!isAdmin || bookings.length === 0 || vehicles.length === 0) return;
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -40,7 +53,6 @@ function Layout() {
       // 1. Reminder: Starts Tomorrow
       if (b.status === 'Confirmed' && b.bookingStartDate === tomorrowStr) {
         const flag = `crm_sent_reminder_${b.id}`;
-        // Check local cache first for speed, then Firestore for cross-device sync
         if (!localStorage.getItem(flag)) {
           const alreadySent = await firestore.isNotificationSent(b.id, 'reminder');
           if (!alreadySent) {
@@ -51,7 +63,7 @@ function Layout() {
               localStorage.setItem(flag, 'true');
             }
           } else {
-            localStorage.setItem(flag, 'true'); // Sync local cache
+            localStorage.setItem(flag, 'true');
           }
         }
       }
@@ -70,29 +82,48 @@ function Layout() {
               localStorage.setItem(flag, 'true');
             }
           } else {
-            localStorage.setItem(flag, 'true'); // Sync local cache
+            localStorage.setItem(flag, 'true');
           }
         }
       }
     });
-  }, [bookings, vehicles]);
+  }, [bookings, vehicles, isAdmin]);
 
   return (
-    <div className="flex h-screen bg-[#f1f5f9] font-sans">
+    <div className="flex h-screen bg-main-bg font-sans transition-colors duration-300">
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
       <div className="flex-1 flex flex-col lg:pl-[250px] transition-spacing duration-300">
         <Header setSidebarOpen={setIsSidebarOpen} />
         
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[#f1f5f9] p-4 lg:p-8 pb-32 lg:pb-8 max-w-screen-overflow">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-main-bg p-4 lg:p-8 pb-32 lg:pb-8 max-w-screen-overflow transition-colors duration-300">
 
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/vehicles" element={<Vehicles />} />
-            <Route path="/bookings" element={<Bookings />} />
-            <Route path="/newtrip" element={<NewTrip />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/settings" element={<Settings />} />
+            {/* Common Entry */}
+            <Route path="/" element={isAdmin ? <Dashboard /> : <CustomerDashboard />} />
+            
+            {/* Admin Routes */}
+            {isAdmin && (
+              <>
+                <Route path="/vehicles" element={<Vehicles />} />
+                <Route path="/bookings" element={<Bookings />} />
+                <Route path="/drivers" element={<Drivers />} />
+                <Route path="/customers" element={<Customers />} />
+                <Route path="/newtrip" element={<NewTrip />} />
+                <Route path="/expenses" element={<Expenses />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/settings" element={<Settings />} />
+              </>
+            )}
+
+            {/* Customer Routes */}
+            {isCustomer && (
+              <>
+                <Route path="/vehicles" element={<VehicleAvailability />} />
+                <Route path="/new-booking" element={<NewBooking />} />
+                <Route path="/my-bookings" element={<MyBookings />} />
+              </>
+            )}
           </Routes>
         </main>
       </div>
@@ -100,18 +131,27 @@ function Layout() {
       <BottomNav setSidebarOpen={setIsSidebarOpen} />
       <Toast />
     </div>
-
-
   );
 }
 
 function App() {
   return (
-    <AppProvider>
-      <Router>
-        <Layout />
-      </Router>
-    </AppProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppProvider>
+          <Router>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/*" element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </Router>
+        </AppProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

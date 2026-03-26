@@ -1,10 +1,86 @@
-import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight, Receipt, Info, Edit, Thermometer, CarFront, Eye } from 'lucide-react';
+import React, { useState, useContext } from 'react';
+import { X, ChevronLeft, ChevronRight, Receipt, Info, Edit, Thermometer, CarFront, Eye, Droplets, Plus, Trash2, Calendar, ShieldCheck, Wrench, Settings } from 'lucide-react';
+import { AppContext } from '../context/AppContext';
 
-const VehicleDetails = ({ vehicle, stats, onClose }) => {
+const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose }) => {
   const [activePhoto, setActivePhoto] = useState(0);
+  const { vehicles, fuelLogs, addFuelLog, deleteFuelLog, updateVehicleDocuments, addMaintenanceLog } = useContext(AppContext);
+  
+  // Always get fresh vehicle data from context
+  const vehicle = vehicles.find(v => v.id === initialVehicle.id) || initialVehicle;
+
+  const [showFuelModal, setShowFuelModal] = useState(false);
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  const [isEditingDocs, setIsEditingDocs] = useState(false);
+
+  const [fuelForm, setFuelForm] = useState({
+    amount: '',
+    litres: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  const [docForm, setDocForm] = useState({
+    insuranceExpiry: vehicle.insuranceExpiry || '',
+    permitExpiry: vehicle.permitExpiry || '',
+    fitnessExpiry: vehicle.fitnessExpiry || ''
+  });
+
+  const [maintenanceForm, setMaintenanceForm] = useState({
+    type: 'Oil Change',
+    date: new Date().toISOString().split('T')[0],
+    km: '',
+    notes: ''
+  });
 
   if (!vehicle) return null;
+
+  const vehicleFuelLogs = fuelLogs
+    .filter(log => log.vehicleId === vehicle.id)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const handleAddFuel = async (e) => {
+    e.preventDefault();
+    if (!fuelForm.amount || !fuelForm.litres || !fuelForm.date) return;
+
+    const newLog = {
+      vehicleId: vehicle.id,
+      amount: parseFloat(fuelForm.amount),
+      litres: parseFloat(fuelForm.litres),
+      date: fuelForm.date,
+      createdAt: new Date().toISOString()
+    };
+
+    const success = await addFuelLog(vehicle.id, newLog);
+    if (success) {
+      setShowFuelModal(false);
+      setFuelForm({
+        amount: '',
+        litres: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+    }
+  };
+
+  const handleUpdateDocs = async () => {
+    await updateVehicleDocuments(vehicle.id, docForm);
+    setIsEditingDocs(false);
+  };
+
+  const handleAddMaintenance = async (e) => {
+    e.preventDefault();
+    if (!maintenanceForm.km || !maintenanceForm.date) return;
+
+    const success = await addMaintenanceLog(vehicle.id, maintenanceForm);
+    if (success) {
+      setShowMaintenanceModal(false);
+      setMaintenanceForm({
+        type: 'Oil Change',
+        date: new Date().toISOString().split('T')[0],
+        km: '',
+        notes: ''
+      });
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-fade-in">
@@ -132,39 +208,138 @@ const VehicleDetails = ({ vehicle, stats, onClose }) => {
             </section>
 
             <section>
-              <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                <Info className="w-4 h-4" /> Technical Specifications
-              </h5>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                <div className="flex justify-between items-center pb-2 border-b border-gray-50">
-                  <span className="text-[11px] text-gray-500 font-bold uppercase">Seating</span>
-                  <span className="font-black text-gray-900">{vehicle.capacity} Seats</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b border-gray-50">
-                  <span className="text-[11px] text-gray-500 font-bold uppercase">Fuel Tank</span>
-                  <span className="font-black text-gray-900">{vehicle.tankCapacity} L</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b border-gray-50">
-                  <span className="text-[11px] text-gray-500 font-bold uppercase">Exterior</span>
-                  <span className="font-black text-gray-900">{vehicle.color}</span>
-                </div>
-                <div className="flex justify-between items-center pb-2 border-b border-gray-50">
-                  <span className="text-[11px] text-gray-500 font-bold uppercase">Health</span>
-                  <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-black uppercase tracking-tighter leading-none">{vehicle.bookingStatus}</span>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h5 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" /> Compliance & Documents
+                </h5>
+                <button 
+                  onClick={() => isEditingDocs ? handleUpdateDocs() : setIsEditingDocs(true)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors ${isEditingDocs ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                >
+                  {isEditingDocs ? 'Save Changes' : 'Update Dates'}
+                </button>
+              </div>
+              <div className="grid grid-cols-1 gap-4 p-5 bg-gray-50 rounded-3xl border border-gray-100">
+                {[
+                  { label: 'Insurance Expiry', key: 'insuranceExpiry' },
+                  { label: 'Permit Expiry', key: 'permitExpiry' },
+                  { label: 'Fitness Expiry', key: 'fitnessExpiry' }
+                ].map(doc => (
+                  <div key={doc.key} className="flex items-center justify-between">
+                    <span className="text-[11px] text-gray-500 font-bold uppercase">{doc.label}</span>
+                    {isEditingDocs ? (
+                      <input 
+                        type="date"
+                        value={docForm[doc.key]}
+                        onChange={(e) => setDocForm({...docForm, [doc.key]: e.target.value})}
+                        className="bg-white border-none rounded-lg px-3 py-1 text-xs font-black text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                      />
+                    ) : (
+                      <span className={`font-black text-sm ${docForm[doc.key] ? 'text-gray-900' : 'text-gray-300 italic'}`}>
+                        {docForm[doc.key] || 'Not Set'}
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
             </section>
 
             {vehicle.notes && (
-              <section className="bg-orange-50/50 p-5 rounded-3xl border border-orange-100/50">
-                <h5 className="text-[10px] font-black text-orange-600/60 uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
+              <section className="bg-orange-50/50 dark:bg-orange-900/10 p-5 rounded-3xl border border-orange-100/50 dark:border-orange-800/30">
+                <h5 className="text-[10px] font-black text-orange-600/60 dark:text-orange-400/60 uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
                   <Edit className="w-4 h-4" /> Fleet Manager Notes
                 </h5>
-                <p className="text-sm text-gray-700 font-medium italic leading-relaxed">
+                <p className="text-sm text-gray-700 dark:text-gray-300 font-medium italic leading-relaxed">
                    "{vehicle.notes}"
                 </p>
               </section>
             )}
+
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h5 className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <Droplets className="w-4 h-4" /> Fuel Logs
+                </h5>
+                <button 
+                  onClick={() => setShowFuelModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Log
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[300px] overflow-y-auto no-scrollbar">
+                {vehicleFuelLogs.length > 0 ? (
+                  vehicleFuelLogs.map(log => (
+                    <div key={log.id} className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-between group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600">
+                          <Droplets className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-gray-900 dark:text-white">₹{log.amount}</p>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase">
+                            <span>{log.litres}L</span>
+                            <span>•</span>
+                            <span>{log.date}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => deleteFuelLog(vehicle.id, log.id)}
+                        className="p-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center bg-gray-50 dark:bg-gray-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No fuel logs found</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h5 className="text-[10px] font-black text-orange-600 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <Wrench className="w-4 h-4" /> Maintenance
+                </h5>
+                <button 
+                  onClick={() => setShowMaintenanceModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-orange-100 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Log Service
+                </button>
+              </div>
+
+              <div className="space-y-3 max-h-[300px] overflow-y-auto no-scrollbar">
+                {vehicle.maintenance && vehicle.maintenance.length > 0 ? (
+                  vehicle.maintenance.map(log => (
+                    <div key={log.id} className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-between group">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600">
+                          <Wrench className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-gray-900 dark:text-white">{log.type}</p>
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase">
+                            <span>{log.km} KM</span>
+                            <span>•</span>
+                            <span>{log.date}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center bg-gray-50 dark:bg-gray-800/30 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">No maintenance history</p>
+                  </div>
+                )}
+              </div>
+            </section>
             
             <button 
               onClick={onClose}
@@ -175,6 +350,162 @@ const VehicleDetails = ({ vehicle, stats, onClose }) => {
           </div>
         </div>
       </div>
+
+      {/* Fuel Log Modal */}
+      {showFuelModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fade-in">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowFuelModal(false)}></div>
+          <form 
+            onSubmit={handleAddFuel}
+            className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl border border-white/20"
+          >
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-6 uppercase tracking-tight flex items-center gap-3">
+              <Droplets className="w-6 h-6 text-emerald-500" /> Add Fuel Log
+            </h3>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Total Amount (₹)</label>
+                <input 
+                  type="number" 
+                  value={fuelForm.amount}
+                  onChange={(e) => setFuelForm({...fuelForm, amount: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 transition-all"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Litres Filled</label>
+                <input 
+                  type="number" 
+                  step="0.01"
+                  value={fuelForm.litres}
+                  onChange={(e) => setFuelForm({...fuelForm, litres: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 transition-all"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Date</label>
+                <div className="relative">
+                  <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input 
+                    type="date" 
+                    value={fuelForm.date}
+                    onChange={(e) => setFuelForm({...fuelForm, date: e.target.value})}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl pl-14 pr-6 py-4 font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowFuelModal(false)}
+                  className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-[2] py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 dark:shadow-none"
+                >
+                  Save Log
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+      {/* Maintenance Log Modal */}
+      {showMaintenanceModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fade-in">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMaintenanceModal(false)}></div>
+          <form 
+            onSubmit={handleAddMaintenance}
+            className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 shadow-2xl border border-white/20"
+          >
+            <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-6 uppercase tracking-tight flex items-center gap-3">
+              <Wrench className="w-6 h-6 text-orange-500" /> Maintenance Record
+            </h3>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Service Type</label>
+                <select 
+                  value={maintenanceForm.type}
+                  onChange={(e) => setMaintenanceForm({...maintenanceForm, type: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 transition-all"
+                >
+                  <option>Oil Change</option>
+                  <option>Tyre Rotation</option>
+                  <option>Brake Service</option>
+                  <option>Battery Check</option>
+                  <option>Wheel Alignment</option>
+                  <option>Full Service</option>
+                  <option>Other</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Current Odometer</label>
+                  <input 
+                    type="number" 
+                    value={maintenanceForm.km}
+                    onChange={(e) => setMaintenanceForm({...maintenanceForm, km: e.target.value})}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 transition-all"
+                    placeholder="KM"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Date</label>
+                  <input 
+                    type="date" 
+                    value={maintenanceForm.date}
+                    onChange={(e) => setMaintenanceForm({...maintenanceForm, date: e.target.value})}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl px-4 py-4 font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 transition-all text-sm"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase mb-2 tracking-widest">Notes</label>
+                <textarea 
+                  value={maintenanceForm.notes}
+                  onChange={(e) => setMaintenanceForm({...maintenanceForm, notes: e.target.value})}
+                  className="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-2xl px-6 py-4 font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 transition-all"
+                  rows="2"
+                  placeholder="Details..."
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button 
+                  type="button"
+                  onClick={() => setShowMaintenanceModal(false)}
+                  className="flex-1 py-4 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 rounded-2xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-[2] py-4 bg-orange-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-orange-700 transition-all shadow-lg shadow-orange-200 dark:shadow-none"
+                >
+                  Save Record
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

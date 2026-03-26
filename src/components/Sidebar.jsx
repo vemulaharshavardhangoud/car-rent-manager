@@ -1,72 +1,99 @@
-import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, CarFront, PlusCircle, History, Settings, X, Car, CalendarDays } from 'lucide-react';
+import { LayoutDashboard, CarFront, PlusCircle, History, Settings, X, Car, CalendarDays, User, Users, DollarSign, Search } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-  const navItems = [
+  const { isAdmin, isCustomer } = useAuth();
+
+  const ownerItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/vehicles', label: 'Vehicles', icon: CarFront },
     { path: '/bookings', label: 'Bookings', icon: CalendarDays },
+    { path: '/drivers', label: 'Drivers', icon: User },
+    { path: '/customers', label: 'Customers', icon: Users },
+    { path: '/expenses', label: 'Expenses', icon: DollarSign },
     { path: '/newtrip', label: 'New Trip', icon: PlusCircle },
     { path: '/history', label: 'History', icon: History },
     { path: '/settings', label: 'Settings', icon: Settings },
   ];
+
+  const customerItems = [
+    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/vehicles', label: 'Vehicles', icon: CarFront },
+    { path: '/new-booking', label: 'New Booking', icon: PlusCircle },
+    { path: '/my-bookings', label: 'My Booking', icon: Search },
+  ];
+
+  const navItems = isAdmin ? ownerItems : customerItems;
 
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden animate-fade-in"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-[250px] bg-[#1e293b] text-white flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed inset-y-0 left-0 z-50 w-[250px] bg-card-bg text-text-main flex flex-col transition-all duration-300 ease-in-out border-r border-border-main lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl lg:shadow-none`}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <div className="bg-blue-500 p-1.5 rounded-lg">
+        <div className="flex items-center justify-between h-20 px-6 border-b border-border-main bg-main-bg/20">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-500/20">
               <Car className="w-5 h-5 text-white" />
             </div>
-            <span className="text-lg font-bold">CarRent Manager</span>
+            <div className="flex flex-col">
+              <span className="text-lg font-black tracking-tight text-text-main leading-none">CarRent <span className="text-blue-600">Pro</span></span>
+              <span className="text-[9px] font-bold text-text-muted tracking-[0.2em] uppercase mt-1">{isAdmin ? 'Owner' : 'Customer'}</span>
+            </div>
           </div>
           <button 
-            className="lg:hidden p-1 hover:bg-white/10 rounded-md"
+            className="lg:hidden p-2 hover:bg-main-bg rounded-xl transition-colors"
             onClick={() => setIsOpen(false)}
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6 text-text-muted" />
           </button>
         </div>
 
-        <div className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
+        <div className="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted px-4 mb-4 opacity-50">Portal Menu</p>
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               onClick={() => setIsOpen(false)}
               className={({ isActive }) => 
-                `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                `flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group ${
                   isActive 
-                    ? 'bg-blue-500 text-white font-medium shadow-md' 
-                    : 'text-gray-300 hover:bg-white/10 hover:text-white'
+                    ? 'bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/20 translate-x-1' 
+                    : 'text-text-muted hover:bg-main-bg hover:text-text-main'
                 }`
               }
             >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110`} />
+              <span className="text-sm tracking-tight">{item.label}</span>
             </NavLink>
           ))}
         </div>
 
-        <div className="p-4 border-t border-white/10 flex items-center justify-between text-gray-400">
-          <span className="text-sm">v1.0</span>
-          <NavLink to="/settings" onClick={() => setIsOpen(false)} className={({isActive}) => `p-2 rounded-full transition-colors ${isActive ? 'text-white bg-white/20' : 'hover:bg-white/10 hover:text-white'}`}>
-            <Settings className="w-5 h-5" />
-          </NavLink>
-        </div>
+        {isAdmin && (
+          <div className="p-6 border-t border-border-main bg-main-bg/10 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Version</span>
+              <span className="text-xs font-bold text-text-main mt-0.5">2.0.4-Premium</span>
+            </div>
+            <NavLink 
+              to="/settings" 
+              onClick={() => setIsOpen(false)} 
+              className={({isActive}) => `p-3 rounded-xl transition-all ${isActive ? 'text-blue-600 bg-blue-500/10' : 'text-text-muted hover:bg-blue-500/10 hover:text-blue-600'}`}
+            >
+              <Settings className="w-5 h-5" />
+            </NavLink>
+          </div>
+        )}
       </aside>
     </>
   );

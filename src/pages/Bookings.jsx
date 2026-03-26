@@ -1,4 +1,5 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import * as storage from '../utils/storage';
 import * as emailApi from '../utils/emailApi';
@@ -14,7 +15,7 @@ import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import CostComparison from '../components/CostComparison';
 
 const Bookings = () => {
-  const { vehicles, bookings, addBooking, updateBooking, cancelBooking, deleteBooking, showToast } = useContext(AppContext);
+  const { vehicles, bookings, customers, addBooking, updateBooking, cancelBooking, deleteBooking, showToast } = useContext(AppContext);
   const { requirePassword } = usePasswordProtection();
 
   // UI States
@@ -22,15 +23,23 @@ const Bookings = () => {
   const [editingId, setEditingId] = useState(null);
   const [viewBooking, setViewBooking] = useState(null);
   const [cancelBookingItem, setCancelBookingItem] = useState(null);
+  const [showCustomerList, setShowCustomerList] = useState(false);
+
+  const location = useLocation();
 
   // Filter States
   const [searchTerm, setSearchTerm] = useState('');
   const [vehicleFilter, setVehicleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+
+  // Handle URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const statusParam = params.get('status');
+    if (statusParam) {
+      setStatusFilter(statusParam);
+    }
+  }, [location]);
 
   // Sorting
   const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
@@ -60,6 +69,25 @@ const Bookings = () => {
   };
   const [form, setForm] = useState(initialForm);
   const [formErrors, setFormErrors] = useState({});
+
+  const filteredCustomers = useMemo(() => {
+    if (!form.customerName) return [];
+    return customers.filter(c => 
+      c.name.toLowerCase().includes(form.customerName.toLowerCase()) || 
+      c.phone.includes(form.customerName)
+    ).slice(0, 5);
+  }, [customers, form.customerName]);
+
+  const selectCustomer = (c) => {
+    setForm(prev => ({ 
+      ...prev, 
+      customerName: c.name, 
+      customerPhone: c.phone, 
+      customerEmail: c.email || '',
+      customerId: c.id 
+    }));
+    setShowCustomerList(false);
+  };
 
   // Cancellation Form State
   const [cancelForm, setCancelForm] = useState({
@@ -237,6 +265,22 @@ const Bookings = () => {
     }
   };
 
+  const handleApprove = async (booking) => {
+    const ok = await requirePassword({ actionType: "editBooking", actionLabel: "APPROVE booking " + booking.id });
+    if (ok) {
+      await updateBooking(booking.id, { status: 'Confirmed' });
+      showToast(`Booking ${booking.id} approved!`);
+    }
+  };
+
+  const handleReject = async (booking) => {
+    const ok = await requirePassword({ actionType: "editBooking", actionLabel: "REJECT booking " + booking.id });
+    if (ok) {
+      await updateBooking(booking.id, { status: 'Rejected' });
+      showToast(`Booking ${booking.id} rejected.`, 'error');
+    }
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setVehicleFilter('all');
@@ -248,10 +292,12 @@ const Bookings = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Confirmed': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase">Confirmed</span>;
-      case 'Pending': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-700 uppercase">Pending</span>;
+      case 'Pending': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase animate-pulse">Pending Review</span>;
       case 'Cancelled': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 uppercase">Cancelled</span>;
+      case 'Rejected': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 uppercase">Rejected</span>;
       case 'Completed': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase">Completed</span>;
-      default: return null;
+      case 'On Trip': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 uppercase">On Trip</span>;
+      default: return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 uppercase">{status}</span>;
     }
   };
 
@@ -405,8 +451,16 @@ const Bookings = () => {
                         <td className="px-6 py-5" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => setViewBooking(b)} className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all" title="View Details"><Eye className="w-4 h-4" /></button>
+                            {b.status === 'Pending' && (
+                              <>
+                                <button onClick={() => handleApprove(b)} className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg transition-all" title="Approve"><CheckCircle2 className="w-4 h-4" /></button>
+                                <button onClick={() => handleReject(b)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Reject"><X className="w-4 h-4" /></button>
+                              </>
+                            )}
                             <button onClick={() => handleEdit(b)} className="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all" title="Edit"><Pencil className="w-4 h-4" /></button>
-                            <button onClick={() => handleCancelClick(b)} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all" title="Cancel Booking"><X className="w-4 h-4" /></button>
+                            {b.status !== 'Pending' && b.status !== 'Rejected' && b.status !== 'Cancelled' && (
+                              <button onClick={() => handleCancelClick(b)} className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-all" title="Cancel Booking"><X className="w-4 h-4" /></button>
+                            )}
                             <button onClick={() => handleDeleteClick(b)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </td>
@@ -504,8 +558,8 @@ const Bookings = () => {
             {/* Backdrop for Mobile */}
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm md:hidden" onClick={() => setShowForm(false)}></div>
             
-            <div className="fixed bottom-0 left-0 right-0 top-12 bg-white rounded-t-[40px] shadow-2xl overflow-hidden md:sticky md:top-4 md:rounded-3xl md:shadow-sm md:border md:border-slate-100 animate-slide-up md:animate-fade-in-right">
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="fixed bottom-0 left-0 right-0 top-12 bg-white rounded-t-[40px] shadow-2xl flex flex-col md:sticky md:top-4 md:rounded-3xl md:shadow-sm md:border md:border-slate-100 animate-slide-up md:animate-fade-in-right">
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
                 <h2 className="text-xl font-black text-slate-800 tracking-tight">
                   {editingId ? `Edit Booking #${editingId}` : 'New Booking'}
                 </h2>
@@ -517,7 +571,7 @@ const Bookings = () => {
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Vehicle Selection */}
                   <div>
@@ -577,15 +631,34 @@ const Bookings = () => {
 
                   {/* Customer Details */}
                   <div className="grid grid-cols-1 gap-4">
-                    <div>
+                    <div className="relative">
                       <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Customer Name *</label>
                       <input 
                         type="text" 
-                        placeholder="Full name"
+                        placeholder="Full name or lookup..."
                         value={form.customerName}
+                        onFocus={() => setShowCustomerList(true)}
                         onChange={(e) => setForm(prev => ({ ...prev, customerName: e.target.value }))}
                         className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-slate-700 ${formErrors.customerName ? 'border-red-300' : 'border-slate-100'}`}
                       />
+                      {showCustomerList && filteredCustomers.length > 0 && (
+                        <div className="absolute z-50 left-0 right-0 top-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in">
+                          {filteredCustomers.map(c => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => selectCustomer(c)}
+                              className="w-full px-5 py-4 text-left hover:bg-blue-50 transition-colors flex items-center justify-between group"
+                            >
+                              <div>
+                                <p className="font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{c.name}</p>
+                                <p className="text-[10px] text-slate-400 font-bold">{c.phone}</p>
+                              </div>
+                              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-400 transition-all group-hover:translate-x-1" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       {formErrors.customerName && <p className="text-red-500 text-[10px] mt-1 font-bold">{formErrors.customerName}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -807,6 +880,8 @@ const Bookings = () => {
           onEdit={() => { handleEdit(viewBooking); setViewBooking(null); }}
           onCancel={() => { handleCancelClick(viewBooking); setViewBooking(null); }}
           onComplete={async () => { await updateBooking(viewBooking.id, { status: 'Completed' }); setViewBooking(null); }}
+          onApprove={async () => { await handleApprove(viewBooking); setViewBooking(null); }}
+          onReject={async () => { await handleReject(viewBooking); setViewBooking(null); }}
           vehicles={vehicles}
         />
       )}
@@ -874,7 +949,7 @@ const Bookings = () => {
 };
 
 // HELPER COMPONENT: Details Modal
-const BookingDetailsModal = ({ booking, onClose, onEdit, onCancel, onComplete, vehicles }) => {
+const BookingDetailsModal = ({ booking, onClose, onEdit, onCancel, onComplete, onApprove, onReject, vehicles }) => {
   const vehicle = vehicles.find(v => v.id === booking.vehicleId);
   
   const sections = [
@@ -1042,7 +1117,24 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onCancel, onComplete, v
           
           <div className="flex-1"></div>
 
-          {(booking.status === 'Confirmed' || booking.status === 'Pending') && (
+          {booking.status === 'Pending' && (
+            <>
+              <button 
+                onClick={onReject}
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-red-100 text-red-600 font-bold text-xs hover:bg-red-50 transition-all font-black uppercase tracking-widest"
+              >
+                <X className="w-4 h-4" /> Reject Request
+              </button>
+              <button 
+                onClick={onApprove}
+                className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-emerald-600 text-white font-black text-xs hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 uppercase tracking-widest"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Approve Booking
+              </button>
+            </>
+          )}
+
+          {(booking.status === 'Confirmed') && (
             <>
               <button 
                 onClick={onCancel}

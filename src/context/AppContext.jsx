@@ -9,6 +9,10 @@ export const AppProvider = ({ children }) => {
   const [vehicles, setVehicles] = useState([]);
   const [allTrips, setAllTrips] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [drivers, setDrivers] = useState([]);
+  const [fuelLogs, setFuelLogs] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [expenses, setExpenses] = useState([]);
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
 
   // Sync State
@@ -34,6 +38,9 @@ export const AppProvider = ({ children }) => {
     setVehicles(storage.getAllVehicles());
     setAllTrips(storage.getAllTrips());
     setBookings(storage.getAllBookings());
+    setDrivers(storage.getAllDrivers());
+    setCustomers(storage.getAllCustomers());
+    setExpenses(storage.getAllExpenses());
   };
 
   useEffect(() => {
@@ -42,7 +49,7 @@ export const AppProvider = ({ children }) => {
 
     // Initialize default settings in localStorage if not set
     if (!localStorage.getItem('crm_admin_password')) {
-      localStorage.setItem('crm_admin_password', btoa('admin123'));
+      localStorage.setItem('crm_admin_password', btoa('123456'));
     }
     if (!localStorage.getItem('crm_protected_actions')) {
       localStorage.setItem('crm_protected_actions', JSON.stringify({
@@ -60,6 +67,7 @@ export const AppProvider = ({ children }) => {
     let unsubTrips = () => {};
     let unsubBookings = () => {};
     let unsubSettings = () => {};
+    let unsubExpenses = () => {};
 
     const startSync = async () => {
       setIsSyncing(true);
@@ -100,6 +108,41 @@ export const AppProvider = ({ children }) => {
           }
           setLastSyncedAt(new Date());
         });
+
+        firestore.listenToDrivers((data) => {
+          setDrivers(data);
+          localStorage.setItem('crm_driver_list', JSON.stringify(data.map(d => d.id)));
+          data.forEach(d => localStorage.setItem(`crm_driver_${d.id}`, JSON.stringify(d)));
+          setLastSyncedAt(new Date());
+        });
+
+        firestore.listenToFuelLogs((data) => {
+          setFuelLogs(data);
+          // Group by vehicleId and save to local storage
+          const grouped = data.reduce((acc, log) => {
+            if (!acc[log.vehicleId]) acc[log.vehicleId] = [];
+            acc[log.vehicleId].push(log);
+            return acc;
+          }, {});
+          Object.entries(grouped).forEach(([vId, logs]) => {
+            localStorage.setItem(`crm_fuel_logs_${vId}`, JSON.stringify(logs));
+          });
+          setLastSyncedAt(new Date());
+        });
+
+        firestore.listenToCustomers((data) => {
+          setCustomers(data);
+          localStorage.setItem('crm_customer_list', JSON.stringify(data.map(c => c.id)));
+          data.forEach(c => localStorage.setItem(`crm_customer_${c.id}`, JSON.stringify(c)));
+          setLastSyncedAt(new Date());
+        });
+
+        unsubExpenses = firestore.listenToExpenses((data) => {
+          setExpenses(data);
+          localStorage.setItem('crm_expense_list', JSON.stringify(data.map(e => e.id)));
+          data.forEach(e => localStorage.setItem(`crm_expense_${e.id}`, JSON.stringify(e)));
+          setLastSyncedAt(new Date());
+        });
       } catch (err) {
         console.warn("Firestore listeners could not start:", err);
         setSyncError(err.message);
@@ -138,6 +181,7 @@ export const AppProvider = ({ children }) => {
       unsubTrips();
       unsubBookings();
       unsubSettings();
+      unsubExpenses();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -229,6 +273,22 @@ export const AppProvider = ({ children }) => {
       setIsSyncing(false);
     }
   };
+
+  const updateVehicleDocuments = async (id, documents) => {
+    return await updateVehicle(id, documents);
+  };
+
+  const addMaintenanceLog = async (id, log) => {
+    const vehicle = vehicles.find(v => v.id === id);
+    if (!vehicle) return;
+    const maintenance = vehicle.maintenance || [];
+    const updatedMaintenance = [
+      { ...log, id: "m_" + Date.now(), createdAt: new Date().toISOString() },
+      ...maintenance
+    ];
+    return await updateVehicle(id, { maintenance: updatedMaintenance });
+  };
+
 
   const deleteVehicle = async (id) => {
     try {
@@ -378,6 +438,167 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const addDriver = async (driver) => {
+    try {
+      setIsSyncing(true);
+      const savedLocally = storage.saveDriver(driver);
+      if (savedLocally) {
+        await firestore.saveDriverToFirestore(savedLocally);
+        showToast('Driver added & synced!');
+      }
+    } catch (err) {
+      showToast('Offline: Saved locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const updateDriver = async (id, updatedFields) => {
+    try {
+      setIsSyncing(true);
+      const updated = storage.updateDriver(id, updatedFields);
+      if (updated) {
+        await firestore.updateDriverInFirestore(id, updatedFields);
+        showToast('Driver updated & synced');
+      }
+    } catch (err) {
+      showToast('Offline: Updated locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteDriver = async (id) => {
+    try {
+      setIsSyncing(true);
+      if (storage.deleteDriver(id)) {
+        await firestore.deleteDriverFromFirestore(id);
+        showToast('Driver deleted', 'error');
+      }
+    } catch (err) {
+      showToast('Offline: Deleted locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addFuelLog = async (vehicleId, fuelData) => {
+    try {
+      setIsSyncing(true);
+      const savedLocally = storage.saveFuelLog(vehicleId, fuelData);
+      if (savedLocally) {
+        await firestore.saveFuelLogToFirestore(savedLocally);
+        showToast('Fuel expenditure logged!');
+      }
+    } catch (err) {
+      showToast('Offline: Saved locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteFuelLog = async (vehicleId, id) => {
+    try {
+      setIsSyncing(true);
+      if (storage.deleteFuelLog(vehicleId, id)) {
+        await firestore.deleteFuelLogFromFirestore(id);
+        showToast('Fuel log removed', 'error');
+      }
+    } catch (err) {
+      showToast('Offline: Deleted locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addCustomer = async (customer) => {
+    try {
+      setIsSyncing(true);
+      const savedLocally = storage.saveCustomer(customer);
+      if (savedLocally) {
+        await firestore.saveCustomerToFirestore(savedLocally);
+        showToast('Customer profile created!');
+      }
+    } catch (err) {
+      showToast('Offline: Saved locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const updateCustomerData = async (id, updatedFields) => {
+    try {
+      setIsSyncing(true);
+      const updated = storage.updateCustomer(id, updatedFields);
+      if (updated) {
+        await firestore.updateCustomerInFirestore(id, updatedFields);
+        showToast('Customer updated');
+      }
+    } catch (err) {
+      showToast('Offline: Updated locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteCustomerData = async (id) => {
+    try {
+      setIsSyncing(true);
+      if (storage.deleteCustomer(id)) {
+        await firestore.deleteCustomerFromFirestore(id);
+        showToast('Customer deleted', 'error');
+      }
+    } catch (err) {
+      showToast('Offline: Deleted locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const addExpense = async (expense) => {
+    try {
+      setIsSyncing(true);
+      const savedLocally = storage.saveExpense(expense);
+      if (savedLocally) {
+        await firestore.saveExpenseToFirestore(savedLocally);
+        showToast('Expense recorded & synced!');
+      }
+    } catch (err) {
+      showToast('Offline: Saved locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const updateExpenseData = async (id, updatedFields) => {
+    try {
+      setIsSyncing(true);
+      const updated = storage.updateExpense(id, updatedFields);
+      if (updated) {
+        await firestore.updateExpenseInFirestore(id, updatedFields);
+        showToast('Expense updated & synced');
+      }
+    } catch (err) {
+      showToast('Offline: Updated locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const deleteExpenseData = async (id) => {
+    try {
+      setIsSyncing(true);
+      if (storage.deleteExpense(id)) {
+        await firestore.deleteExpenseFromFirestore(id);
+        showToast('Expense deleted', 'error');
+      }
+    } catch (err) {
+      showToast('Offline: Deleted locally', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -403,8 +624,26 @@ export const AppProvider = ({ children }) => {
         isSyncing,
         isOnline,
         lastSyncedAt,
-        syncError
+        syncError,
+        drivers,
+        fuelLogs,
+        addDriver,
+        updateDriver,
+        deleteDriver,
+        addFuelLog,
+        deleteFuelLog,
+        updateVehicleDocuments,
+        addMaintenanceLog,
+        customers,
+        addCustomer,
+        updateCustomerData,
+        deleteCustomerData,
+        expenses,
+        addExpense,
+        updateExpenseData,
+        deleteExpenseData
       }}
+
     >
       {children}
       <PasswordModal 

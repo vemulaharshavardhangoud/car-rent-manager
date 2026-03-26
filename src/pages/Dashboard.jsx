@@ -5,24 +5,36 @@ import {
   Car, Map, Route, IndianRupee, Plus, 
   PlusCircle, History, Clock, ArrowRight,
   ChevronRight, CalendarDays, TrendingUp, Trophy,
-  CarFront, Bike, Truck
+  CarFront, Bike, Truck, LayoutGrid, Search, Filter, X,
+  Eye, EyeOff
 } from 'lucide-react';
 import ReceiptModal from '../components/ReceiptModal';
+import BookingCalendar from '../components/BookingCalendar';
+import UtilizationChart from '../components/UtilizationChart';
+import ExpiryAlerts from '../components/ExpiryAlerts';
 import VehicleDetails from '../components/VehicleDetails';
 
 const Dashboard = () => {
-  const { vehicles, allTrips } = useContext(AppContext);
+  const { vehicles, allTrips, bookings } = useContext(AppContext);
   const navigate = useNavigate();
 
   // Modal State
   const [viewTripData, setViewTripData] = useState(null);
   const [viewingVehicle, setViewingVehicle] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchFilter, setSearchFilter] = useState('all'); // all, vehicles, bookings
+  const [showFinance, setShowFinance] = useState(false);
+
+  // Financial Stats
+  const revenueStats = useMemo(() => {
+    const totalRevenue = allTrips.reduce((sum, t) => sum + (Number(t.grandTotal) || 0), 0);
+    const totalKmCombined = allTrips.reduce((sum, t) => sum + (Number(t.distance) || 0), 0);
+    const avgValue = allTrips.length ? totalRevenue / allTrips.length : 0;
+    return { totalRevenue, totalKmCombined, avgValue };
+  }, [allTrips]);
 
   // Global Stats
   const totalVehicles = vehicles.length;
-  const totalTrips = allTrips.length;
-  const totalKm = useMemo(() => allTrips.reduce((sum, t) => sum + (Number(t.distance)||0), 0), [allTrips]);
-  const totalRevenue = useMemo(() => allTrips.reduce((sum, t) => sum + (Number(t.grandTotal)||0), 0), [allTrips]);
 
   // Recent Trips (Last 5)
   const recentTrips = useMemo(() => {
@@ -31,42 +43,24 @@ const Dashboard = () => {
       .slice(0, 5);
   }, [allTrips]);
 
-  // This Month Summary
-  const { thisMonthTrips, thisMonthKm, thisMonthRevenue, monthName, mostUsedVehicle } = useMemo(() => {
-    const now = new Date();
-    const currentMonthStr = now.toISOString().substring(0, 7); // YYYY-MM
-    const monthName = now.toLocaleString('default', { month: 'long', year: 'numeric' });
+  // Global Search Logic
+  const searchResults = useMemo(() => {
+    if (!searchTerm.trim()) return { vehicles: [], bookings: [] };
+    const term = searchTerm.toLowerCase();
     
-    const trips = allTrips.filter(t => t.date && t.date.startsWith(currentMonthStr));
-    const km = trips.reduce((sum, t) => sum + (Number(t.distance)||0), 0);
-    const revenue = trips.reduce((sum, t) => sum + (Number(t.grandTotal)||0), 0);
-
-    const counts = {};
-    trips.forEach(t => {
-      counts[t.vehicleId] = (counts[t.vehicleId] || 0) + 1;
-    });
+    const filteredVehicles = searchFilter === 'bookings' ? [] : vehicles.filter(v => 
+      v.name.toLowerCase().includes(term) || 
+      v.numberPlate.toLowerCase().includes(term)
+    );
     
-    let topVid = null;
-    let max = 0;
-    for (const vid in counts) {
-      if (counts[vid] > max) { max = counts[vid]; topVid = vid; }
-    }
-    const topV = topVid ? vehicles.find(v => v.id === topVid)?.name : 'N/A';
-
-    return { thisMonthTrips: trips.length, thisMonthKm: km, thisMonthRevenue: revenue, monthName, mostUsedVehicle: topV || 'N/A' };
-  }, [allTrips, vehicles]);
-
-  // Top Routes
-  const topRoutes = useMemo(() => {
-    const counts = {};
-    allTrips.forEach(t => {
-      if (t.fromLocation && t.toLocation) {
-        const route = `${t.fromLocation} → ${t.toLocation}`;
-        counts[route] = (counts[route] || 0) + 1;
-      }
-    });
-    return Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 3);
-  }, [allTrips]);
+    const filteredBookings = searchFilter === 'vehicles' ? [] : bookings.filter(b => 
+      b.customerName.toLowerCase().includes(term) || 
+      b.customerPhone?.includes(term) ||
+      b.vehicleName?.toLowerCase().includes(term)
+    );
+    
+    return { vehicles: filteredVehicles, bookings: filteredBookings };
+  }, [searchTerm, searchFilter, vehicles, bookings]);
 
   // Format Helper
   const formatMoney = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val);
@@ -80,158 +74,319 @@ const Dashboard = () => {
 
   // Type Icon helper
   const getTypeStyle = (type) => {
-    if (type === '2-Wheeler') return { bg: 'bg-green-100', text: 'text-green-600', icon: Bike };
-    if (type === 'Heavy Vehicle' || type === '6-Wheeler') return { bg: 'bg-orange-100', text: 'text-orange-600', icon: Truck };
-    return { bg: 'bg-blue-100', text: 'text-blue-600', icon: CarFront };
+    if (type === '2-Wheeler') return { bg: 'bg-emerald-500/10', text: 'text-emerald-500', icon: Bike };
+    if (type === 'Heavy Vehicle' || type === '6-Wheeler') return { bg: 'bg-orange-500/10', text: 'text-orange-500', icon: Truck };
+    return { bg: 'bg-blue-500/10', text: 'text-blue-500', icon: CarFront };
   };
 
   return (
     <div className="pb-12 animate-fade-in space-y-6">
       
-      <div className="flex justify-between items-end mb-2">
+      <div className="flex justify-between items-center mb-2">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
-          <p className="text-gray-500">Welcome back. Here's what's happening with your fleet today.</p>
+          <h2 className="text-2xl font-black text-text-main tracking-tight">Dashboard Status</h2>
+          <p className="text-sm font-medium text-text-muted">Welcome back. Here's your fleet status today.</p>
+        </div>
+        <button 
+          onClick={() => setShowFinance(!showFinance)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all active:scale-95 ${showFinance ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/20' : 'bg-card-bg text-text-muted border-border-main hover:border-blue-500 hover:text-blue-500'}`}
+        >
+          {showFinance ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          <span className="text-[10px] font-black uppercase tracking-widest">{showFinance ? 'Hide Finance' : 'Show Finance'}</span>
+        </button>
+      </div>
+
+      {/* SEARCH BAR SECTION */}
+      <div className="relative group">
+        <div className="bg-card-bg/70 backdrop-blur-md border border-border-main rounded-3xl p-3 shadow-lg shadow-black/5 flex flex-col md:flex-row items-center gap-4 animate-fade-in-down">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted" />
+            <input 
+              type="text" 
+              placeholder="Search vehicles, number plates, or customers..."
+              className="w-full pl-12 pr-4 py-3 bg-main-bg border border-transparent rounded-2xl focus:bg-card-bg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all text-sm font-medium text-text-main placeholder:text-text-muted/50"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button 
+                 onClick={() => setSearchTerm('')}
+                 className="absolute right-4 top-1/2 -translate-y-1/2 p-1 bg-border-main hover:bg-main-bg rounded-full transition-colors"
+              >
+                <X className="w-3 h-3 text-text-muted" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2 p-1 bg-main-bg rounded-2xl shrink-0">
+             {['all', 'vehicles', 'bookings'].map(f => (
+               <button 
+                 key={f}
+                 onClick={() => setSearchFilter(f)}
+                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${searchFilter === f ? 'bg-card-bg text-blue-500 shadow-sm' : 'text-text-muted hover:text-text-main'}`}
+               >
+                 {f}
+               </button>
+             ))}
+          </div>
+        </div>
+
+        {/* SEARCH RESULTS OVERLAY */}
+        {searchTerm.trim() && (
+          <div className="absolute top-full left-0 right-0 mt-3 z-50 bg-card-bg shadow-2xl rounded-3xl border border-border-main overflow-hidden max-h-[400px] overflow-y-auto animate-slide-up transition-colors duration-300">
+            <div className="p-4 border-b border-border-main bg-main-bg/50 transition-colors">
+               <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest flex items-center justify-between">
+                 Search Results
+                 <span>{searchResults.vehicles.length + searchResults.bookings.length} Found</span>
+               </h4>
+            </div>
+            
+            <div className="divide-y divide-border-main">
+               {/* Vehicle Results */}
+               {searchResults.vehicles.map(v => (
+                 <div 
+                   key={v.id} 
+                   onClick={() => { setViewingVehicle(v); setSearchTerm(''); }}
+                   className="p-4 flex items-center gap-4 hover:bg-blue-500/5 transition-colors cursor-pointer group/item"
+                 >
+                   <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover/item:rotate-6 transition-transform">
+                     <Car className="w-5 h-5 text-blue-500" />
+                   </div>
+                   <div>
+                     <p className="text-sm font-bold text-text-main">{v.name}</p>
+                     <p className="text-[10px] text-text-muted font-mono tracking-tighter uppercase">{v.numberPlate}</p>
+                   </div>
+                   <div className="ml-auto">
+                      <span className="text-[9px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-500 px-2.5 py-1 rounded-lg border border-blue-500/20 group-hover/item:bg-blue-500 group-hover/item:text-white transition-colors">Vehicle</span>
+                   </div>
+                 </div>
+               ))}
+
+               {/* Booking Results */}
+               {searchResults.bookings.map(b => (
+                 <div 
+                   key={b.id} 
+                   onClick={() => { navigate('/bookings'); setSearchTerm(''); }}
+                   className="p-4 flex items-center gap-4 hover:bg-emerald-500/5 transition-colors cursor-pointer group/item"
+                 >
+                   <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center group-hover/item:rotate-6 transition-transform">
+                     <CalendarDays className="w-5 h-5 text-emerald-500" />
+                   </div>
+                   <div>
+                     <p className="text-sm font-bold text-text-main">{b.customerName}</p>
+                     <p className="text-[10px] text-text-muted font-medium">{b.vehicleName} • {b.bookingStartDate}</p>
+                   </div>
+                   <div className="ml-auto">
+                      <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-lg border border-emerald-500/20 group-hover/item:bg-emerald-500 group-hover/item:text-white transition-colors">Booking</span>
+                   </div>
+                 </div>
+               ))}
+
+               {searchResults.vehicles.length === 0 && searchResults.bookings.length === 0 && (
+                 <div className="p-12 text-center text-text-muted animate-pulse">
+                   <Search className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                   <p className="font-bold text-sm tracking-tight text-text-main">No results found for "{searchTerm}"</p>
+                   <p className="text-[10px] uppercase font-black tracking-widest mt-1">Try name, number plate or phone</p>
+                 </div>
+               )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 1 - HERO STATS (Premium Vehicles Display) */}
+      <div className="relative overflow-hidden bg-slate-950 rounded-[2.5rem] p-6 md:p-10 text-white shadow-2xl transition-all hover:shadow-blue-500/10 group">
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-600/20 rounded-full blur-[100px] group-hover:bg-blue-500/30 transition-colors"></div>
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-purple-600/10 rounded-full blur-[80px]"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-500/20 border border-blue-400/30 rounded-full">
+              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-blue-300">Vehicle Operations</span>
+            </div>
+            <h3 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
+              Manage your <span className="text-blue-400">Vehicles</span> from one place.
+            </h3>
+            <p className="text-slate-400 max-w-md font-medium text-sm">
+              You currently have <span className="text-white font-bold">{totalVehicles} active vehicles</span> in your system.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="text-right">
+              <span className="block text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-1">Active Vehicles</span>
+              <div className="text-7xl md:text-8xl font-black text-white tracking-tighter leading-none flex items-baseline">
+                {totalVehicles}
+                <span className="text-2xl md:text-3xl text-blue-500 ml-2">V</span>
+              </div>
+            </div>
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl flex items-center justify-center rotate-6 shadow-xl shadow-blue-500/20 group-hover:rotate-0 transition-transform duration-500">
+              <Car className="w-10 h-10 md:w-12 md:h-12 text-white" />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* SECTION 1 - TOP STATS ROW */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border-l-4 border-l-blue-500 p-5 hover:shadow-md transition-shadow group cursor-default">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-500 text-sm font-semibold mb-1">Total Vehicles</p>
-              <h3 className="text-3xl font-bold text-gray-800">{totalVehicles}</h3>
-            </div>
-            <div className="p-3 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
-              <Car className="w-6 h-6 text-blue-500" />
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 mt-3 font-medium">{totalVehicles > 0 ? `${totalVehicles} Active` : 'No vehicles added'}</p>
-        </div>
+      {/* SECTION 1.5 - BOOKING CALENDAR */}
+      <BookingCalendar vehicles={vehicles} bookings={bookings} />
 
-        <div className="bg-white rounded-xl shadow-sm border-l-4 border-l-purple-500 p-5 hover:shadow-md transition-shadow group cursor-default">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-gray-500 text-sm font-semibold mb-1">Total Revenue</p>
-              <h3 className="text-3xl font-bold text-gray-800">₹{formatMoney(totalRevenue)}</h3>
+      {/* PENDING REQUESTS ALERT */}
+      {bookings.filter(b => b.status === 'Pending').length > 0 && (
+        <div 
+          onClick={() => navigate('/bookings?status=Pending')}
+          className="bg-amber-500/10 border border-amber-500/20 rounded-[2rem] p-6 flex flex-col md:flex-row items-center justify-between gap-4 cursor-pointer hover:bg-amber-500/15 transition-all animate-pulse-slow"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <CalendarDays className="w-6 h-6 text-white" />
             </div>
-            <div className="p-3 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
-              <IndianRupee className="w-6 h-6 text-purple-500" />
+            <div>
+              <h3 className="text-lg font-black text-amber-500 tracking-tight">Pending Bookings</h3>
+              <p className="text-xs font-bold text-amber-600/70 uppercase tracking-widest">You have {bookings.filter(b => b.status === 'Pending').length} new booking requests from customers.</p>
             </div>
           </div>
-          <p className="text-xs text-gray-400 mt-3 font-medium">All time earnings</p>
+          <button className="bg-amber-500 text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-amber-500/10">
+            Review Requests
+          </button>
         </div>
-      </div>
+      )}
+
+      {/* SECTION 1.6 - FINANCE PANEL (Conditional) */}
+      {showFinance && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
+           <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 rounded-[2rem] text-white shadow-xl shadow-emerald-500/20 relative overflow-hidden group">
+              <IndianRupee className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10 group-hover:scale-110 transition-transform" />
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">Total Revenue</p>
+              <h3 className="text-3xl font-black tracking-tighter">₹{formatMoney(revenueStats.totalRevenue)}</h3>
+              <p className="text-[10px] font-bold mt-2 bg-white/20 inline-block px-2 py-1 rounded">Gross Earnings</p>
+           </div>
+           
+           <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-[2rem] text-white shadow-xl shadow-blue-500/20 relative overflow-hidden group">
+              <Route className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10 group-hover:scale-110 transition-transform" />
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">Fleet Mileage</p>
+              <h3 className="text-3xl font-black tracking-tighter">{revenueStats.totalKmCombined} <span className="text-sm">KM</span></h3>
+              <p className="text-[10px] font-bold mt-2 bg-white/20 inline-block px-2 py-1 rounded">Combined Distance</p>
+           </div>
+
+           <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-6 rounded-[2rem] text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group">
+              <TrendingUp className="absolute -right-4 -bottom-4 w-24 h-24 opacity-10 group-hover:scale-110 transition-transform" />
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">Avg. Trip Value</p>
+              <h3 className="text-3xl font-black tracking-tighter">₹{formatMoney(revenueStats.avgValue)}</h3>
+              <p className="text-[10px] font-bold mt-2 bg-white/20 inline-block px-2 py-1 rounded">Per Recorded Trip</p>
+           </div>
+        </div>
+      )}
+
+      {/* SECTION 1.7 - UTILIZATION CHARTS */}
+      <UtilizationChart vehicles={vehicles} allTrips={allTrips} />
+
+      {/* SECTION 1.8 - COMPLIANCE ALERTS */}
+      <ExpiryAlerts vehicles={vehicles} onVehicleClick={setViewingVehicle} />
 
       {/* SECTION 2 - QUICK ACTION BUTTONS */}
-      <div className="flex flex-wrap gap-4 pt-2">
-        <button onClick={() => navigate('/vehicles')} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors">
-          <Plus className="w-4 h-4" /> Add New Vehicle
+      <div className="flex flex-wrap gap-4 pt-4 transition-colors">
+        <button onClick={() => navigate('/vehicles')} className="group flex items-center gap-3 bg-card-bg hover:bg-blue-600 text-text-main hover:text-white px-6 py-3.5 rounded-2xl font-bold shadow-sm transition-all border border-border-main hover:border-blue-600 active:scale-95">
+          <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> Add New Vehicle
         </button>
-        <button onClick={() => navigate('/newtrip')} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors">
-          <PlusCircle className="w-4 h-4" /> Record New Trip
+        <button onClick={() => navigate('/newtrip')} className="flex items-center gap-3 bg-slate-900 hover:bg-black text-white px-6 py-3.5 rounded-2xl font-bold shadow-lg transition-all active:scale-95">
+          <PlusCircle className="w-5 h-5" /> Record New Trip
         </button>
-        <button onClick={() => navigate('/history')} className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-5 py-2.5 rounded-lg font-medium shadow-sm transition-colors">
-          <History className="w-4 h-4" /> View All History
+        <button onClick={() => navigate('/history')} className="flex items-center gap-3 bg-card-bg hover:bg-main-bg text-text-main border border-border-main px-6 py-3.5 rounded-2xl font-bold shadow-sm transition-all active:scale-95">
+          <History className="w-5 h-5" /> Trip History
         </button>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pt-2">
-        
-        {/* LEFT TWO COLUMNS: Recent Trips & Vehicle Summary */}
-        <div className="xl:col-span-2 space-y-6">
+      <div className="pt-4">
+        <div className="space-y-8">
           
-          {/* SECTION 3 - RECENT TRIPS TABLE */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-400" /> Recent Trips
-              </h3>
-              <Link to="/history" className="text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                View All <ChevronRight className="w-4 h-4" />
+          {/* SECTION 3 - RECENT ACTIVITY TABLE */}
+          <div className="bg-card-bg rounded-[2rem] shadow-sm border border-border-main overflow-hidden transition-colors">
+            <div className="p-8 border-b border-border-main flex justify-between items-center bg-main-bg/30">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-2xl">
+                  <Clock className="w-6 h-6 text-blue-500" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-text-main tracking-tight">Recent Activity</h3>
+                  <p className="text-xs text-text-muted font-bold uppercase tracking-widest mt-0.5">Last 5 Trips Recorded</p>
+                </div>
+              </div>
+              <Link to="/history" className="px-5 py-2.5 bg-blue-500/10 text-blue-500 rounded-xl text-sm font-black uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                View All
               </Link>
             </div>
             
             {recentTrips.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <p>No trips recorded yet.</p>
+              <div className="p-20 text-center text-text-muted flex flex-col items-center bg-main-bg/10">
+                <History className="w-16 h-16 opacity-10 mb-4" />
+                <p className="font-bold">No trips recorded yet.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                {/* Desktop View */}
                 <table className="hidden md:table w-full text-sm text-left">
-                  <thead className="text-xs text-gray-400 uppercase bg-white border-b border-gray-100">
+                  <thead className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-black bg-main-bg/50 border-b border-border-main">
                     <tr>
-                      <th className="px-5 py-3 font-semibold">Vehicle</th>
-                      <th className="px-5 py-3 font-semibold">Date</th>
-                      <th className="px-5 py-3 font-semibold">Route</th>
-                      <th className="px-5 py-3 font-semibold text-right">Distance</th>
-                      <th className="px-5 py-3 font-semibold text-right">Amount</th>
-                      <th className="px-5 py-3 font-semibold text-center">Status</th>
+                      <th className="px-8 py-5">Vehicle</th>
+                      <th className="px-8 py-5">Date</th>
+                      <th className="px-8 py-5">Route</th>
+                      <th className="px-8 py-5 text-right font-black">KM</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-border-main">
                     {recentTrips.map(trip => (
                       <tr 
                         key={trip.id} 
                         onClick={() => setViewTripData(trip)}
-                        className="hover:bg-blue-50/50 cursor-pointer transition-colors"
+                        className="hover:bg-blue-500/5 cursor-pointer transition-colors"
                       >
-                        <td className="px-5 py-4">
-                          <div className="font-semibold text-gray-800">{trip.vehicleName}</div>
-                          <div className="text-xs text-gray-500 font-mono mt-0.5">{trip.numberPlate}</div>
+                        <td className="px-8 py-6">
+                          <div className="font-bold text-text-main">{trip.vehicleName}</div>
+                          <div className="text-[10px] text-text-muted font-black mt-1 uppercase tracking-tighter opacity-60">{trip.numberPlate}</div>
                         </td>
-                        <td className="px-5 py-4 text-gray-600 font-medium">
+                        <td className="px-8 py-6 text-text-muted font-bold">
                           {new Date(trip.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                         </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-1.5 text-gray-700">
-                            <span className="truncate max-w-[100px]" title={trip.fromLocation}>{trip.fromLocation}</span>
-                            <ArrowRight className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                            <span className="truncate max-w-[100px]" title={trip.toLocation}>{trip.toLocation}</span>
+                        <td className="px-8 py-6">
+                          <div className="flex items-center gap-2 text-text-main font-medium">
+                            <span className="truncate max-w-[120px]">{trip.fromLocation}</span>
+                            <ArrowRight className="w-3 h-3 text-text-muted flex-shrink-0" />
+                            <span className="truncate max-w-[120px] font-bold text-text-main">{trip.toLocation}</span>
                           </div>
                         </td>
-                        <td className="px-5 py-4 text-right">
-                          <span className="font-bold text-gray-700">{trip.distance}</span> <span className="text-xs text-gray-400">km</span>
-                        </td>
-                        <td className="px-5 py-4 text-right font-bold text-green-600">
-                          ₹{formatMoney(trip.grandTotal)}
-                        </td>
-                        <td className="px-5 py-4 text-center">
-                          <span className="bg-green-100 text-green-700 text-[10px] uppercase tracking-wider font-bold py-1 px-2.5 rounded-full">
-                            Saved
-                          </span>
+                        <td className="px-8 py-6 text-right">
+                          <span className="font-black text-text-main">{trip.distance}</span>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
 
-                {/* Mobile View */}
-                <div className="md:hidden divide-y divide-gray-50 px-4">
+                {/* Mobile Recent Trips */}
+                <div className="md:hidden divide-y divide-border-main px-6">
                   {recentTrips.map(trip => (
                     <div 
                       key={trip.id} 
                       onClick={() => setViewTripData(trip)}
-                      className="py-4 active:bg-gray-50 transition-colors"
+                      className="py-6 active:bg-blue-500/5 transition-colors"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                         <div>
-                            <span className="font-bold text-gray-800">{trip.vehicleName}</span>
-                            <span className="text-[10px] text-gray-400 ml-2 font-mono">({trip.numberPlate})</span>
+                      <div className="flex justify-between items-start mb-3">
+                         <div className="flex flex-col">
+                            <span className="font-black text-text-main">{trip.vehicleName}</span>
+                            <span className="text-[10px] text-text-muted font-black uppercase tracking-tighter">{trip.numberPlate}</span>
                          </div>
-                         <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-md">
+                         <span className="text-[10px] font-black text-text-muted bg-main-bg px-3 py-1 rounded-xl uppercase tracking-widest border border-border-main/50">
                            {new Date(trip.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                          </span>
                       </div>
-                      <div className="flex items-center justify-between text-xs mt-1">
-                        <div className="flex items-center gap-1 text-gray-500 max-w-[60%] overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs text-text-muted">
                           <span className="truncate">{trip.fromLocation}</span>
-                          <ArrowRight className="w-2.5 h-2.5 flex-shrink-0" />
-                          <span className="truncate">{trip.toLocation}</span>
+                          <ArrowRight className="w-3 h-3 flex-shrink-0" />
+                          <span className="truncate font-bold text-text-main text-sm">{trip.toLocation}</span>
                         </div>
-                        <div className="font-black text-green-600">₹{formatMoney(trip.grandTotal)}</div>
+                        <div className="font-black text-text-main">
+                           {trip.distance} <span className="text-[10px] text-text-muted">KM</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -240,19 +395,25 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* SECTION 4 - PER VEHICLE SUMMARY CARDS */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-             <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                  <Car className="w-5 h-5 text-gray-400" /> Vehicle Summary
-                </h3>
+          {/* SECTION 4 - FLEET PERFORMANCE CENTER */}
+          <div className="bg-card-bg rounded-[2.5rem] shadow-sm border border-border-main overflow-hidden transition-colors">
+             <div className="p-8 border-b border-border-main flex justify-between items-center bg-main-bg/30">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-indigo-500/10 rounded-2xl">
+                    <LayoutGrid className="w-7 h-7 text-indigo-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-text-main tracking-tight">Vehicles Overview</h3>
+                    <p className="text-xs text-text-muted font-bold uppercase tracking-[0.2em] mt-1 italic">Real-time Performance Metrics</p>
+                  </div>
+                </div>
              </div>
              
              <div className="p-5 space-y-4">
                {vehicles.length === 0 ? (
-                 <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                   <p className="text-gray-500 mb-3">No vehicles yet. Start by adding a vehicle.</p>
-                   <button onClick={() => navigate('/vehicles')} className="text-sm bg-white border border-gray-300 px-4 py-2 font-medium rounded-lg hover:border-blue-500 transition-colors shadow-sm">
+                 <div className="text-center py-12 bg-main-bg rounded-xl border border-dashed border-border-main">
+                   <p className="text-text-muted mb-3 font-medium">No vehicles yet. Start by adding a vehicle.</p>
+                   <button onClick={() => navigate('/vehicles')} className="text-sm bg-card-bg border border-border-main px-5 py-2.5 font-bold rounded-xl hover:border-blue-500 transition-all shadow-sm text-text-main">
                      Add First Vehicle
                    </button>
                  </div>
@@ -262,7 +423,6 @@ const Dashboard = () => {
                    const vTripsSorted = [...vTrips].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                    const lastTrip = vTripsSorted[0];
                    const vKm = vTrips.reduce((sum, t) => sum + (Number(t.distance)||0), 0);
-                   const vEarned = vTrips.reduce((sum, t) => sum + (Number(t.grandTotal)||0), 0);
                    
                    const { bg, text, icon: Icon } = getTypeStyle(v.type);
 
@@ -270,42 +430,38 @@ const Dashboard = () => {
                       <div 
                         key={v.id} 
                         onClick={() => setViewingVehicle(v)}
-                        className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/10 transition-all cursor-pointer group shadow-sm active:scale-[0.98]"
+                        className="flex flex-col md:flex-row md:items-center justify-between p-4 border border-border-main rounded-2xl hover:border-blue-500/30 hover:bg-blue-500/5 transition-all cursor-pointer group shadow-sm active:scale-[0.98]"
                       >
                         <div className="flex items-center gap-4 mb-4 md:mb-0">
-                          <div className={`relative w-14 h-14 rounded-xl overflow-hidden border border-gray-100 shadow-sm grow-0 shrink-0`}>
+                          <div className={`relative w-14 h-14 rounded-xl overflow-hidden border border-border-main shadow-sm grow-0 shrink-0 transition-colors`}>
                             {v.photos?.[0] ? (
                               <img src={v.photos[0]} alt="" className="w-full h-full object-cover" />
                             ) : (
-                              <div className={`w-full h-full flex items-center justify-center ${bg}`}>
+                              <div className={`w-full h-full flex items-center justify-center ${bg} opacity-50`}>
                                 <Icon className={`w-6 h-6 ${text}`} />
                               </div>
                             )}
                           </div>
                           <div>
-                            <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                            <h4 className="font-bold text-text-main flex items-center gap-2">
                                {v.name} 
                             </h4>
-                            <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block">{v.numberPlate}</span>
+                            <span className="text-xs font-mono text-text-muted bg-main-bg px-2 py-0.5 rounded mt-1 inline-block border border-border-main/50">{v.numberPlate}</span>
                           </div>
                         </div>
                        
-                       <div className="flex-1 max-w-lg md:ml-12 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4 md:mb-0">
+                       <div className="flex-1 max-w-lg md:ml-12 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm mb-4 md:mb-0">
                          <div>
-                           <span className="text-gray-400 text-xs block mb-0.5">Trips</span>
-                           <span className="font-bold text-gray-700">{vTrips.length}</span>
+                           <span className="text-text-muted text-[10px] font-black uppercase tracking-widest block mb-0.5">Trips</span>
+                           <span className="font-bold text-text-main">{vTrips.length}</span>
                          </div>
                          <div>
-                           <span className="text-gray-400 text-xs block mb-0.5">Total KM</span>
-                           <span className="font-bold text-gray-700">{vKm}</span>
+                           <span className="text-text-muted text-[10px] font-black uppercase tracking-widest block mb-0.5">Total KM</span>
+                           <span className="font-bold text-text-main">{vKm}</span>
                          </div>
                          <div>
-                           <span className="text-gray-400 text-xs block mb-0.5">Earned</span>
-                           <span className="font-bold text-green-600">₹{formatMoney(vEarned)}</span>
-                         </div>
-                         <div>
-                           <span className="text-gray-400 text-xs block mb-0.5">Last Run</span>
-                           <span className="font-semibold text-gray-800 truncate block">
+                           <span className="text-text-muted text-[10px] font-black uppercase tracking-widest block mb-0.5">Last Run</span>
+                           <span className="font-bold text-text-main truncate block">
                              {lastTrip ? new Date(lastTrip.date).toLocaleDateString('en-GB',{month:'short', day:'numeric'}) : '-'}
                            </span>
                          </div>
@@ -314,92 +470,23 @@ const Dashboard = () => {
                         <div className="md:ml-4 flex-shrink-0 flex gap-2">
                           <button 
                             onClick={(e) => { e.stopPropagation(); navigate(`/history?vehicleId=${v.id}`); }}
-                            className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 px-3 py-2 rounded-lg transition-colors border border-transparent hover:border-blue-100"
+                            className="text-[10px] font-black uppercase tracking-widest text-text-muted hover:text-blue-500 bg-main-bg hover:bg-blue-500/10 px-4 py-2.5 rounded-xl transition-all border border-border-main/50 hover:border-blue-500/30"
                           >
                             History
                           </button>
                           <button 
                             onClick={(e) => { e.stopPropagation(); setViewingVehicle(v); }}
-                            className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-lg transition-all shadow-sm shadow-blue-100/50"
+                            className="text-[10px] font-black uppercase tracking-widest text-blue-500 bg-blue-500/10 hover:bg-blue-600 hover:text-white px-4 py-2.5 rounded-xl transition-all shadow-sm shadow-blue-500/10"
                           >
-                            View Details
+                            Details
                           </button>
                         </div>
-                     </div>
-                   );
-                 })
+                      </div>
+                    );
+                  })
                )}
              </div>
           </div>
-        </div>
-
-        {/* RIGHT COLUMN: This Month & Top Routes */}
-        <div className="space-y-6">
-          
-          {/* SECTION 5 - THIS MONTH SUMMARY BOX */}
-          <div className="bg-slate-900 rounded-2xl shadow-lg border border-slate-800 text-white overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 w-40 h-40 bg-blue-500/20 rounded-full blur-3xl"></div>
-            <div className="p-6 relative z-10">
-              <div className="flex items-center gap-2 mb-6">
-                <CalendarDays className="w-5 h-5 text-blue-400" />
-                <h3 className="font-bold text-lg text-slate-100">This Month</h3>
-                <span className="text-xs font-bold bg-white/10 px-2 py-1 rounded ml-auto text-blue-300">{monthName}</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                  <span className="text-slate-400 text-xs block mb-1 font-semibold uppercase tracking-wider">Trips</span>
-                  <span className="text-2xl font-bold">{thisMonthTrips}</span>
-                </div>
-                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
-                  <span className="text-slate-400 text-xs block mb-1 font-semibold uppercase tracking-wider">Distance</span>
-                  <span className="text-2xl font-bold text-blue-400">{thisMonthKm} <span className="text-sm">km</span></span>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-br from-green-500/10 to-green-500/5 p-4 rounded-xl border border-green-500/20 mb-6">
-                 <span className="text-green-200/60 text-xs block mb-1 font-bold uppercase tracking-wider">Revenue This Month</span>
-                 <span className="text-4xl font-black text-green-400 tracking-tight">₹{formatMoney(thisMonthRevenue)}</span>
-              </div>
-
-              <div className="flex items-start gap-3 pt-4 border-t border-slate-700/50">
-                <Trophy className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-xs text-slate-400 block mb-0.5">Most used vehicle</span>
-                  <span className="font-bold text-slate-200">{mostUsedVehicle}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 6 - TOP ROUTES */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-             <div className="p-5 border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-gray-400" /> Top Routes
-                </h3>
-             </div>
-             <div className="p-5">
-               {topRoutes.length === 0 ? (
-                 <p className="text-sm text-gray-500 text-center py-4">Not enough trip data yet.</p>
-               ) : (
-                 <div className="space-y-3">
-                   {topRoutes.map(([route, count], idx) => (
-                     <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-100 transition-colors">
-                       <div className="flex items-center gap-2">
-                         <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold">{idx + 1}</div>
-                         <span className="font-semibold text-gray-700 text-sm truncate max-w-[180px]" title={route}>{route}</span>
-                       </div>
-                       <span className="bg-white px-2 py-1 text-xs font-bold text-gray-500 rounded border border-gray-200 shadow-sm whitespace-nowrap">
-                         {count} {count === 1 ? 'Trip' : 'Trips'}
-                       </span>
-                     </div>
-                   ))}
-                 </div>
-               )}
-             </div>
-          </div>
-
         </div>
       </div>
 

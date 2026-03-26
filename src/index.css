@@ -1,11 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-sidebar: #1e293b;
+  --color-sidebar: var(--sidebar-bg);
   --color-sidebar-text: #ffffff;
   --color-active-nav: #3b82f6;
-  --color-main-bg: #f1f5f9;
-  --color-card-bg: #ffffff;
+  --color-main-bg: var(--main-bg);
+  --color-card-bg: var(--card-bg);
+  --color-border-main: var(--border-color);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
   --sidebar-width: 280px;
   --header-height: 70px;
   --primary-blue: #2563eb;
@@ -14,6 +17,24 @@
   --color-danger: #ef4444;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
+}
+
+:root {
+  --main-bg: #f1f5f9;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --sidebar-bg: #1e293b;
+}
+
+.dark {
+  --main-bg: #0f172a;
+  --card-bg: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --sidebar-bg: #020617;
 }
 
 /* Mobile Helpers */
@@ -46,9 +67,10 @@
 
 @layer base {
   body {
-    background-color: var(--color-main-bg);
-    color: #0f172a;
+    background-color: var(--main-bg);
+    color: var(--text-main);
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 

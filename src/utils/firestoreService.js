@@ -170,3 +170,123 @@ export const isNotificationSent = async (bookingId, type) => {
   const querySnapshot = await getDocs(q);
   return !querySnapshot.empty;
 };
+
+// --- DRIVER FIRESTORE FUNCTIONS ---
+
+export const saveDriverToFirestore = async (driverData) => {
+  if (!isReady()) return;
+  const docRef = doc(db, "drivers", driverData.id);
+  await setDoc(docRef, { ...driverData, syncedAt: serverTimestamp() });
+};
+
+export const updateDriverInFirestore = async (id, updatedFields) => {
+  if (!isReady()) return;
+  const docRef = doc(db, "drivers", id);
+  await updateDoc(docRef, { ...updatedFields, syncedAt: serverTimestamp() });
+};
+
+export const deleteDriverFromFirestore = async (id) => {
+  if (!isReady()) return;
+  await deleteDoc(doc(db, "drivers", id));
+};
+
+export const listenToDrivers = (callback) => {
+  if (!isReady()) return () => {};
+  return onSnapshot(collection(db, "drivers"), (snapshot) => {
+    callback(snapshot.docs.map(doc => doc.data()));
+  }, (err) => { console.warn("Driver listener error:", err); });
+};
+
+// --- FUEL LOG FIRESTORE FUNCTIONS ---
+
+export const saveFuelLogToFirestore = async (fuelData) => {
+  if (!isReady()) return;
+  const docRef = doc(db, "fuelLogs", fuelData.id);
+  await setDoc(docRef, { ...fuelData, syncedAt: serverTimestamp() });
+};
+
+export const deleteFuelLogFromFirestore = async (id) => {
+  if (!isReady()) return;
+  await deleteDoc(doc(db, "fuelLogs", id));
+};
+
+export const listenToFuelLogs = (callback) => {
+  if (!isReady()) return () => {};
+  return onSnapshot(collection(db, "fuelLogs"), (snapshot) => {
+    callback(snapshot.docs.map(doc => doc.data()));
+  }, (err) => { console.warn("Fuel Log listener error:", err); });
+};
+
+// --- CUSTOMER FIRESTORE FUNCTIONS ---
+
+export const saveCustomerToFirestore = async (customerData) => {
+  if (!isReady()) return;
+  const docRef = doc(db, "customers", customerData.id);
+  await setDoc(docRef, { ...customerData, syncedAt: serverTimestamp() });
+};
+
+export const updateCustomerInFirestore = async (id, updatedFields) => {
+  if (!isReady()) return;
+  const docRef = doc(db, "customers", id);
+  await updateDoc(docRef, { ...updatedFields, syncedAt: serverTimestamp() });
+};
+
+export const deleteCustomerFromFirestore = async (id) => {
+  if (!isReady()) return;
+  await deleteDoc(doc(db, "customers", id));
+};
+
+export const listenToCustomers = (callback) => {
+  if (!isReady()) return () => {};
+  const q = query(collection(db, "customers"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(data);
+  }, (err) => { console.warn("Customer listener error:", err); });
+};
+
+// --- EXPENSES ---
+export const saveExpenseToFirestore = async (expenseData) => {
+  if (!isReady()) return false;
+  try {
+    const docRef = doc(db, "expenses", expenseData.id);
+    await setDoc(docRef, { ...expenseData, updatedAt: serverTimestamp() });
+    return true;
+  } catch (error) {
+    console.error("Error saving expense:", error);
+    return false;
+  }
+};
+
+export const updateExpenseInFirestore = async (id, updatedFields) => {
+  if (!isReady()) return false;
+  try {
+    const docRef = doc(db, "expenses", id);
+    await updateDoc(docRef, { ...updatedFields, updatedAt: serverTimestamp() });
+    return true;
+  } catch (error) {
+    console.error("Error updating expense:", error);
+    return false;
+  }
+};
+
+export const deleteExpenseFromFirestore = async (id) => {
+  if (!isReady()) return false;
+  try {
+    const docRef = doc(db, "expenses", id);
+    await deleteDoc(docRef);
+    return true;
+  } catch (error) {
+    console.error("Error deleting expense:", error);
+    return false;
+  }
+};
+
+export const listenToExpenses = (callback) => {
+  if (!isReady()) return () => {};
+  const q = query(collection(db, "expenses"), orderBy("date", "desc"));
+  return onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(data);
+  }, (err) => { console.warn("Expense listener error:", err); });
+};

@@ -17,7 +17,7 @@ const Settings = () => {
   });
   const [sessionDuration, setSessionDuration] = useState('5');
 
-  // Password Form State
+  // PIN Form State
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -48,29 +48,28 @@ const Settings = () => {
   // --- PASSWORD MANAGEMENT ---
   const getStrengthLabel = (pass) => {
     if (pass.length === 0) return { label: '', color: '' };
-    if (pass.length < 6) return { label: 'Too Short', color: 'text-red-500' };
-    if (/^[0-9]+$/.test(pass)) return { label: 'Weak', color: 'text-orange-500' };
-    if (pass.length >= 8 && /[!@#$%^&*(),.?":{}|<>]/.test(pass)) return { label: 'Strong', color: 'text-green-500' };
-    return { label: 'Medium', color: 'text-yellow-500' };
+    if (pass.length !== 6 || !/^\d+$/.test(pass)) return { label: 'Must be 6 digits', color: 'text-red-500' };
+    if (/(\d)\1{2,}/.test(pass)) return { label: 'Weak (Repeating Digits)', color: 'text-orange-500' };
+    return { label: 'Secure PIN', color: 'text-green-500' };
   };
 
   const handleUpdatePassword = (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      showToast('Passwords do not match', 'error');
+      showToast('PINs do not match', 'error');
       return;
     }
 
     const storedPass = localStorage.getItem('crm_admin_password');
-    const isCurrentValid = storedPass ? btoa(currentPassword) === storedPass : currentPassword === 'admin123';
+    const isCurrentValid = storedPass ? atob(storedPass) === currentPassword : currentPassword === 'admin123';
 
     if (!isCurrentValid) {
-      showToast('Current password is incorrect', 'error');
+      showToast('Current PIN is incorrect', 'error');
       return;
     }
 
-    if (newPassword.length < 6) {
-      showToast('New password is too short', 'error');
+    if (newPassword.length !== 6 || !/^\d+$/.test(newPassword)) {
+      showToast('PIN must be exactly 6 digits', 'error');
       return;
     }
 
@@ -89,7 +88,7 @@ const Settings = () => {
     });
 
     setLastChanged(new Date(now).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
-    showToast('Password updated & synced!');
+    showToast('PIN updated & synced!');
     endAdminSession(); 
     setCurrentPassword('');
     setNewPassword('');
@@ -97,7 +96,7 @@ const Settings = () => {
   };
 
   const handleResetDefault = async () => {
-    const confirmed = await requirePassword({ actionType: 'resetPassword', actionLabel: 'RESET Admin Password to default' });
+    const confirmed = await requirePassword({ actionType: 'resetPassword', actionLabel: 'RESET Admin PIN to default' });
     if (confirmed) {
       const defaultPass = btoa('admin123');
       localStorage.setItem('crm_admin_password', defaultPass);
@@ -189,36 +188,36 @@ const Settings = () => {
             <div className="bg-green-50 rounded-xl p-4 border border-green-100 flex items-start gap-4 mb-6">
               <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-black text-green-800">Password is set and active</h4>
-                <p className="text-xs font-bold text-green-600 mt-1">Last changed: {lastChanged}</p>
+                <h4 className="font-black text-green-800">Security PIN is active</h4>
+                <p className="text-xs font-bold text-green-600 mt-1">Last rotated: {lastChanged}</p>
               </div>
             </div>
 
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-slate-400 uppercase mb-2">Current Password *</label>
+                <label className="block text-xs font-black text-slate-400 uppercase mb-2">Current Admin PIN *</label>
                 <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-100">
-                  <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required className="w-full bg-transparent outline-none text-sm font-bold text-slate-700" />
+                  <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required placeholder="6-digit PIN" maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-slate-700 tracking-[0.5em]" />
                   <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="text-slate-400 hover:text-slate-600 ml-2"><Eye className="w-4 h-4" /></button>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">New Password *</label>
+                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">New Admin PIN *</label>
                   <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-100">
-                    <input type={showNew ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} required minLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-slate-700" />
+                    <input type={showNew ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} required maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-slate-700 tracking-[0.5em]" />
                     <button type="button" onClick={() => setShowNew(!showNew)} className="text-slate-400 hover:text-slate-600 ml-2"><Eye className="w-4 h-4" /></button>
                   </div>
                   {newPassword && <p className={`text-[10px] font-black uppercase mt-1 ${strength.color}`}>{strength.label}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Confirm New Password *</label>
+                  <label className="block text-xs font-black text-slate-400 uppercase mb-2">Confirm New PIN *</label>
                   <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-100">
-                    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="w-full bg-transparent outline-none text-sm font-bold text-slate-700" />
+                    <input type={showConfirm ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-slate-700 tracking-[0.5em]" />
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="text-slate-400 hover:text-slate-600 ml-2"><Eye className="w-4 h-4" /></button>
                   </div>
-                  {confirmPassword && newPassword !== confirmPassword && <p className="text-red-500 text-[10px] font-black uppercase mt-1">Passwords do not match</p>}
-                  {confirmPassword && newPassword === confirmPassword && confirmPassword.length > 0 && <p className="text-green-500 text-[10px] font-black uppercase mt-1">Matches ✓</p>}
+                  {confirmPassword && newPassword !== confirmPassword && <p className="text-red-500 text-[10px] font-black uppercase mt-1">PINs do not match</p>}
+                  {confirmPassword && newPassword === confirmPassword && confirmPassword.length > 0 && <p className="text-green-500 text-[10px] font-black uppercase mt-1">PIN Matched ✓</p>}
                 </div>
               </div>
               
@@ -237,18 +236,18 @@ const Settings = () => {
             <div className="bg-amber-100 p-2 rounded-xl text-amber-600"><Shield className="w-5 h-5" /></div>
             <div>
               <h2 className="text-lg font-black text-slate-800">Protected Actions</h2>
-              <p className="text-xs font-bold text-slate-400">Choose which actions require password verification</p>
+              <p className="text-xs font-bold text-slate-400">Choose which actions require PIN verification</p>
             </div>
           </div>
           <div className="p-2">
             {[
-              { key: 'deleteVehicle', label: 'Require password to delete a vehicle', desc: 'Password will be asked before deleting any vehicle' },
-              { key: 'deleteTrip', label: 'Require password to delete a trip record', desc: '' },
-              { key: 'deleteBooking', label: 'Require password to delete a booking', desc: '' },
-              { key: 'cancelBooking', label: 'Require password to cancel a booking', desc: '' },
-              { key: 'editVehicle', label: 'Require password to edit vehicle details', desc: '' },
-              { key: 'editTrip', label: 'Require password to edit a trip record', desc: 'Turn on for stricter control' },
-              { key: 'editBooking', label: 'Require password to edit a booking', desc: '' },
+              { key: 'deleteVehicle', label: 'Require PIN to delete a vehicle', desc: 'PIN will be asked before deleting any vehicle' },
+              { key: 'deleteTrip', label: 'Require PIN to delete a trip record', desc: '' },
+              { key: 'deleteBooking', label: 'Require PIN to delete a booking', desc: '' },
+              { key: 'cancelBooking', label: 'Require PIN to cancel a booking', desc: '' },
+              { key: 'editVehicle', label: 'Require PIN to edit vehicle details', desc: '' },
+              { key: 'editTrip', label: 'Require PIN to edit a trip record', desc: 'Turn on for stricter control' },
+              { key: 'editBooking', label: 'Require PIN to edit a booking', desc: '' },
             ].map((item, idx) => (
               <div key={item.key} className={`flex items-center justify-between p-4 hover:bg-slate-50 transition-colors ${idx !== 0 ? 'border-t border-slate-50' : ''}`}>
                 <div>
@@ -267,7 +266,7 @@ const Settings = () => {
             <div className="flex items-center justify-between p-4 border-t border-slate-50 bg-slate-50/50">
               <div>
                 <h4 className="font-bold text-slate-700 flex items-center gap-2">
-                  Require password to clear all app data <Lock className="w-3 h-3 text-slate-400" />
+                  Require PIN to clear all app data <Lock className="w-3 h-3 text-slate-400" />
                 </h4>
                 <p className="text-xs text-slate-400 mt-1 uppercase font-black">Always required</p>
               </div>
@@ -288,7 +287,7 @@ const Settings = () => {
           </div>
           <div className="p-6">
             <label className="block font-bold text-slate-700 mb-1">Admin Session Duration</label>
-            <p className="text-xs text-slate-400 mb-4">After correct password how long before it is required again</p>
+            <p className="text-xs text-slate-400 mb-4">After correct PIN how long before it is required again</p>
             <select value={sessionDuration} onChange={handleSessionChange} className="w-full md:w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100">
               <option value="2">2 Minutes</option>
               <option value="5">5 Minutes</option>

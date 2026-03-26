@@ -1,20 +1,30 @@
-import { Menu, Bell, Cloud, CloudOff, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Menu, Bell, Cloud, CloudOff, RefreshCw, AlertTriangle, Sun, Moon } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { useContext } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const Header = ({ setSidebarOpen }) => {
   const { isOnline, isSyncing, lastSyncedAt, syncError } = useContext(AppContext);
+  const { isDark, toggleTheme } = useTheme();
   const location = useLocation();
+  
+  const { isAdmin } = useAuth();
   
   const getPageTitle = () => {
     switch (location.pathname) {
       case '/': return 'Dashboard';
-      case '/vehicles': return 'Manage Vehicles';
+      case '/vehicles': return isAdmin ? 'Manage Vehicles' : 'Available Fleet';
       case '/newtrip': return 'Record a New Trip';
       case '/history': return 'Trip History';
       case '/bookings': return 'Bookings';
+      case '/new-booking': return 'Request Booking';
+      case '/my-bookings': return 'My Bookings';
       case '/settings': return 'Settings';
+      case '/drivers': return 'Drivers';
+      case '/customers': return 'Customer Database';
+      case '/expenses': return 'Finance & Expenses';
       default: return 'CarRent Manager';
     }
   };
@@ -35,20 +45,29 @@ const Header = ({ setSidebarOpen }) => {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-gray-200 shadow-sm flex items-center justify-between px-4 lg:px-8 z-30 sticky top-0">
+    <header className="h-16 bg-card-bg border-b border-border-main shadow-sm flex items-center justify-between px-4 lg:px-8 z-30 sticky top-0 transition-colors duration-300">
       <div className="flex items-center gap-4">
         <button 
-          className="lg:hidden p-2 hover:bg-gray-100 rounded-md text-gray-600"
+          className="lg:hidden p-2 hover:bg-main-bg rounded-md text-text-muted transition-colors"
           onClick={() => setSidebarOpen(true)}
         >
           <Menu className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-bold font-semibold text-gray-800">{getPageTitle()}</h1>
+        <h1 className="text-xl font-bold text-text-main">{getPageTitle()}</h1>
       </div>
 
-      <div className="flex items-center gap-4 md:gap-6">
+      <div className="flex items-center gap-3 md:gap-5">
+        {/* Theme Toggle */}
+        <button 
+          onClick={toggleTheme}
+          className="p-2.5 bg-main-bg hover:bg-blue-500/10 border border-border-main text-text-muted hover:text-blue-500 rounded-2xl transition-all active:scale-95"
+          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
+
         {/* Sync Indicator */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-full border border-gray-100">
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-main-bg rounded-full border border-border-main transition-colors">
           {isOnline ? (
             <>
               {syncError ? (
@@ -64,7 +83,7 @@ const Header = ({ setSidebarOpen }) => {
               ) : (
                 <>
                   <div className="w-2 h-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-tight">
+                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-tight">
                     Synced {getTimeAgo(lastSyncedAt)}
                   </span>
                 </>
@@ -78,8 +97,9 @@ const Header = ({ setSidebarOpen }) => {
           )}
         </div>
 
-        <span className="text-sm text-gray-500 hidden md:block font-medium">{currentDate}</span>
-        <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
+        <span className="text-sm text-text-muted hidden md:block font-medium">{currentDate}</span>
+        
+        <button className="relative p-2 text-text-muted hover:bg-main-bg rounded-full transition-colors">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
         </button>

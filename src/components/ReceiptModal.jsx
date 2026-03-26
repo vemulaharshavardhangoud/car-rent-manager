@@ -22,19 +22,22 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 overflow-y-auto print:p-0 print:bg-white print:block">
-      <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl my-8 flex flex-col print:shadow-none print:my-0 print:rounded-none">
+    <div className="fixed inset-0 bg-black/70 z-[1000] flex items-center justify-center p-0 md:p-4 print:p-0 print:bg-white print:block">
+      <div className="bg-white w-full max-w-3xl rounded-none md:rounded-2xl shadow-2xl flex flex-col print:shadow-none print:my-0 print:rounded-none h-full md:h-auto md:max-h-[90vh]">
         
         {/* MODAL HEADER (Hidden on print) */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 print:hidden sticky top-0 bg-white rounded-t-2xl z-20">
-          <h2 className="text-xl font-bold text-gray-800">Review Trip Receipt</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
-            <X className="w-6 h-6" />
-          </button>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 print:hidden bg-white rounded-t-2xl z-30 shadow-sm shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+            <h2 className="text-xl font-bold text-gray-800">Review Trip Receipt</h2>
+          </div>
         </div>
 
-        {/* PRINTABLE RECEIPT CONTENT */}
-        <div className="p-8 print:p-4 receipt-content" id="printable-receipt">
+        {/* SCROLLABLE CONTENT AREA */}
+        <div className="flex-1 overflow-y-auto print:overflow-visible">
+          <div className="p-8 pt-12 md:pt-16 print:p-4 receipt-content" id="printable-receipt">
           
           {/* Header */}
           <div className="text-center mb-8 border-b-2 border-gray-800 pb-6">
@@ -172,12 +175,20 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
             </div>
           </div>
           
+          </div>
         </div>
-
+        
         {/* MODAL FOOTER BUTTONS (Hidden on print) */}
-        <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl print:hidden flex flex-wrap gap-4 justify-between items-center sticky bottom-0">
+        <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl print:hidden flex flex-wrap gap-4 justify-between items-center shrink-0">
           
           <div className="flex gap-3">
+             <button
+               onClick={onClose}
+               className="px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium flex items-center gap-2 hover:bg-gray-50 transition-colors"
+             >
+               <X className="w-4 h-4" /> Go Back
+             </button>
+             
              <button
                onClick={onNewTrip}
                className="px-5 py-2.5 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium flex items-center gap-2 hover:bg-gray-50 transition-colors"

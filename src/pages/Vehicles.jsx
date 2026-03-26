@@ -1,7 +1,7 @@
 // v1.2 - Photo Upload + AC/Non-AC Pricing
 import React, { useState, useContext, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight, Map, Route } from 'lucide-react';
+import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight, Map, Route, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import VehicleDetails from '../components/VehicleDetails';
@@ -9,7 +9,7 @@ import VehicleDetails from '../components/VehicleDetails';
 const initialForm = {
   name: '', type: '4-Wheeler', capacity: '', numberPlate: '', 
   ratePerKm: '', ratePerDay: '', tankCapacity: '', color: '', notes: '',
-  bookingStatus: 'Available',
+  status: 'Available',
   photos: [],
   hasAC: false,
   ratePerKmAC: '', ratePerDayAC: ''
@@ -23,9 +23,12 @@ const Vehicles = () => {
   const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [viewingVehicle, setViewingVehicle] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [typeFilter, setTypeFilter] = useState('All');
   const fileInputRef = useRef(null);
 
-  // Global Fleet Stats
+  // Global Vehicle Stats
   const totalTrips = allTrips?.length || 0;
   const totalKm = (allTrips || []).reduce((sum, t) => sum + (Number(t.distance)||0), 0);
   const formatMoney = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val);
@@ -162,6 +165,13 @@ const Vehicles = () => {
   };
 
   const inputClass = (name) => `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 bg-gray-50 hover:bg-white transition-colors ${errors[name] ? 'border-red-500 focus:ring-red-200 bg-red-50/30' : 'border-gray-200 focus:ring-blue-100 focus:border-blue-500'}`;
+
+  const filteredVehicles = vehicles.filter(v => {
+    const matchesSearch = v.name.toLowerCase().includes(searchTerm.toLowerCase()) || v.numberPlate.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || v.status === statusFilter;
+    const matchesType = typeFilter === 'All' || v.type === typeFilter;
+    return matchesSearch && matchesStatus && matchesType;
+  });
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 pb-12 animate-fade-in items-start">
@@ -330,10 +340,10 @@ const Vehicles = () => {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Operating Status</label>
-              <select name="bookingStatus" value={form.bookingStatus} onChange={handleChange} className={inputClass('bookingStatus')}>
+              <select name="status" value={form.status} onChange={handleChange} className={inputClass('status')}>
                 <option value="Available">🟢 Available for Booking</option>
                 <option value="Under Maintenance">⚫ Under Maintenance</option>
-                {(form.bookingStatus === 'Booked' || form.bookingStatus === 'On Trip') && (
+                {(form.status === 'Booked' || form.status === 'On Trip') && (
                   <>
                     <option value="Booked">🔴 Currently Booked</option>
                     <option value="On Trip">🟠 Currently On Trip</option>
@@ -362,29 +372,64 @@ const Vehicles = () => {
       {/* RIGHT SIDE: LIST */}
       <div className="flex-1 space-y-4">
         {vehicles.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 mb-2">
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-              <div className="p-3 bg-emerald-50 rounded-xl">
-                <Map className="w-5 h-5 text-emerald-500" />
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow group">
+              <div className="p-4 bg-blue-50 rounded-2xl group-hover:bg-blue-600 transition-colors">
+                <Map className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Total Trips</p>
-                <p className="text-xl font-black text-gray-800">{totalTrips}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 mb-1">Total Vehicle Trips</p>
+                <p className="text-3xl font-black text-slate-900 leading-none">{totalTrips}</p>
               </div>
             </div>
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4">
-              <div className="p-3 bg-orange-50 rounded-xl">
-                <Route className="w-5 h-5 text-orange-500" />
+            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 flex items-center gap-5 hover:shadow-md transition-shadow group">
+              <div className="p-4 bg-emerald-50 rounded-2xl group-hover:bg-emerald-600 transition-colors">
+                <Route className="w-6 h-6 text-emerald-600 group-hover:text-white transition-colors" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Total KM Driven</p>
-                <p className="text-xl font-black text-gray-800">{formatMoney(totalKm)}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-black text-gray-400 mb-1">Total Distance (KM)</p>
+                <p className="text-3xl font-black text-slate-900 leading-none">{formatMoney(totalKm)}</p>
               </div>
             </div>
           </div>
         )}
 
-        {vehicles.length === 0 ? (
+        {/* SEARCH & FILTERS */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+           <div className="flex-1 relative group">
+              <input 
+                type="text" 
+                placeholder="Search Fleet (Name or Plate)..."
+                className="w-full pl-12 pr-4 py-3 bg-white rounded-2xl border border-gray-100 focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all font-bold text-sm"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+              />
+              <CarFront className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+           </div>
+           <select 
+             value={statusFilter}
+             onChange={e => setStatusFilter(e.target.value)}
+             className="px-4 py-3 bg-white rounded-2xl border border-gray-100 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/5"
+           >
+             <option value="All">All Status</option>
+             <option value="Available">Available</option>
+             <option value="Booked">Booked</option>
+             <option value="On Trip">On Trip</option>
+             <option value="Under Maintenance">Maintenance</option>
+           </select>
+           <select 
+             value={typeFilter}
+             onChange={e => setTypeFilter(e.target.value)}
+             className="px-4 py-3 bg-white rounded-2xl border border-gray-100 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/5"
+           >
+             <option value="All">All Types</option>
+             <option value="2-Wheeler">2-Wheeler</option>
+             <option value="4-Wheeler">4-Wheeler</option>
+             <option value="Heavy Vehicle">Heavy</option>
+           </select>
+        </div>
+
+        {filteredVehicles.length === 0 ? (
           <div className="bg-white p-12 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center h-full min-h-[500px]">
             <div className="bg-blue-50/50 p-6 rounded-full mb-5"><Car className="w-20 h-20 text-blue-500/80 stroke-[1.5]" /></div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">No vehicles added yet</h3>
@@ -392,7 +437,7 @@ const Vehicles = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-            {vehicles.map((v) => {
+            {filteredVehicles.map((v) => {
               const { color: topColor, textBorder, icon: TypeIcon } = getTypeStyle(v.type);
               const stats = getStats(v.id);
               return (
@@ -412,7 +457,7 @@ const Vehicles = () => {
                         {v.photos.length > 1 && (
                           <span className="bg-black/40 text-white text-[10px] font-black px-2 py-1 rounded-md backdrop-blur-sm border border-white/20">+{v.photos.length - 1} photos</span>
                         )}
-                        {getStatusBadge(v.bookingStatus)}
+                        {getStatusBadge(v.status)}
                       </div>
                     </div>
                   )}
@@ -429,7 +474,7 @@ const Vehicles = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="absolute top-4 right-4">{getStatusBadge(v.bookingStatus)}</div>
+                        <div className="absolute top-4 right-4">{getStatusBadge(v.status)}</div>
                       </div>
                     )}
 
@@ -442,10 +487,20 @@ const Vehicles = () => {
                       </div>
                     )}
                     
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-4 flex-wrap">
                       {v.hasAC && (
                         <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-md border border-blue-200">
                           <Thermometer className="w-3 h-3" /> AC
+                        </span>
+                      )}
+                      {stats.count > 20 && (
+                        <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border border-amber-200">
+                          <Info className="w-3 h-3" /> High Usage
+                        </span>
+                      )}
+                      {v.status === 'Under Maintenance' && (
+                        <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-[10px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border border-red-200 animate-pulse">
+                          <AlertTriangle className="w-3 h-3" /> Service Req
                         </span>
                       )}
                     </div>
