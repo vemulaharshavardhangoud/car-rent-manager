@@ -19,19 +19,22 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Still fetch owner password from settings for security
-    const unsubOwner = onSnapshot(doc(db, 'settings', 'app_settings'), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.adminPassword) {
-          // Password from settings is Base64 encoded, decode it
-          try {
-            setOwnerPassword(atob(data.adminPassword));
-          } catch (e) {
-            setOwnerPassword(data.adminPassword);
+    let unsubOwner = () => {};
+    if (db) {
+      unsubOwner = onSnapshot(doc(db, 'settings', 'app_settings'), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.adminPassword) {
+            // Password from settings is Base64 encoded, decode it
+            try {
+              setOwnerPassword(atob(data.adminPassword));
+            } catch (e) {
+              setOwnerPassword(data.adminPassword);
+            }
           }
         }
-      }
-    });
+      });
+    }
 
     setLoading(false);
     return () => unsubOwner();
