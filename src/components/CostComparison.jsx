@@ -115,12 +115,12 @@ const CostComparison = ({ vehicle, distance, days, activeMode, activeAC }) => {
       </div>
 
       {cheapest && !isActive(cheapest) && (
-        <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-3 animate-pulse">
+        <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-3 animate-pulse">
           <div className="bg-emerald-500 text-white p-1.5 rounded-lg">
             <Zap className="w-3 h-3" />
           </div>
-          <p className="text-[10px] font-bold text-emerald-800 leading-tight">
-            Switch to <span className="font-black underline">{cheapest.label}</span> to save <span className="text-sm font-black text-emerald-600 decoration-none">₹{Math.round(scenarios.find(isActive)?.total - cheapest.total || 0)}</span>!
+          <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 leading-tight">
+            Switch to <span className="font-black underline">{cheapest.label}</span> to save <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 decoration-none">₹{Math.round(scenarios.find(isActive)?.total - cheapest.total || 0)}</span>!
           </p>
         </div>
       )}

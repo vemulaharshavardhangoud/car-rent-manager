@@ -209,13 +209,13 @@ const NewTrip = () => {
 
   if (vehicles.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl shadow-sm border border-orange-100 max-w-2xl mx-auto mt-10">
-        <div className="bg-orange-50 p-4 rounded-full mb-4">
+      <div className="flex flex-col items-center justify-center p-12 bg-card-bg rounded-2xl shadow-sm border border-orange-500/20 max-w-2xl mx-auto mt-10">
+        <div className="bg-orange-500/10 p-4 rounded-full mb-4">
           <AlertCircle className="w-12 h-12 text-orange-500" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">No vehicles found!</h2>
-        <p className="text-gray-600 mb-6 text-center text-lg">You need to add at least one vehicle to your fleet before recording a trip.</p>
-        <Link to="/vehicles" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition flex items-center gap-2">
+        <h2 className="text-2xl font-bold text-text-main mb-2">No vehicles found!</h2>
+        <p className="text-text-muted mb-6 text-center text-lg">You need to add at least one vehicle to your fleet before recording a trip.</p>
+        <Link to="/vehicles" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-500/20">
           <Car className="w-5 h-5" />
           Go to Vehicles Page
         </Link>
@@ -223,31 +223,31 @@ const NewTrip = () => {
     );
   }
 
-  const inputClass = (name) => `w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50 hover:bg-white transition-colors ${errors[name] ? 'border-red-500 focus:ring-red-200 bg-red-50/30' : 'border-gray-200 focus:ring-blue-100 focus:border-blue-500'}`;
-  const labelClass = "block text-sm font-semibold text-gray-700 mb-1.5";
+  const inputClass = (name) => `w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 bg-main-bg/50 hover:bg-card-bg transition-colors ${errors[name] ? 'border-red-500 focus:ring-red-200 bg-red-500/10' : 'border-border-main focus:ring-blue-500/20 focus:border-blue-500'} text-text-main`;
+  const labelClass = "block text-sm font-semibold text-text-main mb-1.5";
 
   return (
     <div className="flex flex-col md:flex-row gap-8 pb-24 md:pb-12 animate-fade-in items-start">
       
       {/* LEFT COLUMN: FORM */}
-      <div className="w-full md:w-[60%] bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-          <div className="bg-blue-50 p-2.5 rounded-xl">
-            <Calculator className="w-6 h-6 text-blue-600" />
+      <div className="w-full md:w-[60%] bg-card-bg p-6 md:p-8 rounded-2xl shadow-sm border border-border-main">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border-main">
+          <div className="bg-blue-500/10 p-2.5 rounded-xl">
+            <Calculator className="w-6 h-6 text-blue-500" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">New Trip Entry</h2>
-            <p className="text-sm text-gray-500">Record a new journey and calculate charges</p>
+            <h2 className="text-2xl font-bold text-text-main">New Trip Entry</h2>
+            <p className="text-sm text-text-muted">Record a new journey and calculate charges</p>
           </div>
         </div>
 
         {errorBoxMessages.length > 0 && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4 animate-fade-in shadow-sm">
-            <h3 className="text-red-800 font-bold mb-2 flex items-center gap-2">
+          <div className="mb-6 bg-red-500/10 border border-red-500/20 rounded-xl p-4 animate-fade-in shadow-sm">
+            <h3 className="text-red-500 font-bold mb-2 flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
               Please correct the following errors:
             </h3>
-            <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
+            <ul className="list-disc list-inside text-sm text-red-400 space-y-1">
               {errorBoxMessages.map((msg, i) => <li key={i}>{msg}</li>)}
             </ul>
           </div>
@@ -256,9 +256,9 @@ const NewTrip = () => {
         <form className="space-y-8">
           
           {/* SECTION 1: VEHICLE */}
-          <section className="bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Car className="w-5 h-5 text-gray-500" /> Select Vehicle *
+          <section className="bg-main-bg/30 p-5 rounded-2xl border border-border-main">
+            <h3 className="text-lg font-bold text-text-main mb-4 flex items-center gap-2">
+              <Car className="w-5 h-5 text-text-muted" /> Select Vehicle *
             </h3>
             <div className="space-y-4">
               <div>
@@ -295,34 +295,34 @@ const NewTrip = () => {
                       <button
                         type="button"
                         onClick={() => setForm(prev => ({ ...prev, acMode: true }))}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border font-bold transition-all ${form.acMode ? 'bg-blue-500 border-blue-600 text-white shadow-md' : 'bg-gray-100 border-gray-200 text-gray-400 hover:bg-gray-200'}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border font-bold transition-all ${form.acMode ? 'bg-blue-500 border-blue-600 text-white shadow-md' : 'bg-main-bg border-border-main text-text-muted hover:bg-card-bg'}`}
                       >
                         <Thermometer className="w-4 h-4" /> With AC
                       </button>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-card-bg rounded-xl border border-blue-500/20 shadow-sm">
                     <div>
-                      <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Type</span>
-                      <span className="font-semibold text-gray-800">{selectedVehicle.type}</span>
+                      <span className="block text-xs uppercase text-text-muted font-bold mb-1">Type</span>
+                      <span className="font-semibold text-text-main">{selectedVehicle.type}</span>
                     </div>
                     <div>
-                      <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Capacity</span>
-                      <span className="font-semibold text-gray-800">{selectedVehicle.capacity} Seats</span>
+                      <span className="block text-xs uppercase text-text-muted font-bold mb-1">Capacity</span>
+                      <span className="font-semibold text-text-main">{selectedVehicle.capacity} Seats</span>
                     </div>
                     <div>
-                      <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Applied Rate</span>
-                      <span className="font-bold text-blue-600">
+                      <span className="block text-xs uppercase text-text-muted font-bold mb-1">Applied Rate</span>
+                      <span className="font-bold text-blue-500">
                         ₹{form.billingMode === 'KM' 
                           ? (form.acMode ? selectedVehicle.ratePerKmAC : selectedVehicle.ratePerKm) 
                           : (form.acMode ? selectedVehicle.ratePerDayAC : selectedVehicle.ratePerDay)}
-                        <span className="text-[10px] text-gray-400 font-normal ml-0.5">/{form.billingMode}</span>
+                        <span className="text-[10px] text-text-muted font-normal ml-0.5">/{form.billingMode}</span>
                       </span>
                     </div>
                     <div>
-                      <span className="block text-xs uppercase text-gray-400 font-bold mb-1">Status</span>
-                      <span className="font-semibold text-green-600 text-xs">Available</span>
+                      <span className="block text-xs uppercase text-text-muted font-bold mb-1">Status</span>
+                      <span className="font-semibold text-green-500 text-xs">Available</span>
                     </div>
                   </div>
                 </div>
@@ -332,8 +332,8 @@ const NewTrip = () => {
 
           {/* SECTION 2: TRIP DETAILS */}
           <section>
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Navigation className="w-5 h-5 text-gray-500" /> Trip Routing
+            <h3 className="text-lg font-bold text-text-main mb-4 flex items-center gap-2">
+              <Navigation className="w-5 h-5 text-text-muted" /> Trip Routing
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
@@ -361,7 +361,7 @@ const NewTrip = () => {
               <div>
                 <label className={labelClass}>From Location *</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                  <MapPin className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
                   <input type="text" name="from" value={form.from} onChange={handleChange} placeholder="e.g. Surat" className={`${inputClass('from')} pl-10`} />
                 </div>
                 {errors.from && <p className="text-red-500 text-xs mt-1">{errors.from}</p>}
@@ -370,7 +370,7 @@ const NewTrip = () => {
               <div>
                 <label className={labelClass}>To Location *</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                  <MapPin className="absolute left-3 top-3 w-5 h-5 text-text-muted" />
                   <input type="text" name="to" value={form.to} onChange={handleChange} placeholder="e.g. Ahmedabad" className={`${inputClass('to')} pl-10`} />
                 </div>
                 {errors.to && <p className="text-red-500 text-xs mt-1">{errors.to}</p>}
@@ -389,8 +389,8 @@ const NewTrip = () => {
               </div>
             </div>
 
-            <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 flex items-center justify-between mb-5">
-              <span className="font-semibold text-blue-800">Total Distance</span>
+            <div className="bg-blue-500/10 rounded-xl p-4 border border-blue-500/20 flex items-center justify-between mb-5">
+              <span className="font-semibold text-blue-500">Total Distance</span>
               <span className="text-2xl font-bold text-blue-600">{distance} <span className="text-sm font-medium">KM</span></span>
             </div>
 
@@ -403,10 +403,10 @@ const NewTrip = () => {
 
           {/* SECTION 3: BILLING MODE */}
           <section>
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-gray-500" /> Billing Mode
+            <h3 className="text-lg font-bold text-text-main mb-4 flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-text-muted" /> Billing Mode
             </h3>
-            <div className="flex bg-gray-100 p-1 rounded-xl">
+            <div className="flex bg-main-bg/50 p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => handleModeChange('KM')}
@@ -426,8 +426,8 @@ const NewTrip = () => {
 
           {/* SECTION 4: FUEL DETAILS */}
           <section>
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-gray-500" /> Fuel Details
+            <h3 className="text-lg font-bold text-text-main mb-4 flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-text-muted" /> Fuel Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-4">
               <div>
@@ -443,37 +443,37 @@ const NewTrip = () => {
               </div>
             </div>
             {costs.fuelCost > 0 && (
-              <div className="bg-green-50/50 rounded-xl p-3 border border-green-100 flex items-center justify-between">
-                <span className="font-semibold text-green-800">Expected Fuel Cost</span>
-                <span className="text-lg font-bold text-green-600">₹{costs.fuelCost.toFixed(2)}</span>
+              <div className="bg-green-500/10 rounded-xl p-3 border border-green-500/20 flex items-center justify-between">
+                <span className="font-semibold text-green-700 dark:text-green-400">Expected Fuel Cost</span>
+                <span className="text-lg font-bold text-green-600 dark:text-green-400">₹{costs.fuelCost.toFixed(2)}</span>
               </div>
             )}
           </section>
 
           {/* SECTION 5: TAX & EXTRA CHARGES */}
           <section>
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-gray-500" /> Extra Charges
+            <h3 className="text-lg font-bold text-text-main mb-4 flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-text-muted" /> Extra Charges
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className={labelClass}>Toll Tax</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-gray-500 font-medium">₹</span>
+                  <span className="absolute left-3 top-2.5 text-text-muted font-medium">₹</span>
                   <input type="number" name="tollTax" value={form.tollTax} onChange={handleChange} placeholder="0" className={`${inputClass('tollTax')} pl-8`} />
                 </div>
               </div>
               <div>
                 <label className={labelClass}>Border Tax</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-gray-500 font-medium">₹</span>
+                  <span className="absolute left-3 top-2.5 text-text-muted font-medium">₹</span>
                   <input type="number" name="borderTax" value={form.borderTax} onChange={handleChange} placeholder="0" className={`${inputClass('borderTax')} pl-8`} />
                 </div>
               </div>
               <div>
                 <label className={labelClass}>Driver Allowance</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-gray-500 font-medium">₹</span>
+                  <span className="absolute left-3 top-2.5 text-text-muted font-medium">₹</span>
                   <input type="number" name="driverAllowance" value={form.driverAllowance} onChange={handleChange} placeholder="0" className={`${inputClass('driverAllowance')} pl-8`} />
                 </div>
               </div>
@@ -482,7 +482,7 @@ const NewTrip = () => {
                     <div className="flex-1">
                       <label className={labelClass}>Other Charges</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-2.5 text-gray-500 font-medium">₹</span>
+                        <span className="absolute left-3 top-2.5 text-text-muted font-medium">₹</span>
                         <input type="number" name="otherCharges" value={form.otherCharges} onChange={handleChange} placeholder="0" className={`${inputClass('otherCharges')} pl-8`} />
                       </div>
                     </div>
@@ -497,7 +497,7 @@ const NewTrip = () => {
 
           {/* SECTION 6: CUSTOMER DETAILS */}
           <section>
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Customer Details <span className="font-normal text-sm text-gray-400 capitalize">(Optional)</span></h3>
+            <h3 className="text-lg font-bold text-text-main mb-4">Customer Details <span className="font-normal text-sm text-text-muted capitalize">(Optional)</span></h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div>
                 <label className={labelClass}>Customer Name</label>
@@ -523,8 +523,8 @@ const NewTrip = () => {
 
       {/* RIGHT COLUMN: ESTIMATE */}
       <div className="w-full md:w-[35%] shrink-0 md:sticky md:top-4 mt-8 lg:mt-0">
-        <div className="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-100 overflow-hidden">
-          <div className="bg-card-bg text-text-main p-6 relative overflow-hidden border-b border-border-main">
+        <div className="bg-card-bg rounded-3xl shadow-xl shadow-blue-500/5 border border-border-main overflow-hidden">
+          <div className="bg-main-bg text-text-main p-6 relative overflow-hidden border-b border-border-main">
             <div className="absolute -right-10 -top-10 bg-blue-500/10 w-40 h-40 rounded-full blur-2xl"></div>
             <div className="relative z-10 flex items-center justify-between">
               <div>
@@ -539,64 +539,64 @@ const NewTrip = () => {
 
           <div className="p-6">
             
-            <div className="bg-gray-50 rounded-2xl p-4 mb-6 border border-gray-100">
+            <div className="bg-main-bg/50 rounded-2xl p-4 mb-6 border border-border-main">
               <div className="flex items-center justify-between mb-4">
                  <div>
-                    <h4 className="font-bold text-gray-800">{selectedVehicle?.name || 'No Vehicle'}</h4>
-                    <span className="text-xs font-mono text-gray-500 bg-gray-200 px-2 py-0.5 rounded">{selectedVehicle?.numberPlate || '-'}</span>
+                    <h4 className="font-bold text-text-main">{selectedVehicle?.name || 'No Vehicle'}</h4>
+                    <span className="text-xs font-mono text-text-muted bg-main-bg px-2 py-0.5 rounded border border-border-main">{selectedVehicle?.numberPlate || '-'}</span>
                  </div>
                  <div className="text-right">
-                   <div className="text-2xl font-bold text-blue-600">{distance} <span className="text-sm">KM</span></div>
-                   <div className="text-xs text-gray-500">{form.days} {form.days === 1 ? 'Day' : 'Days'}</div>
+                    <div className="text-2xl font-bold text-blue-600">{distance} <span className="text-sm">KM</span></div>
+                    <div className="text-xs text-text-muted">{form.days} {form.days === 1 ? 'Day' : 'Days'}</div>
                  </div>
               </div>
               
-              <div className="relative py-2 mt-4 border-t border-gray-200 flex justify-between items-center text-sm">
+              <div className="relative py-2 mt-4 border-t border-border-main flex justify-between items-center text-sm">
                  <div className="w-1/2 pr-2">
-                   <p className="text-xs text-gray-400 font-semibold mb-0.5 uppercase tracking-wider">From</p>
-                   <p className="font-medium text-gray-800 truncate">{form.from || 'Origin'}</p>
+                   <p className="text-xs text-text-muted font-semibold mb-0.5 uppercase tracking-wider">From</p>
+                   <p className="font-medium text-text-main truncate">{form.from || 'Origin'}</p>
                  </div>
-                 <div className="absolute left-1/2 -ml-3 bg-gray-50 px-1 border border-gray-200 rounded-full p-1 text-gray-400">
+                 <div className="absolute left-1/2 -ml-3 bg-card-bg px-1 border border-border-main rounded-full p-1 text-text-muted">
                     <Navigation className="w-3 h-3 transform rotate-90" />
                  </div>
                  <div className="w-1/2 pl-4 text-right">
-                   <p className="text-xs text-gray-400 font-semibold mb-0.5 uppercase tracking-wider">To</p>
-                   <p className="font-medium text-gray-800 truncate">{form.to || 'Destination'}</p>
+                   <p className="text-xs text-text-muted font-semibold mb-0.5 uppercase tracking-wider">To</p>
+                   <p className="font-medium text-text-main truncate">{form.to || 'Destination'}</p>
                  </div>
               </div>
             </div>
 
             <div className="space-y-4 text-sm px-2">
-              <div className={`flex justify-between items-center p-2 rounded-lg transition-colors ${form.billingMode === 'KM' ? 'bg-blue-50 text-blue-900 font-medium' : 'text-gray-600 font-medium'}`}>
+              <div className={`flex justify-between items-center p-2 rounded-lg transition-colors ${form.billingMode === 'KM' ? 'bg-blue-500/10 text-blue-500 font-medium' : 'text-text-muted font-medium'}`}>
                 <span>Base Rent (by KM)</span>
-                <span className={form.billingMode === 'KM' ? 'text-blue-700' : 'text-gray-400'}>
+                <span className={form.billingMode === 'KM' ? 'text-blue-500' : 'text-text-muted opacity-50'}>
                   {form.billingMode === 'KM' ? `₹${costs.baseRent}` : '-'}
                 </span>
               </div>
-              <div className={`flex justify-between items-center p-2 rounded-lg transition-colors ${form.billingMode === 'DAY' ? 'bg-blue-50 text-blue-900 font-medium' : 'text-gray-600 font-medium'}`}>
+              <div className={`flex justify-between items-center p-2 rounded-lg transition-colors ${form.billingMode === 'DAY' ? 'bg-blue-500/10 text-blue-500 font-medium' : 'text-text-muted font-medium'}`}>
                 <span>Base Rent (by Day)</span>
-                <span className={form.billingMode === 'DAY' ? 'text-blue-700' : 'text-gray-400'}>
+                <span className={form.billingMode === 'DAY' ? 'text-blue-500' : 'text-text-muted opacity-50'}>
                   {form.billingMode === 'DAY' ? `₹${costs.baseRent}` : '-'}
                 </span>
               </div>
               
-              <div className={`flex justify-between px-2 ${costs.fuelCost > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+              <div className={`flex justify-between px-2 ${costs.fuelCost > 0 ? 'text-text-main font-medium' : 'text-text-muted opacity-50'}`}>
                 <span>Fuel Cost <span className="text-xs text-orange-500">(Not in total)</span></span>
                 <span>₹{costs.fuelCost}</span>
               </div>
-              <div className={`flex justify-between px-2 ${costs.tollTax > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+              <div className={`flex justify-between px-2 ${costs.tollTax > 0 ? 'text-text-main font-medium' : 'text-text-muted opacity-50'}`}>
                 <span>Toll Tax</span>
                 <span>₹{costs.tollTax}</span>
               </div>
-              <div className={`flex justify-between px-2 ${costs.borderTax > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+              <div className={`flex justify-between px-2 ${costs.borderTax > 0 ? 'text-text-main font-medium' : 'text-text-muted opacity-50'}`}>
                 <span>Border Tax</span>
                 <span>₹{costs.borderTax}</span>
               </div>
-              <div className={`flex justify-between px-2 ${costs.driverAllowance > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+              <div className={`flex justify-between px-2 ${costs.driverAllowance > 0 ? 'text-text-main font-medium' : 'text-text-muted opacity-50'}`}>
                 <span>Driver Allowance</span>
                 <span>₹{costs.driverAllowance}</span>
               </div>
-              <div className={`flex justify-between px-2 ${costs.otherCharges > 0 ? 'text-gray-800 font-medium' : 'text-gray-400'}`}>
+              <div className={`flex justify-between px-2 ${costs.otherCharges > 0 ? 'text-text-main font-medium' : 'text-text-muted opacity-50'}`}>
                 <span>{form.otherChargesLabel || 'Other Charges'}</span>
                 <span>₹{costs.otherCharges}</span>
               </div>
@@ -610,10 +610,10 @@ const NewTrip = () => {
               activeAC={form.acMode} 
             />
 
-            <div className="mt-8 pt-4 border-t-2 border-dashed border-gray-200">
+            <div className="mt-8 pt-4 border-t-2 border-dashed border-border-main">
                <div className="flex justify-between items-center px-2">
-                 <span className="text-gray-500 font-bold uppercase tracking-wider">Grand Total</span>
-                 <span className="text-3xl font-extrabold text-green-600">₹{costs.grandTotal}</span>
+                 <span className="text-text-muted font-bold uppercase tracking-wider">Grand Total</span>
+                 <span className="text-3xl font-extrabold text-green-600 dark:text-green-400">₹{costs.grandTotal}</span>
                </div>
             </div>
 
@@ -626,7 +626,7 @@ const NewTrip = () => {
               </button>
               <button 
                 onClick={handleReset}
-                className="w-full py-3 bg-gray-50 text-gray-600 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
+                className="w-full py-3 bg-main-bg text-text-muted rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-card-bg transition-colors border border-border-main"
                >
                 <RefreshCw className="w-4 h-4" /> Reset Form
               </button>

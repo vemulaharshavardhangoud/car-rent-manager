@@ -164,7 +164,7 @@ const Vehicles = () => {
     }
   };
 
-  const inputClass = (name) => `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 bg-gray-50 hover:bg-white transition-colors ${errors[name] ? 'border-red-500 focus:ring-red-200 bg-red-50/30' : 'border-gray-200 focus:ring-blue-100 focus:border-blue-500'}`;
+  const inputClass = (name) => `w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 bg-main-bg hover:bg-card-bg text-text-main transition-colors ${errors[name] ? 'border-red-500 focus:ring-red-200 bg-red-500/10' : 'border-border-main focus:ring-blue-500/10 focus:border-blue-500'}`;
 
   const filteredVehicles = vehicles.filter(v => {
     const matchesSearch = v.name.toLowerCase().includes(searchTerm.toLowerCase()) || v.numberPlate.toLowerCase().includes(searchTerm.toLowerCase());
@@ -258,31 +258,31 @@ const Vehicles = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Capacity *</label>
+                <label className="block text-sm font-semibold text-text-main mb-1.5">Capacity *</label>
                 <input type="number" name="capacity" value={form.capacity} onChange={handleChange} placeholder="Seats" className={inputClass('capacity')} />
                 {errors.capacity && <p className="text-red-500 text-xs mt-1">{errors.capacity}</p>}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Number Plate *</label>
+              <label className="block text-sm font-semibold text-text-main mb-1.5">Number Plate *</label>
               <input name="numberPlate" value={form.numberPlate} onChange={handleChange} placeholder="e.g. GJ05AB1234" className={inputClass('numberPlate')} />
               {errors.numberPlate && <p className="text-red-500 text-xs mt-1">{errors.numberPlate}</p>}
             </div>
 
             {/* NON-AC PRICING */}
-            <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-100">
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+            <div className="p-3.5 bg-main-bg/50 rounded-xl border border-border-main">
+              <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <Wind className="w-3.5 h-3.5" /> Non-AC / Standard Rates *
               </p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Rate / KM (₹)</label>
+                  <label className="block text-xs font-semibold text-text-muted mb-1">Rate / KM (₹)</label>
                   <input type="number" name="ratePerKm" value={form.ratePerKm} onChange={handleChange} placeholder="12" className={inputClass('ratePerKm')} />
                   {errors.ratePerKm && <p className="text-red-500 text-xs mt-1">{errors.ratePerKm}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Rate / Day (₹)</label>
+                  <label className="block text-xs font-semibold text-text-muted mb-1">Rate / Day (₹)</label>
                   <input type="number" name="ratePerDay" value={form.ratePerDay} onChange={handleChange} placeholder="1500" className={inputClass('ratePerDay')} />
                   {errors.ratePerDay && <p className="text-red-500 text-xs mt-1">{errors.ratePerDay}</p>}
                 </div>
@@ -306,17 +306,17 @@ const Vehicles = () => {
 
               {form.hasAC && (
                 <div className="px-3.5 pb-3.5">
-                  <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                     <Thermometer className="w-3.5 h-3.5" /> AC Rates *
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">AC Rate / KM (₹)</label>
+                      <label className="block text-xs font-semibold text-text-muted mb-1">AC Rate / KM (₹)</label>
                       <input type="number" name="ratePerKmAC" value={form.ratePerKmAC} onChange={handleChange} placeholder="16" className={inputClass('ratePerKmAC')} />
                       {errors.ratePerKmAC && <p className="text-red-500 text-xs mt-1">{errors.ratePerKmAC}</p>}
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">AC Rate / Day (₹)</label>
+                      <label className="block text-xs font-semibold text-text-muted mb-1">AC Rate / Day (₹)</label>
                       <input type="number" name="ratePerDayAC" value={form.ratePerDayAC} onChange={handleChange} placeholder="2000" className={inputClass('ratePerDayAC')} />
                       {errors.ratePerDayAC && <p className="text-red-500 text-xs mt-1">{errors.ratePerDayAC}</p>}
                     </div>
@@ -339,7 +339,7 @@ const Vehicles = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Operating Status</label>
+              <label className="block text-sm font-semibold text-text-main mb-1.5">Operating Status</label>
               <select name="status" value={form.status} onChange={handleChange} className={inputClass('status')}>
                 <option value="Available">🟢 Available for Booking</option>
                 <option value="Under Maintenance">⚫ Under Maintenance</option>
@@ -350,13 +350,13 @@ const Vehicles = () => {
                   </>
                 )}
               </select>
-              <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+              <p className="text-[10px] text-text-muted mt-1 flex items-center gap-1">
                 <Info className="w-3 h-3" /> Booked/On Trip status is managed via the Bookings module.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Internal Notes</label>
+              <label className="block text-sm font-semibold text-text-main mb-1.5">Internal Notes</label>
               <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Maintenance notes, insurance info, etc." rows="2" className={inputClass('notes')}></textarea>
             </div>
 
@@ -469,8 +469,8 @@ const Vehicles = () => {
                         <div className="flex items-center gap-3 pr-10">
                           <div className={`p-2.5 rounded-xl ${topColor} bg-opacity-10`}><TypeIcon className={`w-6 h-6 ${textBorder}`} /></div>
                           <div>
-                            <h3 className="font-bold text-lg text-gray-900 leading-tight">{v.name}</h3>
-                            <span className="inline-block bg-gray-100 text-gray-700 text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-gray-200 mt-1">
+                            <h3 className="font-bold text-lg text-text-main leading-tight">{v.name}</h3>
+                            <span className="inline-block bg-main-bg text-text-muted text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border border-border-main mt-1">
                               {v.numberPlate}
                             </span>
                           </div>
@@ -547,13 +547,13 @@ const Vehicles = () => {
                     <button onClick={() => setViewingVehicle(v)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all uppercase tracking-widest">
                       <Eye className="w-4 h-4" /> Details
                     </button>
-                    <button onClick={() => handleEdit(v)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
+                    <button onClick={() => handleEdit(v)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-text-muted hover:text-text-main transition-colors uppercase tracking-widest">
                       <Edit className="w-4 h-4" /> Edit
                     </button>
-                    <button onClick={() => confirmDelete(v.id, v.name, v.numberPlate)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-gray-500 hover:text-red-600 transition-colors uppercase tracking-widest">
+                    <button onClick={() => confirmDelete(v.id, v.name, v.numberPlate)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-text-muted hover:text-red-600 transition-colors uppercase tracking-widest">
                       <Trash2 className="w-4 h-4" /> Delete
                     </button>
-                    <button onClick={() => navigate(`/history?vehicleId=${v.id}`)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">
+                    <button onClick={() => navigate(`/history?vehicleId=${v.id}`)} className="py-4 flex justify-center items-center gap-2 text-[12px] font-bold text-text-muted hover:text-text-main transition-colors uppercase tracking-widest">
                       <Clock className="w-4 h-4" /> History
                     </button>
                   </div>

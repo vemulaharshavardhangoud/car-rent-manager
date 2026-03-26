@@ -148,8 +148,8 @@ const History = () => {
     
     return (
       <div className="flex flex-col">
-        <span className="text-sm font-medium text-gray-800">{formatted}</span>
-        {isToday && <span className="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold uppercase rounded w-fit mt-1">Today</span>}
+        <span className="text-sm font-medium text-text-main">{formatted}</span>
+        {isToday && <span className="inline-block px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[10px] font-bold uppercase rounded w-fit mt-1">Today</span>}
       </div>
     );
   };
@@ -193,7 +193,7 @@ const History = () => {
                 className="w-full pl-9 pr-8 py-2 border border-border-main bg-main-bg text-text-main rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-text-muted hover:text-text-main">
                   <X className="w-4 h-4" />
                 </button>
               )}
@@ -213,13 +213,13 @@ const History = () => {
           </select>
         </div>
       </div>
+    </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end">
-        <button onClick={handleExportCSV} className="w-full md:w-auto px-6 py-2.5 bg-slate-900 text-white text-sm font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200">
+      <div className="mt-4 pt-4 border-t border-border-main flex justify-end">
+        <button onClick={handleExportCSV} className="w-full md:w-auto px-6 py-2.5 bg-slate-900 text-white text-sm font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10">
           <Download className="w-4 h-4" /> Export CSV
         </button>
       </div>
-    </div>
 
       {filteredTrips.length === 0 ? (
         <div className="bg-card-bg flex flex-col items-center justify-center p-8 rounded-2xl shadow-sm border border-border-main min-h-[300px]">
