@@ -27,10 +27,10 @@ const CustomerDashboard = () => {
           <div key={index} className="bg-[#0d1b2a] border border-white/10 rounded-[2rem] p-8 shadow-xl hover:shadow-2xl transition-all group overflow-hidden relative">
             <div className={`absolute top-0 right-0 w-32 h-32 ${stat.bg} blur-[80px] -mr-16 -mt-16 group-hover:blur-[100px] transition-all`}></div>
             <div className="relative z-10 text-white">
-              <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+            <div className={`w-14 h-14 ${stat.bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                 <stat.icon className={`w-7 h-7 ${stat.color}`} />
               </div>
-              <p className="text-white/60 text-xs font-black uppercase tracking-widest mb-1">{stat.label}</p>
+              <p className="text-white/80 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{stat.label}</p>
               <h3 className="text-4xl font-black text-white tracking-tighter">{stat.value}</h3>
             </div>
           </div>
@@ -41,7 +41,7 @@ const CustomerDashboard = () => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
         <div className="relative z-10 max-w-xl">
           <h2 className="text-3xl font-black tracking-tight mb-4">Ready for your next journey?</h2>
-          <p className="text-blue-100 font-medium text-lg mb-8 leading-relaxed opacity-90">Browse our wide range of premium vehicles and book your favorite one in seconds.</p>
+          <p className="text-white font-medium text-lg mb-8 leading-relaxed">Browse our wide range of premium vehicles and book your favorite one in seconds.</p>
           <button 
             onClick={() => window.location.hash = '#/new-booking'}
             className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-50 transition-all active:scale-95 shadow-xl"

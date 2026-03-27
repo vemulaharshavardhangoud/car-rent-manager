@@ -179,11 +179,38 @@ const NewBooking = () => {
                 <option value="" disabled className="bg-card-bg">Choose a vehicle...</option>
                 {vehicles.map(v => (
                   <option key={v.id} value={v.id} className="bg-card-bg">
-                    {v.name} ({v.numberPlate}) - {v.status || 'Available'} - ₹{v.ratePerDay}/day
+                    {v.name} ({v.numberPlate}) — {v.status} — ₹{v.ratePerDay}/Day (₹{v.ratePerKm}/km)
                   </option>
                 ))}
               </select>
             </div>
+
+            {/* Selected Vehicle Gallery */}
+            {selectedVehicle && selectedVehicle.photos && selectedVehicle.photos.length > 0 && (
+              <div className="space-y-4 animate-fade-in">
+                <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Car className="w-4 h-4" /> Vehicle Gallery
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {selectedVehicle.photos.map((photo, index) => (
+                    <div 
+                      key={index} 
+                      className="aspect-video rounded-2xl overflow-hidden border border-border-main group cursor-pointer relative"
+                      onClick={() => window.open(photo, '_blank')}
+                    >
+                      <img 
+                        src={photo} 
+                        alt={`${selectedVehicle.name} ${index + 1}`} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-[10px] font-black text-white uppercase tracking-widest bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">View Large</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* AC Toggle */}
             {selectedVehicle?.hasAC && (
@@ -356,13 +383,17 @@ const NewBooking = () => {
           <div className="bg-card-bg border border-border-main rounded-[2.5rem] p-8 shadow-xl sticky top-8">
             <h3 className="text-lg font-black text-text-main tracking-tight mb-8">Booking Summary</h3>
             
-            <div className="space-y-6 mb-10">
-              <div className="flex justify-between items-center pb-4 border-b border-border-main">
-                <span className="text-text-muted text-sm font-medium">Vehicle Rate</span>
-                <span className="text-text-main font-bold">₹{formData.useAC ? (selectedVehicle?.ratePerDayAC || selectedVehicle?.ratePerDay) : (selectedVehicle?.ratePerDay || 0)}/day</span>
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between items-center pb-3 border-b border-border-main/50">
+                <span className="text-text-muted text-xs font-bold uppercase tracking-widest">Base Rate</span>
+                <span className="text-text-main font-black">₹{formData.useAC ? (selectedVehicle?.ratePerDayAC || selectedVehicle?.ratePerDay) : (selectedVehicle?.ratePerDay || 0)}/day</span>
               </div>
-              <div className="flex justify-between items-center pb-4 border-b border-border-main">
-                <span className="text-text-muted text-sm font-medium">Estimated Total</span>
+              <div className="flex justify-between items-center pb-3 border-b border-border-main/50">
+                <span className="text-text-muted text-xs font-bold uppercase tracking-widest">Extra KM Rate</span>
+                <span className="text-text-main font-black">₹{formData.useAC ? (selectedVehicle?.ratePerKmAC || selectedVehicle?.ratePerKm) : (selectedVehicle?.ratePerKm || 0)}/km</span>
+              </div>
+              <div className="flex justify-between items-center bg-blue-500/5 p-4 rounded-2xl border border-blue-500/10">
+                <span className="text-blue-500 text-sm font-black uppercase tracking-widest">Est. Total</span>
                 <span className="text-2xl font-black text-blue-500">₹{estimatedCost}</span>
               </div>
             </div>

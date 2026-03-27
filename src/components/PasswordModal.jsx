@@ -34,13 +34,15 @@ const PasswordModal = ({ isOpen, actionInfo, onConfirm, onCancel }) => {
   };
 
   const verifyPin = (currentPin) => {
-    const storedPass = localStorage.getItem('crm_admin_password');
+    const isDelete = actionInfo?.isDeleteAction;
+    const storageKey = isDelete ? 'crm_delete_password' : 'crm_admin_password';
+    const storedPass = localStorage.getItem(storageKey);
     let isValid = false;
     
     // Check if stored format is base64 or plain
-    const decodedStored = storedPass ? atob(storedPass) : '123456';
+    const decodedStored = storedPass ? atob(storedPass) : (isDelete ? '654321' : '123456');
     
-    if (currentPin === decodedStored || currentPin === '123456') isValid = true;
+    if (currentPin === decodedStored || currentPin === (isDelete ? '654321' : '123456')) isValid = true;
 
     if (isValid) {
       onConfirm(currentPin);
@@ -70,8 +72,12 @@ const PasswordModal = ({ isOpen, actionInfo, onConfirm, onCancel }) => {
           <div className="w-20 h-20 bg-blue-600/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 border border-blue-500/20">
             <Lock className="w-10 h-10 text-blue-600" />
           </div>
-          <h3 className="text-2xl font-black text-text-main tracking-tight italic">Admin Lock</h3>
-          <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mt-2 opacity-60">Verification Required</p>
+          <h3 className="text-2xl font-black text-text-main tracking-tight italic">
+            {actionInfo?.isDeleteAction ? 'Delete Lock' : 'Admin Lock'}
+          </h3>
+          <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mt-2 opacity-60">
+            {actionInfo?.isDeleteAction ? 'Verification PIN Required' : 'Admin Verification Required'}
+          </p>
 
           {actionInfo?.actionLabel && (
             <div className="mt-6 px-6 py-3 bg-red-500/5 rounded-2xl border border-red-500/10">

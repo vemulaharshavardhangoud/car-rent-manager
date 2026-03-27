@@ -113,43 +113,43 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
                   
                   {tripData.fuelCost > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-gray-800">Fuel Cost <span className="text-xs text-gray-400 font-normal italic ml-1">(Excluded from total)</span></td>
-                      <td className="py-3 px-4 text-gray-500 text-right font-mono text-xs">
+                      <td className="py-3 px-4 font-medium text-text-main">Fuel Cost <span className="text-xs text-text-muted font-normal italic ml-1">(Excluded from total)</span></td>
+                      <td className="py-3 px-4 text-text-muted text-right font-mono text-xs">
                         {tripData.fuelLitres || tripData.litresFilled} litres × ₹{tripData.fuelPrice || tripData.pricePerLitre}/L
                       </td>
-                      <td className="py-3 px-4 text-right font-medium text-gray-900">₹{tripData.fuelCost}</td>
+                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.fuelCost}</td>
                     </tr>
                   )}
                   
                   {tripData.tollTax > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-gray-800">Toll Tax</td>
-                      <td className="py-3 px-4 text-gray-500 text-right"></td>
-                      <td className="py-3 px-4 text-right font-medium text-gray-900">₹{tripData.tollTax}</td>
+                      <td className="py-3 px-4 font-medium text-text-main">Toll Tax</td>
+                      <td className="py-3 px-4 text-text-muted text-right"></td>
+                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.tollTax}</td>
                     </tr>
                   )}
                   
                   {tripData.borderTax > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-gray-800">Border Tax</td>
-                      <td className="py-3 px-4 text-gray-500 text-right"></td>
-                      <td className="py-3 px-4 text-right font-medium text-gray-900">₹{tripData.borderTax}</td>
+                      <td className="py-3 px-4 font-medium text-text-main">Border Tax</td>
+                      <td className="py-3 px-4 text-text-muted text-right"></td>
+                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.borderTax}</td>
                     </tr>
                   )}
                   
                   {tripData.driverAllowance > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-gray-800">Driver Allowance</td>
-                      <td className="py-3 px-4 text-gray-500 text-right"></td>
-                      <td className="py-3 px-4 text-right font-medium text-gray-900">₹{tripData.driverAllowance}</td>
+                      <td className="py-3 px-4 font-medium text-text-main">Driver Allowance</td>
+                      <td className="py-3 px-4 text-text-muted text-right"></td>
+                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.driverAllowance}</td>
                     </tr>
                   )}
                   
                   {tripData.otherCharges > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-gray-800">{tripData.otherChargesLabel || 'Other Charges'}</td>
-                      <td className="py-3 px-4 text-gray-500 text-right"></td>
-                      <td className="py-3 px-4 text-right font-medium text-gray-900">₹{tripData.otherCharges}</td>
+                      <td className="py-3 px-4 font-medium text-text-main">{tripData.otherChargesLabel || 'Other Charges'}</td>
+                      <td className="py-3 px-4 text-text-muted text-right"></td>
+                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.otherCharges}</td>
                     </tr>
                   )}
                   

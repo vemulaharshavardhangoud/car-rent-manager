@@ -24,6 +24,14 @@ const Settings = () => {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  // Delete PIN Form State
+  const [currentDeletePass, setCurrentDeletePass] = useState('');
+  const [newDeletePass, setNewDeletePass] = useState('');
+  const [confirmDeletePass, setConfirmDeletePass] = useState('');
+  const [showCurrentDelete, setShowCurrentDelete] = useState(false);
+  const [showNewDelete, setShowNewDelete] = useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   
   // Clear Data State
   const [deleteInput, setDeleteInput] = useState('');
@@ -82,6 +90,7 @@ const Settings = () => {
     
     updateSettings({
       adminPassword: encodedPassword,
+      deletePassword: localStorage.getItem('crm_delete_password'),
       passwordChangedAt: now,
       protectedActions: toggles,
       sessionDuration: sessionDuration
@@ -95,6 +104,43 @@ const Settings = () => {
     setConfirmPassword('');
   };
 
+  const handleUpdateDeletePassword = (e) => {
+    e.preventDefault();
+    if (newDeletePass !== confirmDeletePass) {
+      showToast('Delete PINs do not match', 'error');
+      return;
+    }
+
+    const storedPass = localStorage.getItem('crm_delete_password');
+    const isCurrentValid = storedPass ? atob(storedPass) === currentDeletePass : currentDeletePass === '654321';
+
+    if (!isCurrentValid) {
+      showToast('Current Delete PIN is incorrect', 'error');
+      return;
+    }
+
+    if (newDeletePass.length !== 6 || !/^\d+$/.test(newDeletePass)) {
+      showToast('Delete PIN must be exactly 6 digits', 'error');
+      return;
+    }
+
+    // Success - Save locally and to Firestore
+    const encodedPassword = btoa(newDeletePass);
+    localStorage.setItem('crm_delete_password', encodedPassword);
+    
+    updateSettings({
+      adminPassword: localStorage.getItem('crm_admin_password'),
+      deletePassword: encodedPassword,
+      protectedActions: toggles,
+      sessionDuration: sessionDuration
+    });
+
+    showToast('Delete PIN updated & synced!');
+    setCurrentDeletePass('');
+    setNewDeletePass('');
+    setConfirmDeletePass('');
+  };
+
   const handleResetDefault = async () => {
     const confirmed = await requirePassword({ actionType: 'resetPassword', actionLabel: 'RESET Admin PIN to default' });
     if (confirmed) {
@@ -104,6 +150,7 @@ const Settings = () => {
       
       updateSettings({
         adminPassword: defaultPass,
+        deletePassword: localStorage.getItem('crm_delete_password'),
         passwordChangedAt: null,
         protectedActions: toggles,
         sessionDuration: sessionDuration
@@ -128,6 +175,7 @@ const Settings = () => {
     
     updateSettings({
       adminPassword: localStorage.getItem('crm_admin_password'),
+      deletePassword: localStorage.getItem('crm_delete_password'),
       protectedActions: newToggles,
       sessionDuration: sessionDuration
     });
@@ -146,6 +194,7 @@ const Settings = () => {
     
     updateSettings({
       adminPassword: localStorage.getItem('crm_admin_password'),
+      deletePassword: localStorage.getItem('crm_delete_password'),
       protectedActions: toggles,
       sessionDuration: val
     });
@@ -225,6 +274,48 @@ const Settings = () => {
                 <button type="submit" className="w-full md:w-auto px-6 py-3 rounded-xl bg-blue-600 text-white font-black hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/10">Update Password</button>
                 <div className="flex-1"></div>
                 <button type="button" onClick={handleResetDefault} className="w-full md:w-auto px-6 py-3 rounded-xl border-2 border-border-main text-text-muted font-bold hover:border-red-500/50 hover:text-red-500 hover:bg-red-500/5 transition-colors">Reset to Default Password</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* SECTION 1B: DELETE PIN MANAGEMENT */}
+        <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
+          <div className="p-6 border-b border-border-main flex items-center gap-3 bg-red-500/5">
+            <div className="bg-red-500/10 p-2 rounded-xl text-red-500"><Lock className="w-5 h-5" /></div>
+            <div>
+              <h2 className="text-lg font-black text-text-main">Delete PIN Management</h2>
+              <p className="text-xs font-bold text-text-muted">Set a separate PIN for sensitive delete operations</p>
+            </div>
+          </div>
+          <div className="p-6">
+            <form onSubmit={handleUpdateDeletePassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-black text-text-muted uppercase mb-2">Current Delete PIN *</label>
+                <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-red-500/20">
+                  <input type={showCurrentDelete ? "text" : "password"} value={currentDeletePass} onChange={e => setCurrentDeletePass(e.target.value)} required placeholder="Default: 654321" maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-text-main tracking-[0.5em]" />
+                  <button type="button" onClick={() => setShowCurrentDelete(!showCurrentDelete)} className="text-text-muted hover:text-text-main ml-2"><Eye className="w-4 h-4" /></button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-text-muted uppercase mb-2">New Delete PIN *</label>
+                  <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-red-500/20">
+                    <input type={showNewDelete ? "text" : "password"} value={newDeletePass} onChange={e => setNewDeletePass(e.target.value)} required maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-text-main tracking-[0.5em]" />
+                    <button type="button" onClick={() => setShowNewDelete(!showNewDelete)} className="text-text-muted hover:text-text-main ml-2"><Eye className="w-4 h-4" /></button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-text-muted uppercase mb-2">Confirm Delete PIN *</label>
+                  <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-red-500/20">
+                    <input type={showConfirmDelete ? "text" : "password"} value={confirmDeletePass} onChange={e => setConfirmDeletePass(e.target.value)} required maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-text-main tracking-[0.5em]" />
+                    <button type="button" onClick={() => setShowConfirmDelete(!showConfirmDelete)} className="text-text-muted hover:text-text-main ml-2"><Eye className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                <button type="submit" className="w-full md:w-auto px-6 py-3 rounded-xl bg-red-600 text-white font-black hover:bg-red-700 transition-colors shadow-lg shadow-red-500/10">Update Delete PIN</button>
               </div>
             </form>
           </div>

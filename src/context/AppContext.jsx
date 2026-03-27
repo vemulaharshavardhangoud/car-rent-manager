@@ -51,6 +51,9 @@ export const AppProvider = ({ children }) => {
     if (!localStorage.getItem('crm_admin_password')) {
       localStorage.setItem('crm_admin_password', btoa('123456'));
     }
+    if (!localStorage.getItem('crm_delete_password')) {
+      localStorage.setItem('crm_delete_password', btoa('654321')); // Default delete PIN
+    }
     if (!localStorage.getItem('crm_protected_actions')) {
       localStorage.setItem('crm_protected_actions', JSON.stringify({
         deleteVehicle: true, deleteTrip: true, deleteBooking: true,
@@ -103,6 +106,9 @@ export const AppProvider = ({ children }) => {
         unsubSettings = firestore.listenToSettings((data) => {
           if (data) {
             localStorage.setItem('crm_admin_password', data.adminPassword);
+            if (data.deletePassword) {
+              localStorage.setItem('crm_delete_password', data.deletePassword);
+            }
             localStorage.setItem('crm_protected_actions', JSON.stringify(data.protectedActions));
             localStorage.setItem('crm_session_duration', data.sessionDuration.toString());
           }
@@ -157,6 +163,9 @@ export const AppProvider = ({ children }) => {
         const remoteSettings = await Promise.race([settingsPromise, timeout]);
         if (remoteSettings) {
           localStorage.setItem('crm_admin_password', remoteSettings.adminPassword);
+          if (remoteSettings.deletePassword) {
+            localStorage.setItem('crm_delete_password', remoteSettings.deletePassword);
+          }
           localStorage.setItem('crm_protected_actions', JSON.stringify(remoteSettings.protectedActions));
           localStorage.setItem('crm_session_duration', remoteSettings.sessionDuration.toString());
         }
@@ -207,7 +216,14 @@ export const AppProvider = ({ children }) => {
       }
 
       // Prompt User
-      setPasswordModalConfig({ isOpen: true, actionInfo, resolve });
+      setPasswordModalConfig({ 
+        isOpen: true, 
+        actionInfo: {
+          ...actionInfo,
+          isDeleteAction: actionInfo.actionType.toLowerCase().includes('delete') || actionInfo.actionType === 'clearData'
+        }, 
+        resolve 
+      });
     });
   }, [adminSession]);
 

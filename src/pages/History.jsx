@@ -134,7 +134,9 @@ const History = () => {
   };
 
   const confirmDelete = async (trip) => {
-    const ok = await requirePassword({ actionType: "deleteTrip", actionLabel: "DELETE trip from " + trip.fromLocation + " to " + trip.toLocation });
+    const from = trip.from || trip.fromLocation || 'Unknown';
+    const to = trip.to || trip.toLocation || 'Unknown';
+    const ok = await requirePassword({ actionType: "deleteTrip", actionLabel: "DELETE trip from " + from + " to " + to });
     if (ok) await deleteTrip(trip.id);
   };
 

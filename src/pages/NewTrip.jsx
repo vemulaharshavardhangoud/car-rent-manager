@@ -288,7 +288,7 @@ const NewTrip = () => {
                       <button
                         type="button"
                         onClick={() => setForm(prev => ({ ...prev, acMode: false }))}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border font-bold transition-all ${!form.acMode ? 'bg-white border-blue-500 text-blue-600 shadow-sm' : 'bg-gray-100 border-gray-200 text-gray-400 hover:bg-gray-200'}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border font-bold transition-all ${!form.acMode ? 'bg-card-bg border-blue-500 text-blue-600 shadow-sm' : 'bg-main-bg/50 border-border-main text-text-muted hover:bg-main-bg'}`}
                       >
                         <Wind className="w-4 h-4" /> Non-AC
                       </button>
@@ -410,14 +410,14 @@ const NewTrip = () => {
               <button
                 type="button"
                 onClick={() => handleModeChange('KM')}
-                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${form.billingMode === 'KM' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${form.billingMode === 'KM' ? 'bg-card-bg shadow-sm text-blue-600' : 'text-text-muted hover:text-text-main'}`}
               >
                 Charge by KM
               </button>
               <button
                 type="button"
                 onClick={() => handleModeChange('DAY')}
-                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${form.billingMode === 'DAY' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${form.billingMode === 'DAY' ? 'bg-card-bg shadow-sm text-blue-600' : 'text-text-muted hover:text-text-main'}`}
               >
                 Charge by Day
               </button>

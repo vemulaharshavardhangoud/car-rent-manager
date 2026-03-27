@@ -495,15 +495,15 @@ const Bookings = () => {
             </div>
 
             {/* Mobile Card View (Hidden on Desktop) */}
-            <div className="md:hidden divide-y divide-slate-100">
+            <div className="md:hidden divide-y divide-border-main">
               {paginatedBookings.length === 0 ? (
                 <div className="p-10 text-center flex flex-col items-center">
-                  <CalendarDays className="w-12 h-12 text-slate-200 mb-2" />
-                  <p className="text-slate-400 font-bold">No bookings found</p>
+                  <CalendarDays className="w-12 h-12 text-text-muted opacity-20 mb-2" />
+                  <p className="text-text-muted font-bold">No bookings found</p>
                 </div>
               ) : (
                 paginatedBookings.map((b) => (
-                  <div key={b.id} className="p-4 active:bg-slate-50 transition-colors" onClick={() => setViewBooking(b)}>
+                  <div key={b.id} className="p-4 active:bg-main-bg transition-colors" onClick={() => setViewBooking(b)}>
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <span className="text-[10px] font-black text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded uppercase tracking-wider border border-blue-500/10">#{b.id}</span>
@@ -579,7 +579,7 @@ const Bookings = () => {
         {showForm && (
           <div className="fixed inset-0 z-[60] md:relative md:inset-auto md:z-auto md:w-[450px] md:order-2">
             {/* Backdrop for Mobile */}
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm md:hidden" onClick={() => setShowForm(false)}></div>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm md:hidden" onClick={() => setShowForm(false)}></div>
             
             <div className="fixed bottom-0 left-0 right-0 top-12 bg-card-bg rounded-t-[40px] shadow-2xl flex flex-col md:sticky md:top-4 md:rounded-3xl md:shadow-sm md:border md:border-border-main animate-slide-up md:animate-fade-in-right">
               <div className="p-6 border-b border-border-main flex items-center justify-between bg-main-bg/50 shrink-0">
