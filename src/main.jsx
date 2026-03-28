@@ -62,32 +62,14 @@ window.reactRoot.render(
   </ErrorBoundary>
 )
 
-// Register Service Worker for PWA
+// Unregister Service Workers to aggressively fix aggressive caching issues
+// This ensures that updates from GitHub Pages are always instantly visible without manual cache clearing.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => {
-        console.log('Service Worker registered:', reg.scope);
-        
-        // Check for updates
-        reg.onupdatefound = () => {
-          const installingWorker = reg.installing;
-          installingWorker.onstatechange = () => {
-             if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New update available, notify or reload
-                console.log('🚀 New version detected! Automatic update in progress...');
-             }
-          };
-        };
-      })
-      .catch(err => console.log('Service Worker failed:', err));
-
-    // Handle automatic reload when the new worker takes control
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (let registration of registrations) {
+        registration.unregister();
+        console.log('Service Worker permanently unregistered to prevent cache lag.');
       }
     });
   });
