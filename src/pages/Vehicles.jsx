@@ -80,6 +80,8 @@ const Vehicles = () => {
     }
 
     setIsUploading(true);
+    let hasError = false;
+
     try {
       // 1. Generate local previews for immediate WOW effect
       const localPreviews = files.map(file => ({
@@ -94,7 +96,6 @@ const Vehicles = () => {
       }));
 
       // 2. Upload one by one in the background for speed and stability
-      // Using a loop so they upload sequentially without network saturation
       for (const item of localPreviews) {
         try {
           if (item.file.size > 20 * 1024 * 1024) continue;
@@ -108,13 +109,30 @@ const Vehicles = () => {
             }));
             // Cleanup memory
             URL.revokeObjectURL(item.url);
+          } else {
+             throw new Error('Upload returned null');
           }
         } catch (e) {
           console.error("Upload failed for file:", item.file.name, e);
+          hasError = true;
+          // Strip the failed local preview so it doesn't corrupt Firestore
+          setForm(prev => ({
+            ...prev,
+            photos: prev.photos.filter(p => p !== item.url)
+          }));
+          URL.revokeObjectURL(item.url);
+          
+          if (e.message && e.message.includes('permission')) {
+             showToast('Firebase Error: Storage Rules are blocking uploads (Permission Denied)', 'error');
+          } else {
+             showToast(`Upload failed: ${item.file.name.substring(0, 15)}...`, 'error');
+          }
         }
       }
 
-      showToast("Photos synced to cloud successfully");
+      if (!hasError) {
+        showToast("Photos synced to cloud successfully", 'success');
+      }
     } catch (err) {
       showToast('Error processing photos', 'error');
     } finally {
@@ -134,11 +152,17 @@ const Vehicles = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validate()) {
+      // Final security check: Never submit a local blob: URL to the cloud database
+      const safeForm = {
+         ...form,
+         photos: form.photos.filter(p => !p.startsWith('blob:'))
+      };
+
       if (editingId) {
-        await updateVehicle(editingId, form);
+        await updateVehicle(editingId, safeForm);
         showToast('Vehicle details updated');
       } else {
-        await addVehicle(form);
+        await addVehicle(safeForm);
         showToast('New vehicle added');
       }
       cancelEdit();
