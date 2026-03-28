@@ -54,7 +54,7 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6 mb-8">
             {/* Vehicle Info */}
             <div className="bg-main-bg/50 dark:bg-card-bg p-5 rounded-xl border border-border-main print:bg-transparent print:border-gray-300">
               <h3 className="text-xs font-bold uppercase text-text-muted tracking-wider mb-3 print:text-gray-800">Vehicle Details</h3>
@@ -87,7 +87,7 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
           {(tripData.customerName || tripData.customerPhone || tripData.purposeOfTrip) && (
             <div className="bg-card-bg p-5 rounded-xl border border-border-main mb-8">
               <h3 className="text-xs font-bold uppercase text-text-muted tracking-wider mb-3">Customer Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 print:grid-cols-3 gap-4 text-sm">
                 {tripData.customerName && <p><span className="text-text-muted block text-xs">Name</span><span className="font-semibold text-text-main">{tripData.customerName}</span></p>}
                 {tripData.customerPhone && <p><span className="text-text-muted block text-xs">Phone</span><span className="font-semibold text-text-main">{tripData.customerPhone}</span></p>}
                 {tripData.purposeOfTrip && <p><span className="text-text-muted block text-xs">Purpose</span><span className="font-semibold text-text-main">{tripData.purposeOfTrip}</span></p>}
@@ -102,60 +102,60 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
               <table className="w-full text-sm">
                 <tbody className="divide-y divide-border-main print:divide-gray-300 text-text-main">
                   <tr className="bg-main-bg/30 print:bg-transparent">
-                    <td className="py-3 px-4 font-medium">Base Rent</td>
-                    <td className="py-3 px-4 text-text-muted text-right font-mono text-xs">
+                    <td className="py-3 px-2 sm:px-4 font-medium text-xs sm:text-sm">Base Rent</td>
+                    <td className="py-3 px-2 sm:px-4 text-text-muted text-right font-mono text-[10px] sm:text-xs">
                       {tripData.billingMode === 'KM' 
                         ? `${tripData.distance} km × ₹${tripData.ratePerKm}/km`
                         : `${tripData.days || tripData.numberOfDays} days × ₹${tripData.ratePerDay}/day`}
                     </td>
-                    <td className="py-3 px-4 text-right font-bold text-text-main">₹{tripData.baseRent}</td>
+                    <td className="py-3 px-2 sm:px-4 text-right font-bold text-text-main text-xs sm:text-sm">₹{tripData.baseRent}</td>
                   </tr>
                   
                   {tripData.fuelCost > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-text-main">Fuel Cost <span className="text-xs text-text-muted font-normal italic ml-1">(Excluded from total)</span></td>
-                      <td className="py-3 px-4 text-text-muted text-right font-mono text-xs">
-                        {tripData.fuelLitres || tripData.litresFilled} litres × ₹{tripData.fuelPrice || tripData.pricePerLitre}/L
+                      <td className="py-3 px-2 sm:px-4 font-medium text-text-main text-xs sm:text-sm">Fuel Cost <span className="text-[10px] sm:text-xs text-text-muted font-normal italic ml-1 block sm:inline">(Excluded)</span></td>
+                      <td className="py-3 px-2 sm:px-4 text-text-muted text-right font-mono text-[10px] sm:text-xs">
+                        {tripData.fuelLitres || tripData.litresFilled} L × ₹{tripData.fuelPrice || tripData.pricePerLitre}
                       </td>
-                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.fuelCost}</td>
+                      <td className="py-3 px-2 sm:px-4 text-right font-medium text-text-main text-xs sm:text-sm">₹{tripData.fuelCost}</td>
                     </tr>
                   )}
                   
                   {tripData.tollTax > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-text-main">Toll Tax</td>
-                      <td className="py-3 px-4 text-text-muted text-right"></td>
-                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.tollTax}</td>
+                      <td className="py-3 px-2 sm:px-4 font-medium text-text-main text-xs sm:text-sm">Toll Tax</td>
+                      <td className="py-3 px-2 sm:px-4 text-text-muted text-right"></td>
+                      <td className="py-3 px-2 sm:px-4 text-right font-medium text-text-main text-xs sm:text-sm">₹{tripData.tollTax}</td>
                     </tr>
                   )}
                   
                   {tripData.borderTax > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-text-main">Border Tax</td>
-                      <td className="py-3 px-4 text-text-muted text-right"></td>
-                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.borderTax}</td>
+                      <td className="py-3 px-2 sm:px-4 font-medium text-text-main text-xs sm:text-sm">Border Tax</td>
+                      <td className="py-3 px-2 sm:px-4 text-text-muted text-right"></td>
+                      <td className="py-3 px-2 sm:px-4 text-right font-medium text-text-main text-xs sm:text-sm">₹{tripData.borderTax}</td>
                     </tr>
                   )}
                   
                   {tripData.driverAllowance > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-text-main">Driver Allowance</td>
-                      <td className="py-3 px-4 text-text-muted text-right"></td>
-                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.driverAllowance}</td>
+                      <td className="py-3 px-2 sm:px-4 font-medium text-text-main text-xs sm:text-sm">Driver Allowance</td>
+                      <td className="py-3 px-2 sm:px-4 text-text-muted text-right"></td>
+                      <td className="py-3 px-2 sm:px-4 text-right font-medium text-text-main text-xs sm:text-sm">₹{tripData.driverAllowance}</td>
                     </tr>
                   )}
                   
                   {tripData.otherCharges > 0 && (
                     <tr>
-                      <td className="py-3 px-4 font-medium text-text-main">{tripData.otherChargesLabel || 'Other Charges'}</td>
-                      <td className="py-3 px-4 text-text-muted text-right"></td>
-                      <td className="py-3 px-4 text-right font-medium text-text-main">₹{tripData.otherCharges}</td>
+                      <td className="py-3 px-2 sm:px-4 font-medium text-text-main text-xs sm:text-sm">{tripData.otherChargesLabel || 'Other Charges'}</td>
+                      <td className="py-3 px-2 sm:px-4 text-text-muted text-right"></td>
+                      <td className="py-3 px-2 sm:px-4 text-right font-medium text-text-main text-xs sm:text-sm">₹{tripData.otherCharges}</td>
                     </tr>
                   )}
                   
                   <tr className="bg-main-bg border-t-2 border-dashed border-border-main print:border-gray-400 print:bg-transparent">
-                    <td colSpan="2" className="py-5 px-4 font-black text-lg text-text-main uppercase tracking-widest text-right">Grand Total</td>
-                    <td className="py-5 px-4 text-right font-black text-2xl text-green-600 dark:text-green-400 print:text-gray-900">₹{tripData.grandTotal}</td>
+                    <td colSpan="2" className="py-4 sm:py-5 px-2 sm:px-4 font-black text-sm sm:text-lg text-text-main uppercase tracking-widest text-right">Grand Total</td>
+                    <td className="py-4 sm:py-5 px-2 sm:px-4 text-right font-black text-lg sm:text-2xl text-green-600 dark:text-green-400 print:text-gray-900">₹{tripData.grandTotal}</td>
                   </tr>
                 </tbody>
               </table>
@@ -179,9 +179,9 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
         </div>
         
         {/* MODAL FOOTER BUTTONS (Hidden on print) */}
-        <div className="p-6 border-t border-border-main bg-main-bg/50 rounded-b-2xl print:hidden flex flex-wrap gap-4 justify-between items-center shrink-0">
+        <div className="p-4 sm:p-6 border-t border-border-main bg-main-bg/50 rounded-b-2xl print:hidden flex flex-col md:flex-row gap-4 justify-between items-center shrink-0">
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap justify-center w-full md:w-auto gap-3">
              <button
                onClick={onClose}
                className="px-5 py-2.5 rounded-lg border border-border-main bg-card-bg text-text-main font-medium flex items-center gap-2 hover:bg-main-bg transition-all"
@@ -204,7 +204,7 @@ const ReceiptModal = ({ isOpen, onClose, tripData, onSave, onNewTrip }) => {
              </button>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-wrap justify-center w-full md:w-auto gap-3">
             <button
                onClick={handlePrint}
                className="px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium flex items-center gap-2 hover:bg-blue-700 transition-colors"
