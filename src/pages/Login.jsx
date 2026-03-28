@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Lock, Eye, Shield, CarFront, ArrowRight, UserCheck } from 'lucide-react';
@@ -21,6 +21,20 @@ const Login = () => {
   if (session) {
     return <Navigate to="/" />;
   }
+
+  // Handle automatic Customer login on first visit
+  useEffect(() => {
+    const manualLogout = sessionStorage.getItem('crm_manual_logout');
+    
+    if (!manualLogout && !session) {
+      // Create session silently
+      const newSession = { role: 'CUSTOMER', name: 'Customer' };
+      sessionStorage.setItem('crm_session', JSON.stringify(newSession));
+      navigate('/');
+      // Full reload to apply context state reliably without loop
+      window.location.reload();
+    }
+  }, [session, navigate]);
 
   const handleOwnerLogin = (e) => {
     e.preventDefault();

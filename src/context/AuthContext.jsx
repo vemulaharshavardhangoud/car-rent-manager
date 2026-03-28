@@ -64,6 +64,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setSession(null);
     sessionStorage.removeItem('crm_session');
+    sessionStorage.setItem('crm_manual_logout', 'true'); // Flag to prevent auto-login loop
   };
 
   const value = {
