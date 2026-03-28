@@ -81,19 +81,42 @@ const Vehicles = () => {
 
     setIsUploading(true);
     try {
-      const uploadPromises = files.map(async (file) => {
-        if (file.size > 20 * 1024 * 1024) { // 20MB limit
-          throw new Error(`Photo ${file.name} is too large (max 20MB)`);
+      // 1. Generate local previews for immediate WOW effect
+      const localPreviews = await Promise.all(files.map(file => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve({ url: e.target.result, file, isLocal: true });
+          reader.readAsDataURL(file);
+        });
+      }));
+
+      // Add previews to state instantly so they show up right away
+      setForm(prev => ({
+        ...prev,
+        photos: [...prev.photos, ...localPreviews.map(p => p.url)].slice(0, 5)
+      }));
+
+      // 2. Upload one by one in the background for speed and stability
+      const cloudUrls = [];
+      for (const item of localPreviews) {
+        if (item.file.size > 20 * 1024 * 1024) {
+          showToast(`Photo ${item.file.name} is too large (max 20MB)`, 'error');
+          continue;
         }
-        return await uploadFile(file, 'vehicles');
+        const cloudUrl = await uploadFile(item.file, 'vehicles');
+        if (cloudUrl) cloudUrls.push({ local: item.url, remote: cloudUrl });
+      }
+
+      // 3. Replace localPreviews with real cloud URLs once done
+      setForm(prev => {
+        let finalPhotos = [...prev.photos];
+        cloudUrls.forEach(sync => {
+          finalPhotos = finalPhotos.map(p => p === sync.local ? sync.remote : p);
+        });
+        return { ...prev, photos: finalPhotos.slice(0, 5) };
       });
 
-      const urls = await Promise.all(uploadPromises);
-      setForm(prev => ({ 
-        ...prev, 
-        photos: [...prev.photos, ...urls].slice(0, 5) 
-      }));
-      showToast(`${files.length} photo(s) uploaded successfully`);
+      showToast(`${cloudUrls.length} photos uploaded to cloud successfully`);
     } catch (err) {
       showToast(err.message || 'Failed to upload photos', 'error');
     } finally {

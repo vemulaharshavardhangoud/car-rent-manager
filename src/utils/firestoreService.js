@@ -311,7 +311,7 @@ export const listenToExpenses = (callback) => {
   }, (err) => { console.warn("Expense listener error:", err); });
 };
 
-const compressImage = (file, maxWidth = 1200, quality = 0.8) => {
+const compressImage = (file, maxWidth = 900, quality = 0.65) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
