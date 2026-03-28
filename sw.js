@@ -1,4 +1,4 @@
-const CACHE_NAME = 'carrent-v2';
+const CACHE_NAME = 'carrent-v3';
 const ASSETS = [
   '/',
   '/index.html',
@@ -30,8 +30,14 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   
-  // For index.html and root, try network first, then cache
-  if (url.origin === self.location.origin && (url.pathname === '/' || url.pathname === '/index.html')) {
+  // For index.html and root, try network first, then cache.
+  // We check for both '/' (local) and '/car-rent-manager/' (GitHub Pages)
+  if (url.origin === self.location.origin && (
+      url.pathname === '/' || 
+      url.pathname === '/index.html' || 
+      url.pathname === '/car-rent-manager/' || 
+      url.pathname === '/car-rent-manager/index.html'
+  )) {
     e.respondWith(
       fetch(e.request)
         .then((res) => {
