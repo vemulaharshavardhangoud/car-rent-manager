@@ -20,7 +20,6 @@ const BottomNav = ({ setSidebarOpen }) => {
     { icon: Car, label: 'Availability', path: '/vehicles' },
     { icon: Search, label: 'My Booking', path: '/my-bookings' },
     { icon: LogOut, label: 'Logout', path: 'LOGOUT_ACTION' },
-    { icon: Menu, label: 'Menu', path: 'MENU_TOGGLE' },
   ];
 
   return (
