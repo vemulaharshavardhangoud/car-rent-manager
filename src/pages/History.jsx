@@ -385,32 +385,32 @@ const History = () => {
           </div>
 
           {/* SUMMARY TOTALS */}
-          <div className="bg-slate-900 rounded-xl shadow-lg border border-slate-800 p-6 mb-8 text-white">
-            <h3 className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">Summary Totals (Filtered)</h3>
+          <div className="bg-slate-900 rounded-xl shadow-lg border border-border-main p-6 mb-8 text-white">
+            <h3 className="text-text-muted text-xs font-bold uppercase tracking-widest mb-4">Summary Totals (Filtered)</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-              <div>
-                <span className="block text-3xl font-bold">{filteredTrips.length}</span>
-                <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Trips</span>
+              <div className="flex flex-col">
+                <span className="block text-3xl font-bold text-text-main">{filteredTrips.length}</span>
+                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Trips</span>
               </div>
-              <div className="border-l border-slate-700 pl-6">
-                <span className="block text-3xl font-bold text-blue-400">{totals.distance}</span>
-                <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Distance (KM)</span>
+              <div className="border-l border-border-main pl-6 flex flex-col">
+                <span className="block text-3xl font-bold text-text-main">{totals.distance}</span>
+                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Distance (KM)</span>
               </div>
-              <div className="border-l border-slate-700 pl-6">
-                <span className="block text-3xl font-bold">{totals.petrol}</span>
-                <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Petrol (L)</span>
+              <div className="border-l border-border-main pl-6 flex flex-col">
+                <span className="block text-3xl font-bold text-text-main">{totals.petrol}</span>
+                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Petrol (L)</span>
               </div>
-              <div className="border-l border-slate-700 pl-6">
+              <div className="border-l border-border-main pl-6 flex flex-col">
                 <span className="block text-2xl font-bold text-orange-400">₹{totals.toll}</span>
-                <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Toll Tax</span>
+                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Toll Tax</span>
               </div>
-              <div className="border-l border-slate-700 pl-6">
+              <div className="border-l border-border-main pl-6 flex flex-col">
                 <span className="block text-2xl font-bold text-orange-400">₹{totals.border}</span>
-                <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Border Tax</span>
+                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Border Tax</span>
               </div>
-              <div className="border-l border-slate-700 pl-6">
+              <div className="border-l border-border-main pl-6 flex flex-col">
                 <span className="block text-3xl font-extrabold text-green-400">₹{totals.revenue}</span>
-                <span className="text-slate-400 text-xs font-medium uppercase tracking-wider">Revenue</span>
+                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Revenue</span>
               </div>
             </div>
           </div>

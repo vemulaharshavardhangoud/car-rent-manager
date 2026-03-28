@@ -307,13 +307,13 @@ const Bookings = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'Confirmed': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 uppercase">Confirmed</span>;
-      case 'Pending': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 uppercase animate-pulse">Pending Review</span>;
-      case 'Cancelled': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-red-100 text-red-700 uppercase">Cancelled</span>;
-      case 'Rejected': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 uppercase">Rejected</span>;
-      case 'Completed': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase">Completed</span>;
-      case 'On Trip': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 uppercase">On Trip</span>;
-      default: return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 uppercase">{status}</span>;
+      case 'Confirmed': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 uppercase">Confirmed</span>;
+      case 'Pending': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 uppercase animate-pulse">Pending Review</span>;
+      case 'Cancelled': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-red-500/10 text-red-500 border border-red-500/20 uppercase">Cancelled</span>;
+      case 'Rejected': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-500 border border-slate-500/20 uppercase">Rejected</span>;
+      case 'Completed': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase">Completed</span>;
+      case 'On Trip': return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 uppercase">On Trip</span>;
+      default: return <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-500/10 text-slate-500 border border-slate-500/20 uppercase">{status}</span>;
     }
   };
 

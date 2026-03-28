@@ -179,7 +179,7 @@ const NewBooking = () => {
                 <option value="" disabled className="bg-card-bg">Choose a vehicle...</option>
                 {vehicles.map(v => (
                   <option key={v.id} value={v.id} className="bg-card-bg">
-                    {v.name} ({v.numberPlate}) — {v.status} — ₹{v.ratePerDay}/Day (₹{v.ratePerKm}/km)
+                    {v.name} ({v.numberPlate}) — ₹{v.ratePerDay}/Day {v.hasAC ? `| AC: ₹${v.ratePerDayAC}/Day` : ''}
                   </option>
                 ))}
               </select>
@@ -323,7 +323,7 @@ const NewBooking = () => {
                 <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-blue-500" /> Pickup
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input 
                     type="date"
                     value={formData.pickupDate}
@@ -335,7 +335,7 @@ const NewBooking = () => {
                     type="time"
                     value={formData.pickupTime}
                     onChange={(e) => setFormData({...formData, pickupTime: e.target.value})}
-                    className="w-24 bg-main-bg border border-border-main rounded-xl py-3 px-4 text-text-main text-sm"
+                    className="w-full sm:w-24 bg-main-bg border border-border-main rounded-xl py-3 px-4 text-text-main text-sm"
                     required
                   />
                 </div>
@@ -344,7 +344,7 @@ const NewBooking = () => {
                 <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-emerald-500" /> Return
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input 
                     type="date"
                     value={formData.returnDate}
@@ -356,7 +356,7 @@ const NewBooking = () => {
                     type="time"
                     value={formData.returnTime}
                     onChange={(e) => setFormData({...formData, returnTime: e.target.value})}
-                    className="w-24 bg-main-bg border border-border-main rounded-xl py-3 px-4 text-text-main text-sm"
+                    className="w-full sm:w-24 bg-main-bg border border-border-main rounded-xl py-3 px-4 text-text-main text-sm"
                     required
                   />
                 </div>
