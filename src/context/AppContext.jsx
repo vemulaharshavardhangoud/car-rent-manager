@@ -79,15 +79,11 @@ export const AppProvider = ({ children }) => {
       // 1. Setup real-time Firestore listeners
       try {
         unsubVehicles = firestore.listenToVehicles((data) => {
-          const migrated = data.map(v => {
-            if (v.photo && (!v.photos || v.photos.length === 0)) {
-              return { ...v, photos: [v.photo] };
-            }
-            if (!v.photos) return { ...v, photos: [] };
-            return v;
-          });
-          setVehicles(migrated);
-          localStorage.setItem('crm_vehicles', JSON.stringify(migrated));
+          // Photos are already merged from localStorage inside listenToVehicles
+          // (base64 photos are too large for Firestore, stored locally only)
+          setVehicles(data);
+          // Save back to localStorage (photos are already included from the merge)
+          localStorage.setItem('crm_vehicles', JSON.stringify(data));
           setLastSyncedAt(new Date());
         });
 

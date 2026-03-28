@@ -23,7 +23,10 @@ const isReady = () => db !== null;
 export const saveVehicleToFirestore = async (vehicleData) => {
   if (!isReady()) return vehicleData;
   const docRef = doc(db, "vehicles", vehicleData.id);
-  const data = { ...vehicleData, syncedAt: serverTimestamp() };
+  // Strip photos (base64) before saving to Firestore — they exceed the 1MB doc limit.
+  // Photos are kept safely in localStorage only.
+  const { photos, photo, ...safeData } = vehicleData;
+  const data = { ...safeData, hasPhotos: !!(photos && photos.length > 0), photoCount: (photos || []).length, syncedAt: serverTimestamp() };
   await setDoc(docRef, data);
   return data;
 };
@@ -38,7 +41,14 @@ export const getAllVehiclesFromFirestore = async () => {
 export const updateVehicleInFirestore = async (id, updatedFields) => {
   if (!isReady()) return;
   const docRef = doc(db, "vehicles", id);
-  await updateDoc(docRef, { ...updatedFields, syncedAt: serverTimestamp() });
+  // Strip photos (base64) before saving to Firestore — they exceed the 1MB doc limit.
+  const { photos, photo, ...safeFields } = updatedFields;
+  const fieldsToSync = { ...safeFields, syncedAt: serverTimestamp() };
+  if (photos !== undefined) {
+    fieldsToSync.hasPhotos = photos.length > 0;
+    fieldsToSync.photoCount = photos.length;
+  }
+  await updateDoc(docRef, fieldsToSync);
 };
 
 export const deleteVehicleFromFirestore = async (id) => {
@@ -54,7 +64,18 @@ export const deleteVehicleFromFirestore = async (id) => {
 export const listenToVehicles = (callback) => {
   if (!isReady()) return () => {};
   return onSnapshot(collection(db, "vehicles"), (snapshot) => {
-    callback(snapshot.docs.map(doc => doc.data()));
+    const firestoreVehicles = snapshot.docs.map(doc => doc.data());
+    // Merge local photos back in (photos are stored only in localStorage)
+    const merged = firestoreVehicles.map(v => {
+      try {
+        const localData = localStorage.getItem(`crm_vehicle_${v.id}`);
+        const localVehicle = localData ? JSON.parse(localData) : null;
+        return { ...v, photos: localVehicle?.photos || [] };
+      } catch {
+        return { ...v, photos: [] };
+      }
+    });
+    callback(merged);
   }, (err) => { console.warn("Vehicle listener error:", err); });
 };
 
