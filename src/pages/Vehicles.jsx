@@ -4,7 +4,7 @@ import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind,
 import { useNavigate } from 'react-router-dom';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import VehicleDetails from '../components/VehicleDetails';
-import { uploadFile } from '../utils/firestoreService';
+import { uploadFile, compressImage } from '../utils/firestoreService';
 
 const initialForm = {
   name: '', type: '4-Wheeler', capacity: '', numberPlate: '', 
@@ -82,12 +82,9 @@ const Vehicles = () => {
     setIsUploading(true);
     try {
       // 1. Generate local previews for immediate WOW effect
-      const localPreviews = await Promise.all(files.map(file => {
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve({ url: e.target.result, file, isLocal: true });
-          reader.readAsDataURL(file);
-        });
+      const localPreviews = files.map(file => ({
+        url: URL.createObjectURL(file), // Instance access, much faster than FileReader
+        file
       }));
 
       // Add previews to state instantly so they show up right away
@@ -97,28 +94,29 @@ const Vehicles = () => {
       }));
 
       // 2. Upload one by one in the background for speed and stability
-      const cloudUrls = [];
+      // Using a loop so they upload sequentially without network saturation
       for (const item of localPreviews) {
-        if (item.file.size > 20 * 1024 * 1024) {
-          showToast(`Photo ${item.file.name} is too large (max 20MB)`, 'error');
-          continue;
+        try {
+          if (item.file.size > 20 * 1024 * 1024) continue;
+          const cloudUrl = await uploadFile(item.file, 'vehicles');
+          
+          if (cloudUrl) {
+            // Replace THIS specific preview with the cloud URL
+            setForm(prev => ({
+              ...prev,
+              photos: prev.photos.map(p => p === item.url ? cloudUrl : p)
+            }));
+            // Cleanup memory
+            URL.revokeObjectURL(item.url);
+          }
+        } catch (e) {
+          console.error("Upload failed for file:", item.file.name, e);
         }
-        const cloudUrl = await uploadFile(item.file, 'vehicles');
-        if (cloudUrl) cloudUrls.push({ local: item.url, remote: cloudUrl });
       }
 
-      // 3. Replace localPreviews with real cloud URLs once done
-      setForm(prev => {
-        let finalPhotos = [...prev.photos];
-        cloudUrls.forEach(sync => {
-          finalPhotos = finalPhotos.map(p => p === sync.local ? sync.remote : p);
-        });
-        return { ...prev, photos: finalPhotos.slice(0, 5) };
-      });
-
-      showToast(`${cloudUrls.length} photos uploaded to cloud successfully`);
+      showToast("Photos synced to cloud successfully");
     } catch (err) {
-      showToast(err.message || 'Failed to upload photos', 'error');
+      showToast('Error processing photos', 'error');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
