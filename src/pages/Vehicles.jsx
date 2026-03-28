@@ -1,10 +1,10 @@
-// v1.2 - Photo Upload + AC/Non-AC Pricing
 import React, { useState, useContext, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight, Map, Route, AlertTriangle } from 'lucide-react';
+import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight, Map, Route, AlertTriangle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import VehicleDetails from '../components/VehicleDetails';
+import { uploadFile } from '../utils/firestoreService';
 
 const initialForm = {
   name: '', type: '4-Wheeler', capacity: '', numberPlate: '', 
@@ -26,6 +26,7 @@ const Vehicles = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
 
   // Global Vehicle Stats
@@ -69,7 +70,7 @@ const Vehicles = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
-  const handlePhotoChange = (e) => {
+  const handlePhotoChange = async (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
     
@@ -78,22 +79,27 @@ const Vehicles = () => {
       return;
     }
 
-    files.forEach(file => {
-      if (file.size > 800 * 1024) { // 800KB limit for base64
-        showToast(`Photo ${file.name} is too large (max 800KB)`, 'error');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setForm(prev => ({ 
-          ...prev, 
-          photos: [...prev.photos, ev.target.result].slice(0, 5) 
-        }));
-      };
-      reader.readAsDataURL(file);
-    });
-    
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setIsUploading(true);
+    try {
+      const uploadPromises = files.map(async (file) => {
+        if (file.size > 20 * 1024 * 1024) { // 20MB limit
+          throw new Error(`Photo ${file.name} is too large (max 20MB)`);
+        }
+        return await uploadFile(file, 'vehicles');
+      });
+
+      const urls = await Promise.all(uploadPromises);
+      setForm(prev => ({ 
+        ...prev, 
+        photos: [...prev.photos, ...urls].slice(0, 5) 
+      }));
+      showToast(`${files.length} photo(s) uploaded successfully`);
+    } catch (err) {
+      showToast(err.message || 'Failed to upload photos', 'error');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const removePhoto = (index) => {
@@ -102,6 +108,7 @@ const Vehicles = () => {
       photos: prev.photos.filter((_, i) => i !== index)
     }));
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -193,8 +200,11 @@ const Vehicles = () => {
             {/* PHOTO UPLOAD */}
             <div>
               <label className="block text-sm font-semibold text-text-main mb-1.5 flex justify-between items-center">
-                <span>Vehicle Photos ({form.photos.length}/5)</span>
-                {form.photos.length < 5 && (
+                <span className="flex items-center gap-2">
+                  Vehicle Photos ({form.photos.length}/5)
+                  {isUploading && <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />}
+                </span>
+                {form.photos.length < 5 && !isUploading && (
                   <button 
                     type="button" 
                     onClick={() => fileInputRef.current?.click()}
@@ -203,6 +213,7 @@ const Vehicles = () => {
                     + Add New
                   </button>
                 )}
+                {isUploading && <span className="text-[10px] text-blue-500 font-bold animate-pulse">Uploading...</span>}
               </label>
               
               <div className="flex flex-wrap gap-2.5">
@@ -213,6 +224,7 @@ const Vehicles = () => {
                       type="button"
                       onClick={() => removePhoto(idx)}
                       className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition-colors"
+                      disabled={isUploading}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -222,11 +234,12 @@ const Vehicles = () => {
                 {form.photos.length < 5 && (
                   <button
                     type="button"
+                    disabled={isUploading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-[70px] h-[70px] border-2 border-dashed border-border-main rounded-lg flex flex-col items-center justify-center text-text-muted hover:border-blue-400 hover:text-blue-500 bg-main-bg transition-all"
+                    className={`w-[70px] h-[70px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-all ${isUploading ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-border-main text-text-muted hover:border-blue-400 hover:text-blue-500 bg-main-bg'}`}
                   >
-                    <Camera className="w-5 h-5" />
-                    <span className="text-[10px] font-bold">Add</span>
+                    {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+                    <span className="text-[10px] font-bold">{isUploading ? '...' : 'Add'}</span>
                   </button>
                 )}
               </div>

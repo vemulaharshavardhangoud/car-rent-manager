@@ -1,4 +1,9 @@
-import { db } from "../firebase";
+import { db, storage } from "../firebase";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "firebase/storage";
 import {
   collection,
   doc,
@@ -311,3 +316,11 @@ export const listenToExpenses = (callback) => {
     callback(data);
   }, (err) => { console.warn("Expense listener error:", err); });
 };
+
+ e x p o r t   c o n s t   u p l o a d F i l e   =   a s y n c   ( f i l e ,   f o l d e r   =   ' v e h i c l e s ' )   = >   { 
+     i f   ( ! s t o r a g e )   r e t u r n   n u l l ; 
+     c o n s t   s t o r a g e R e f   =   r e f ( s t o r a g e ,   \ \ / \ _ \ \ ) ; 
+     c o n s t   s n a p s h o t   =   a w a i t   u p l o a d B y t e s ( s t o r a g e R e f ,   f i l e ) ; 
+     r e t u r n   a w a i t   g e t D o w n l o a d U R L ( s n a p s h o t . r e f ) ; 
+ } ;  
+ 

@@ -33,6 +33,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCJoT3LlFx80qOrqbgxfxa8jswNM5Gw1UI",
@@ -48,12 +49,14 @@ const isConfigured = firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_AP
 
 let db = null;
 let auth = null;
+let storage = null;
 
 if (isConfigured) {
   try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
+    storage = getStorage(app);
     
     // Enable offline persistence
     enableIndexedDbPersistence(db).catch((err) => {
@@ -64,14 +67,16 @@ if (isConfigured) {
       }
     });
     
-    console.log("✅ Firebase connected successfully with Auth and offline persistence.");
+    console.log("✅ Firebase connected successfully with Auth, Storage and offline persistence.");
   } catch (err) {
     console.warn("⚠️ Firebase failed to initialize:", err.message);
     db = null;
     auth = null;
+    storage = null;
   }
 } else {
   console.warn("⚠️ Firebase not configured. Running in offline/local mode.");
 }
 
-export { db, auth };
+export { db, auth, storage };
+
