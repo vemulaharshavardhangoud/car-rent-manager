@@ -26,15 +26,11 @@ const Login = () => {
   useEffect(() => {
     const manualLogout = sessionStorage.getItem('crm_manual_logout');
     
+    // Only auto-login if they haven't manually logged out and don't already have a session
     if (!manualLogout && !session) {
-      // Create session silently
-      const newSession = { role: 'CUSTOMER', name: 'Customer' };
-      sessionStorage.setItem('crm_session', JSON.stringify(newSession));
-      navigate('/');
-      // Full reload to apply context state reliably without loop
-      window.location.reload();
+      handleCustomerLogin();
     }
-  }, [session, navigate]);
+  }, [session]);
 
   const handleOwnerLogin = (e) => {
     e.preventDefault();
