@@ -1,9 +1,11 @@
 import React, { useContext } from 'react';
 import { AppContext } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 import { CarFront, CalendarCheck, MapPin } from 'lucide-react';
 
 const CustomerDashboard = () => {
   const { vehicles, bookings } = useContext(AppContext);
+  const navigate = useNavigate();
 
   const totalVehicles = vehicles.length;
   const availableVehicles = vehicles.filter(v => v.status === 'Available').length;
@@ -43,7 +45,7 @@ const CustomerDashboard = () => {
           <h2 className="text-3xl font-black tracking-tight mb-4">Ready for your next journey?</h2>
           <p className="text-white font-medium text-lg mb-8 leading-relaxed">Browse our wide range of premium vehicles and book your favorite one in seconds.</p>
           <button 
-            onClick={() => window.location.hash = '#/new-booking'}
+            onClick={() => navigate('/new-booking')}
             className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-50 transition-all active:scale-95 shadow-xl"
           >
             Start New Booking
