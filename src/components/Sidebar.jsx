@@ -38,7 +38,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
       {/* Sidebar sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-[250px] bg-card-bg text-text-main flex flex-col transition-all duration-300 ease-in-out border-r border-border-main lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl lg:shadow-none`}
+        className={`fixed inset-y-0 left-0 z-50 w-[250px] bg-card-bg text-text-main flex flex-col transition-all duration-300 ease-in-out border-r border-border-main lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} shadow-2xl lg:shadow-none pb-24 lg:pb-0`}
       >
         <div className="flex items-center justify-between h-20 px-6 border-b border-border-main bg-main-bg/20">
           <div className="flex items-center gap-3">
