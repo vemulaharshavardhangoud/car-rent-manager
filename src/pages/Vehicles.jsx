@@ -1,6 +1,6 @@
 import React, { useState, useContext, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight, Map, Route, AlertTriangle, Loader2 } from 'lucide-react';
+import { Car, Edit, Trash2, Clock, CarFront, Truck, Bike, Info, Camera, X, Wind, Thermometer, Eye, ChevronLeft, ChevronRight, Map, Route, AlertTriangle, Loader2, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import VehicleDetails from '../components/VehicleDetails';
@@ -218,49 +218,75 @@ const Vehicles = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* PHOTO UPLOAD */}
-            <div>
-              <label className="block text-sm font-semibold text-text-main mb-1.5 flex justify-between items-center">
+            {/* PHOTO UPLOAD SECTION */}
+            <div className="bg-main-bg/30 p-4 rounded-xl border border-dashed border-border-main transition-colors hover:border-blue-400/50">
+              <label className="block text-sm font-bold text-text-main mb-3 flex justify-between items-center px-1">
                 <span className="flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-blue-500" />
                   Vehicle Photos ({form.photos.length}/5)
-                  {isUploading && <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />}
                 </span>
                 {form.photos.length < 5 && !isUploading && (
                   <button 
                     type="button" 
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-xs text-blue-600 font-bold hover:underline"
+                    className="text-xs text-blue-600 font-bold hover:text-blue-700 underline underline-offset-4"
                   >
                     + Add New
                   </button>
                 )}
-                {isUploading && <span className="text-[10px] text-blue-500 font-bold animate-pulse">Uploading...</span>}
+                {isUploading && (
+                  <div className="flex items-center gap-1.5 text-blue-500">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span className="text-[10px] font-bold">Syncing...</span>
+                  </div>
+                )}
               </label>
               
-              <div className="flex flex-wrap gap-2.5">
-                {form.photos.map((src, idx) => (
-                  <div key={idx} className="relative w-[70px] h-[70px] rounded-lg overflow-hidden border border-gray-200 shadow-sm animate-scale-in">
-                    <img src={src} alt="Vehicle" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removePhoto(idx)}
-                      className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition-colors"
-                      disabled={isUploading}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                {form.photos.map((src, idx) => {
+                  const isLocal = src.startsWith('blob:');
+                  return (
+                    <div key={idx} className={`relative aspect-square rounded-xl overflow-hidden border-2 shadow-sm transition-all group ${isLocal ? 'border-blue-400/50 ring-2 ring-blue-400/10 animate-pulse' : 'border-white dark:border-gray-800'}`}>
+                      <img src={src} alt="Vehicle" className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                      
+                      {/* Loading status overlay for local previews */}
+                      {isLocal && (
+                        <div className="absolute inset-0 bg-blue-500/20 flex items-center justify-center">
+                          <Loader2 className="w-5 h-5 text-white animate-spin drop-shadow-md" />
+                        </div>
+                      )}
+
+                      {!isUploading && (
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(idx)}
+                          className="absolute top-1 right-1 bg-red-500/90 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      
+                      {/* Success Check for Remote URLs */}
+                      {!isLocal && (
+                        <div className="absolute top-1 left-1 bg-green-500 text-white rounded-full p-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Check className="w-2.5 h-2.5" />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
                 
                 {form.photos.length < 5 && (
                   <button
                     type="button"
                     disabled={isUploading}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`w-[70px] h-[70px] border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-all ${isUploading ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed' : 'border-border-main text-text-muted hover:border-blue-400 hover:text-blue-500 bg-main-bg'}`}
+                    className={`aspect-square border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${isUploading ? 'bg-gray-100/50 border-gray-200 text-gray-300 cursor-not-allowed opacity-50' : 'border-border-main text-text-muted hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-500 bg-white dark:bg-card-bg shadow-sm'}`}
                   >
-                    {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
-                    <span className="text-[10px] font-bold">{isUploading ? '...' : 'Add'}</span>
+                    <div className={`p-2 rounded-full ${isUploading ? 'bg-gray-200' : 'bg-blue-50 dark:bg-blue-500/10'}`}>
+                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4 text-blue-500" />}
+                    </div>
+                    <span className="text-[10px] font-bold">{isUploading ? 'Syncing' : 'Add'}</span>
                   </button>
                 )}
               </div>
@@ -273,6 +299,9 @@ const Vehicles = () => {
                 onChange={handlePhotoChange}
                 className="hidden"
               />
+              <p className="text-[10px] text-text-muted mt-3 italic text-center px-2">
+                * Click 'Add' to upload up to 5 photos. Files are optimized for speed.
+              </p>
             </div>
 
             <div>
