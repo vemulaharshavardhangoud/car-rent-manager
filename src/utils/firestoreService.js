@@ -28,10 +28,13 @@ const isReady = () => db !== null;
 export const saveVehicleToFirestore = async (vehicleData) => {
   if (!isReady()) return vehicleData;
   const docRef = doc(db, "vehicles", vehicleData.id);
-  // Strip photos (base64) before saving to Firestore — they exceed the 1MB doc limit.
-  // Photos are kept safely in localStorage only.
-  const { photos, photo, ...safeData } = vehicleData;
-  const data = { ...safeData, hasPhotos: !!(photos && photos.length > 0), photoCount: (photos || []).length, syncedAt: serverTimestamp() };
+  // Photos are now small Firebase Storage URLs, no need to strip them.
+  const data = { 
+    ...vehicleData, 
+    hasPhotos: !!(vehicleData.photos && vehicleData.photos.length > 0), 
+    photoCount: (vehicleData.photos || []).length, 
+    syncedAt: serverTimestamp() 
+  };
   await setDoc(docRef, data);
   return data;
 };
@@ -46,13 +49,13 @@ export const getAllVehiclesFromFirestore = async () => {
 export const updateVehicleInFirestore = async (id, updatedFields) => {
   if (!isReady()) return;
   const docRef = doc(db, "vehicles", id);
-  // Strip photos (base64) before saving to Firestore — they exceed the 1MB doc limit.
-  const { photos, photo, ...safeFields } = updatedFields;
-  const fieldsToSync = { ...safeFields, syncedAt: serverTimestamp() };
-  if (photos !== undefined) {
-    fieldsToSync.hasPhotos = photos.length > 0;
-    fieldsToSync.photoCount = photos.length;
-  }
+  // We no longer strip photos because we use Firebase Storage URLs now.
+  const fieldsToSync = { 
+    ...updatedFields, 
+    hasPhotos: !!(updatedFields.photos && updatedFields.photos.length > 0),
+    photoCount: (updatedFields.photos || []).length,
+    syncedAt: serverTimestamp() 
+  };
   await updateDoc(docRef, fieldsToSync);
 };
 
@@ -70,17 +73,8 @@ export const listenToVehicles = (callback) => {
   if (!isReady()) return () => {};
   return onSnapshot(collection(db, "vehicles"), (snapshot) => {
     const firestoreVehicles = snapshot.docs.map(doc => doc.data());
-    // Merge local photos back in (photos are stored only in localStorage)
-    const merged = firestoreVehicles.map(v => {
-      try {
-        const localData = localStorage.getItem(`crm_vehicle_${v.id}`);
-        const localVehicle = localData ? JSON.parse(localData) : null;
-        return { ...v, photos: localVehicle?.photos || [] };
-      } catch {
-        return { ...v, photos: [] };
-      }
-    });
-    callback(merged);
+    // Photos are now stored directly in Firestore as URLs. No merging needed.
+    callback(firestoreVehicles);
   }, (err) => { console.warn("Vehicle listener error:", err); });
 };
 
@@ -317,10 +311,9 @@ export const listenToExpenses = (callback) => {
   }, (err) => { console.warn("Expense listener error:", err); });
 };
 
- e x p o r t   c o n s t   u p l o a d F i l e   =   a s y n c   ( f i l e ,   f o l d e r   =   ' v e h i c l e s ' )   = >   { 
-     i f   ( ! s t o r a g e )   r e t u r n   n u l l ; 
-     c o n s t   s t o r a g e R e f   =   r e f ( s t o r a g e ,   \ \ / \ _ \ \ ) ; 
-     c o n s t   s n a p s h o t   =   a w a i t   u p l o a d B y t e s ( s t o r a g e R e f ,   f i l e ) ; 
-     r e t u r n   a w a i t   g e t D o w n l o a d U R L ( s n a p s h o t . r e f ) ; 
- } ;  
- 
+export const uploadFile = async (file, folder = 'vehicles') => {
+  if (!storage) return null;
+  const storageRef = ref(storage, `${folder}/${Date.now()}_${file.name}`);
+  const snapshot = await uploadBytes(storageRef, file);
+  return await getDownloadURL(snapshot.ref);
+};
