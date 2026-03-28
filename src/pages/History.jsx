@@ -161,10 +161,10 @@ const History = () => {
 
       
       {/* FILTER BAR */}
-      <div className="bg-card-bg p-4 rounded-xl shadow-sm border border-border-main mb-6 z-20">
+      <div className="bg-card-bg p-3 sm:p-4 rounded-xl shadow-sm border border-border-main mb-6 z-20">
 
-        <div className="flex flex-wrap lg:flex-nowrap gap-4 justify-between items-center text-text-main">
-          <div className="flex flex-wrap md:flex-nowrap gap-4 flex-grow items-center">
+        <div className="flex flex-wrap lg:flex-nowrap gap-3 sm:gap-4 justify-between items-center text-text-main">
+          <div className="flex flex-wrap md:flex-nowrap gap-3 sm:gap-4 flex-grow items-center w-full md:w-auto">
 
 
             {/* Vehicle Select */}
@@ -387,32 +387,32 @@ const History = () => {
           {/* SUMMARY TOTALS */}
           <div className="bg-slate-900 rounded-xl shadow-lg border border-border-main p-6 mb-8 text-white">
             <h3 className="text-text-muted text-xs font-bold uppercase tracking-widest mb-4">Summary Totals (Filtered)</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-              <div className="flex flex-col">
-                <span className="block text-3xl font-bold text-text-main">{filteredTrips.length}</span>
-                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Trips</span>
-              </div>
-              <div className="border-l border-border-main pl-6 flex flex-col">
-                <span className="block text-3xl font-bold text-text-main">{totals.distance}</span>
-                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Distance (KM)</span>
-              </div>
-              <div className="border-l border-border-main pl-6 flex flex-col">
-                <span className="block text-3xl font-bold text-text-main">{totals.petrol}</span>
-                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Petrol (L)</span>
-              </div>
-              <div className="border-l border-border-main pl-6 flex flex-col">
-                <span className="block text-2xl font-bold text-orange-400">₹{totals.toll}</span>
-                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Toll Tax</span>
-              </div>
-              <div className="border-l border-border-main pl-6 flex flex-col">
-                <span className="block text-2xl font-bold text-orange-400">₹{totals.border}</span>
-                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Border Tax</span>
-              </div>
-              <div className="border-l border-border-main pl-6 flex flex-col">
-                <span className="block text-3xl font-extrabold text-green-400">₹{totals.revenue}</span>
-                <span className="text-text-muted text-[10px] font-black uppercase tracking-widest">Revenue</span>
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <div className="flex flex-col">
+              <span className="block text-2xl sm:text-3xl font-bold text-text-main">{filteredTrips.length}</span>
+              <span className="text-text-muted text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Trips</span>
             </div>
+            <div className="border-l border-border-main pl-6 flex flex-col">
+              <span className="block text-2xl sm:text-3xl font-bold text-text-main">{totals.distance}</span>
+              <span className="text-text-muted text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Distance (KM)</span>
+            </div>
+            <div className="border-l border-border-main pl-6 flex flex-col">
+              <span className="block text-2xl sm:text-3xl font-bold text-text-main">{totals.petrol}</span>
+              <span className="text-text-muted text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Petrol (L)</span>
+            </div>
+            <div className="border-l border-border-main pl-6 flex flex-col">
+              <span className="block text-xl sm:text-2xl font-bold text-orange-400">₹{totals.toll}</span>
+              <span className="text-text-muted text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Toll Tax</span>
+            </div>
+            <div className="border-l border-border-main pl-6 flex flex-col">
+              <span className="block text-xl sm:text-2xl font-bold text-orange-400">₹{totals.border}</span>
+              <span className="text-text-muted text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Border Tax</span>
+            </div>
+            <div className="border-l border-border-main pl-6 flex flex-col">
+              <span className="block text-2xl sm:text-3xl font-extrabold text-green-400">₹{totals.revenue}</span>
+              <span className="text-text-muted text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Revenue</span>
+            </div>
+          </div>
           </div>
 
           {/* VEHICLE TIMELINE */}
