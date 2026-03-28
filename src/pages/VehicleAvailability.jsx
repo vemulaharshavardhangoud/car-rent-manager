@@ -1,3 +1,4 @@
+import React, { useState, useContext } from 'react';
 import { AppContext } from '../context/AppContext';
 import { Car, Fuel, Users, Wind, CheckCircle2, XCircle, Search, Filter, IndianRupee, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import VehicleDetails from '../components/VehicleDetails';
