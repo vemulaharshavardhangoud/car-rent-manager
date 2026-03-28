@@ -14,8 +14,15 @@ export const AuthProvider = ({ children }) => {
   // Load session from sessionStorage on mount
   useEffect(() => {
     const savedSession = sessionStorage.getItem('crm_session');
+    const manualLogout = sessionStorage.getItem('crm_manual_logout');
+
     if (savedSession) {
       setSession(JSON.parse(savedSession));
+    } else if (!manualLogout) {
+      // Auto-login logic silently initialized before any protected routes load
+      const defaultSession = { role: 'CUSTOMER', name: 'Customer' };
+      setSession(defaultSession);
+      sessionStorage.setItem('crm_session', JSON.stringify(defaultSession));
     }
 
     // Still fetch owner password from settings for security

@@ -22,15 +22,6 @@ const Login = () => {
     return <Navigate to="/" />;
   }
 
-  // Handle automatic Customer login on first visit
-  useEffect(() => {
-    const manualLogout = sessionStorage.getItem('crm_manual_logout');
-    
-    // Only auto-login if they haven't manually logged out and don't already have a session
-    if (!manualLogout && !session) {
-      handleCustomerLogin();
-    }
-  }, [session]);
 
   const handleOwnerLogin = (e) => {
     e.preventDefault();
