@@ -1,24 +1,29 @@
 import emailjs from '@emailjs/browser';
 
-// CONFIGURATION: Replace these with your EmailJS credentials
-// Get them from: https://dashboard.emailjs.com/
-const SERVICE_ID = 'service_carrent';
-const TEMPLATE_ID_BOOKING = 'template_booking';
-const TEMPLATE_ID_CANCEL = 'template_cancel';
-const PUBLIC_KEY = 'YOUR_PUBLIC_KEY';
-
 /**
- * Initialize EmailJS
+ * Gets the configured EmailJS credentials from localStorage.
  */
-export const initEmail = () => {
-    emailjs.init(PUBLIC_KEY);
+const getEmailConfig = () => {
+    return {
+        serviceId: localStorage.getItem('crm_email_service_id') || '',
+        templateIdBooking: localStorage.getItem('crm_email_template_id') || '',
+        templateIdCancel: localStorage.getItem('crm_email_template_id') || '',
+        publicKey: localStorage.getItem('crm_email_public_key') || ''
+    };
 };
 
 /**
  * Sends a booking confirmation email.
  */
 export async function notifyBookingConfirmation(vehicleData, bookingData) {
+  const config = getEmailConfig();
+  if (!config.serviceId || !config.templateIdBooking || !config.publicKey) {
+      console.warn('EmailJS is not configured. Skipping email notification.');
+      return { success: false, error: 'EmailJS keys missing' };
+  }
+
   try {
+    emailjs.init(config.publicKey);
     const templateParams = {
         to_name: bookingData.customerName,
         to_email: bookingData.customerEmail,
@@ -29,11 +34,16 @@ export async function notifyBookingConfirmation(vehicleData, bookingData) {
         booking_id: bookingData.id
     };
 
-    const res = await emailjs.send(SERVICE_ID, TEMPLATE_ID_BOOKING, templateParams);
+    const res = await emailjs.send(config.serviceId, config.templateIdBooking, templateParams);
     return { success: true, response: res };
   } catch (err) {
     console.error('EmailJS error (booking-confirmation):', err);
-    return { success: false, error: err.text || err.message };
+    // Determine if it was a quota limit error
+    const errorMessage = err.text || err.message || '';
+    if (errorMessage.toLowerCase().includes('limit') || errorMessage.toLowerCase().includes('quota') || err.status === 429) {
+        return { success: false, error: 'EMAIL_LIMIT_REACHED' };
+    }
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -41,7 +51,11 @@ export async function notifyBookingConfirmation(vehicleData, bookingData) {
  * Sends a cancellation email.
  */
 export async function notifyCancellation(vehicleData, bookingData, cancellationData) {
+  const config = getEmailConfig();
+  if (!config.serviceId || !config.templateIdCancel || !config.publicKey) return { success: false, error: 'Keys missing' };
+
   try {
+    emailjs.init(config.publicKey);
     const templateParams = {
         to_name: bookingData.customerName,
         to_email: bookingData.customerEmail,
@@ -51,11 +65,15 @@ export async function notifyCancellation(vehicleData, bookingData, cancellationD
         booking_id: bookingData.id
     };
 
-    const res = await emailjs.send(SERVICE_ID, TEMPLATE_ID_CANCEL, templateParams);
+    const res = await emailjs.send(config.serviceId, config.templateIdCancel, templateParams);
     return { success: true, response: res };
   } catch (err) {
     console.error('EmailJS error (cancellation):', err);
-    return { success: false, error: err.text || err.message };
+    const errorMessage = err.text || err.message || '';
+    if (errorMessage.toLowerCase().includes('limit') || errorMessage.toLowerCase().includes('quota') || err.status === 429) {
+        return { success: false, error: 'EMAIL_LIMIT_REACHED' };
+    }
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -63,12 +81,13 @@ export async function notifyCancellation(vehicleData, bookingData, cancellationD
  * Notifies the fleet manager about overdue vehicles or reminders.
  */
 export async function notifyReminder(vehicleData, bookingData) {
-  // Can be implemented similarly with a manager-facing template
   console.log('Reminder triggered for:', bookingData.id);
+  // Implementation for owner-facing email goes here
   return { success: true };
 }
 
 export async function notifyOverdue(vehicleData, overdueDays) {
   console.log('Overdue alert for:', vehicleData.name, 'Days:', overdueDays);
+  // Implementation for owner-facing email goes here
   return { success: true };
 }

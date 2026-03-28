@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Lock, Eye, EyeOff, Shield, Timer, AlertTriangle, CheckCircle2, Cloud, Info } from 'lucide-react';
+import { Lock, Eye, EyeOff, Shield, Timer, AlertTriangle, CheckCircle2, Cloud, Info, Mail, Key } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 import * as storage from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +35,25 @@ const Settings = () => {
   
   // Clear Data State
   const [deleteInput, setDeleteInput] = useState('');
+
+  // Email Config State
+  const [emailConfig, setEmailConfig] = useState({
+    serviceId: localStorage.getItem('crm_email_service_id') || '',
+    templateId: localStorage.getItem('crm_email_template_id') || '',
+    publicKey: localStorage.getItem('crm_email_public_key') || ''
+  });
+
+  const handleSaveEmailConfig = async (e) => {
+    e.preventDefault();
+    const ok = await requirePassword({ actionType: 'editSettings', actionLabel: 'SAVE EmailJS Integration Keys' });
+    if (!ok) return;
+
+    localStorage.setItem('crm_email_service_id', emailConfig.serviceId);
+    localStorage.setItem('crm_email_template_id', emailConfig.templateId);
+    localStorage.setItem('crm_email_public_key', emailConfig.publicKey);
+    
+    showToast('Email Configuration Saved', 'success');
+  };
 
   // Initial Load
   useEffect(() => {
@@ -423,6 +442,54 @@ const Settings = () => {
                   </p>
                </div>
             </div>
+          </div>
+        </div>
+
+        {/* SECTION 4.5: EMAILJS CONFIGURATION */}
+        <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
+          <div className="p-6 border-b border-border-main flex items-center gap-3 bg-emerald-500/5">
+            <div className="bg-emerald-500/10 p-2 rounded-xl text-emerald-500"><Mail className="w-5 h-5" /></div>
+            <div>
+              <h2 className="text-lg font-black text-text-main">Email API Configuration</h2>
+              <p className="text-[10px] sm:text-xs font-bold text-text-muted">Link your EmailJS account for automated alerts</p>
+            </div>
+          </div>
+          <div className="p-6">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl mb-6 flex items-start gap-3">
+               <Info className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+               <div className="text-sm">
+                  <h4 className="font-bold text-emerald-700 dark:text-emerald-400">Free Tier Notice (200 Emails/Month)</h4>
+                  <p className="text-emerald-600/80 dark:text-emerald-400/80 font-medium text-xs mt-1">If you exceed your free 200 emails a month, the system will log a warning and stop sending alerts until the next month unless upgraded on EmailJS.</p>
+               </div>
+            </div>
+
+            <form onSubmit={handleSaveEmailConfig} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-text-muted uppercase mb-2">Service ID</label>
+                  <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-emerald-500/20">
+                    <input type="text" value={emailConfig.serviceId} onChange={e => setEmailConfig({...emailConfig, serviceId: e.target.value})} placeholder="e.g. service_xyz" className="w-full bg-transparent outline-none text-sm font-bold text-text-main" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-text-muted uppercase mb-2">Template ID</label>
+                  <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-emerald-500/20">
+                    <input type="text" value={emailConfig.templateId} onChange={e => setEmailConfig({...emailConfig, templateId: e.target.value})} placeholder="e.g. template_abc" className="w-full bg-transparent outline-none text-sm font-bold text-text-main" />
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-black text-text-muted uppercase mb-2">Public Key</label>
+                <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-emerald-500/20">
+                  <Key className="w-4 h-4 text-text-muted mr-3" />
+                  <input type="text" value={emailConfig.publicKey} onChange={e => setEmailConfig({...emailConfig, publicKey: e.target.value})} placeholder="Your public key from Account tab" className="w-full bg-transparent outline-none text-sm font-bold text-text-main" />
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                <button type="submit" className="w-full md:w-auto px-6 py-3 rounded-xl bg-emerald-600 text-white font-black hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/10">Save Email Config</button>
+              </div>
+            </form>
           </div>
         </div>
 
