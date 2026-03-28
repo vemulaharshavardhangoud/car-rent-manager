@@ -19,6 +19,7 @@ import {
   serverTimestamp,
   writeBatch
 } from "firebase/firestore";
+import { checkUploadAllowed, recordUpload, recordDeletion } from "./usageService";
 
 // Guard: if db is null (not configured), return safe no-ops
 const isReady = () => db !== null;
@@ -33,6 +34,7 @@ export const saveVehicleToFirestore = async (vehicleData) => {
     ...vehicleData, 
     hasPhotos: !!(vehicleData.photos && vehicleData.photos.length > 0), 
     photoCount: (vehicleData.photos || []).length, 
+    totalPhotosSize: vehicleData.totalPhotosSize || 0, // Track total bytes for quota
     syncedAt: serverTimestamp() 
   };
   await setDoc(docRef, data);
@@ -61,6 +63,16 @@ export const updateVehicleInFirestore = async (id, updatedFields) => {
 
 export const deleteVehicleFromFirestore = async (id) => {
   if (!isReady()) return;
+  
+  // Get vehicle data first to know photo sizes for usage decrement
+  const vehicleDoc = await getDoc(doc(db, "vehicles", id));
+  if (vehicleDoc.exists()) {
+    const data = vehicleDoc.data();
+    if (data.totalPhotosSize > 0) {
+      await recordDeletion(data.totalPhotosSize);
+    }
+  }
+
   await deleteDoc(doc(db, "vehicles", id));
   const tripsQ = query(collection(db, "trips"), where("vehicleId", "==", id));
   const tripsSnapshot = await getDocs(tripsQ);
@@ -311,7 +323,7 @@ export const listenToExpenses = (callback) => {
   }, (err) => { console.warn("Expense listener error:", err); });
 };
 
-const compressImage = (file, maxWidth = 600, quality = 0.5) => {
+export const compressImage = (file, maxWidth = 600, quality = 0.5) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.src = URL.createObjectURL(file);
@@ -365,7 +377,28 @@ export const uploadFile = async (file, folder = 'vehicles') => {
     }
   }
 
+  // Quota Enforcement: Check if we have space left
+  const check = await checkUploadAllowed(fileToUpload.size);
+  if (!check.allowed) {
+    throw new Error(`STORAGE_LIMIT_REACHED: You have used ${(check.currentUsed / (1024*1024*1024)).toFixed(2)}GB of ${(check.limit / (1024*1024*1024)).toFixed(2)}GB. Please delete old vehicles.`);
+  }
+
   const storageRef = ref(storage, `${folder}/${Date.now()}_${fileToUpload.name}`);
   const snapshot = await uploadBytes(storageRef, fileToUpload);
-  return await getDownloadURL(snapshot.ref);
+  
+  // Success! Record the usage
+  await recordUpload(fileToUpload.size);
+  
+  const downloadUrl = await getDownloadURL(snapshot.ref);
+  return {
+    url: downloadUrl,
+    size: fileToUpload.size
+  };
+};
+
+export const recalculateTotalStorageUsage = async () => {
+  if (!isReady()) return 0;
+  const vehicles = await getAllVehiclesFromFirestore();
+  const total = vehicles.reduce((sum, v) => sum + (Number(v.totalPhotosSize) || 0), 0);
+  return total;
 };

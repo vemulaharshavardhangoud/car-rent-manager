@@ -1,9 +1,33 @@
-import React, { useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Car, Fuel, Users, Wind, CheckCircle2, XCircle, Search, Filter, IndianRupee, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Car, Fuel, Users, Wind, CheckCircle2, XCircle, Search, Filter, IndianRupee, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import VehicleDetails from '../components/VehicleDetails';
 
-const VehicleCard = ({ vehicle }) => {
+const VehicleCard = ({ vehicle, stats }) => {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const [showDetails, setShowDetails] = useState(false);
+  
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe && vehicle.photos && vehicle.photos.length > 1) {
+      setCurrentPhotoIndex((prev) => (prev + 1) % vehicle.photos.length);
+    } else if (isRightSwipe && vehicle.photos && vehicle.photos.length > 1) {
+      setCurrentPhotoIndex((prev) => (prev - 1 + vehicle.photos.length) % vehicle.photos.length);
+    }
+  };
 
   const nextPhoto = (e) => {
     e.stopPropagation();
@@ -20,13 +44,19 @@ const VehicleCard = ({ vehicle }) => {
   return (
     <div className="bg-card-bg border border-border-main rounded-[2.5rem] overflow-hidden group hover:shadow-2xl hover:shadow-blue-500/5 transition-all duration-500 flex flex-col">
       {/* Vehicle Photo Slider */}
-      <div className="relative h-56 overflow-hidden">
+      <div 
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="relative h-64 overflow-hidden cursor-pointer"
+        onClick={() => setShowDetails(true)}
+      >
         {vehicle.photos && vehicle.photos.length > 0 ? (
           <>
             <img 
               src={vehicle.photos[currentPhotoIndex]} 
               alt={`${vehicle.name} - ${currentPhotoIndex + 1}`} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 select-none pointer-events-none" 
             />
             
             {vehicle.photos.length > 1 && (
@@ -64,10 +94,22 @@ const VehicleCard = ({ vehicle }) => {
         
         {/* Photo Count Tag */}
         {vehicle.photos && vehicle.photos.length > 0 && (
-          <div className="absolute top-4 left-4 px-3 py-1 bg-black/40 backdrop-blur-md rounded-lg text-[10px] font-black text-white uppercase tracking-widest border border-white/10">
-            {currentPhotoIndex + 1} / {vehicle.photos.length} Photos
+          <div className="absolute top-4 left-4 flex gap-2">
+            <div className="px-3 py-1 bg-black/40 backdrop-blur-md rounded-lg text-[10px] font-black text-white uppercase tracking-widest border border-white/10">
+              {currentPhotoIndex + 1} / {vehicle.photos.length}
+            </div>
           </div>
         )}
+
+        {/* DETAILS OVERLAY */}
+        <div 
+          onClick={(e) => { e.stopPropagation(); setShowDetails(true); }}
+          className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        >
+          <div className="p-4 bg-white/90 backdrop-blur-xl rounded-2xl shadow-2xl transform scale-50 group-hover:scale-100 transition-transform duration-500">
+            <Search className="w-8 h-8 text-blue-600" />
+          </div>
+        </div>
       </div>
 
       <div className="p-8 pb-0">
@@ -167,25 +209,50 @@ const VehicleCard = ({ vehicle }) => {
             )}
           </div>
           
-          <button 
-            disabled={vehicle.status !== 'Available'}
-            onClick={() => window.location.hash = `#/new-booking?vehicleId=${vehicle.id}`}
-            className={`w-full py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${
-              vehicle.status === 'Available' 
-                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-500/10 active:scale-95' 
-                : 'bg-card-bg text-text-muted border border-border-main cursor-not-allowed opacity-50'
-            }`}
-          >
-            {vehicle.status === 'Available' ? 'Book This Vehicle' : 'Currently Unavailable'}
-          </button>
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => setShowDetails(true)}
+              className="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-main-bg text-text-main border border-border-main hover:bg-card-bg transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Info className="w-4 h-4 text-blue-500" /> Details
+            </button>
+            <button 
+              disabled={vehicle.status !== 'Available'}
+              onClick={() => window.location.hash = `#/new-booking?vehicleId=${vehicle.id}`}
+              className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                vehicle.status === 'Available' 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-500/10 active:scale-95' 
+                  : 'bg-card-bg text-text-muted border border-border-main cursor-not-allowed opacity-50'
+              }`}
+            >
+              <IndianRupee className="w-4 h-4" /> Book Now
+            </button>
+          </div>
         </div>
       </div>
+
+      {showDetails && (
+        <VehicleDetails 
+          vehicle={vehicle} 
+          stats={stats}
+          isAdmin={false}
+          onClose={() => setShowDetails(false)} 
+        />
+      )}
     </div>
   );
 };
 
 const VehicleAvailability = () => {
-  const { vehicles } = useContext(AppContext);
+  const { vehicles, allTrips } = useContext(AppContext);
+  
+  const getStats = (vehicleId) => {
+    const trips = (allTrips || []).filter(t => t.vehicleId === vehicleId);
+    const totalKm = trips.reduce((sum, t) => sum + (Number(t.distance) || 0), 0);
+    const totalEarned = trips.reduce((sum, t) => sum + (Number(t.grandTotal) || 0), 0);
+    return { count: trips.length, totalKm, totalEarned };
+  };
+
   const [filter, setFilter] = useState('All'); // 'All' or 'Available'
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -235,7 +302,7 @@ const VehicleAvailability = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {filteredVehicles.map((vehicle) => (
-          <VehicleCard key={vehicle.id} vehicle={vehicle} />
+          <VehicleCard key={vehicle.id} vehicle={vehicle} stats={getStats(vehicle.id)} />
         ))}
       </div>
 

@@ -85,7 +85,7 @@ const Login = () => {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Access Key"
+                      placeholder="Owner Login Key"
                       className="w-full bg-slate-950 border border-white/5 rounded-2xl py-4 pl-12 pr-12 text-white font-medium focus:border-blue-500 outline-none transition-all uppercase tracking-widest text-xs"
                       required
                     />

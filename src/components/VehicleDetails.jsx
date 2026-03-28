@@ -2,8 +2,34 @@ import React, { useState, useContext } from 'react';
 import { X, ChevronLeft, ChevronRight, Receipt, Info, Edit, Thermometer, CarFront, Eye, Droplets, Plus, Trash2, Calendar, ShieldCheck, Wrench, Settings } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 
-const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose }) => {
+const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = false }) => {
   const [activePhoto, setActivePhoto] = useState(0);
+  const [startTouch, setStartTouch] = useState(null);
+  const [endTouch, setEndTouch] = useState(null);
+  
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e) => {
+    setEndTouch(null); // Clear previous touch state
+    setStartTouch(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setEndTouch(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!startTouch || !endTouch) return;
+    const distance = startTouch - endTouch;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      setActivePhoto(prev => (prev < vehicle.photos.length - 1 ? prev + 1 : 0));
+    } else if (isRightSwipe) {
+      setActivePhoto(prev => (prev > 0 ? prev - 1 : vehicle.photos.length - 1));
+    }
+  };
+
   const { vehicles, fuelLogs, addFuelLog, deleteFuelLog, updateVehicleDocuments, addMaintenanceLog } = useContext(AppContext);
   
   // Always get fresh vehicle data from context
@@ -94,62 +120,67 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose }) => {
           <X className="w-6 h-6" />
         </button>
 
-        {/* Gallery Section - Amazon Style */}
-        <div className="w-full md:w-[55%] bg-gray-50 flex flex-col md:flex-row p-4 md:p-6 gap-4">
+        {/* Gallery Section - Premium Responsive Grid */}
+        <div className="w-full md:w-[60%] bg-gray-50 flex flex-col p-4 md:p-8 gap-6 border-b md:border-b-0 md:border-r border-border-main">
           
-          {/* Thumbnails (Side) */}
-          {vehicle.photos && vehicle.photos.length > 1 && (
-            <div className="order-2 md:order-1 flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto no-scrollbar pb-2 md:pb-0 md:max-h-[500px]">
-              {vehicle.photos.map((src, i) => (
-                <button 
-                  key={i}
-                  onClick={() => setActivePhoto(i)}
-                  className={`relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${activePhoto === i ? 'border-blue-600 ring-2 ring-blue-100 shadow-md' : 'border-transparent hover:border-gray-300 opacity-70 hover:opacity-100'}`}
-                >
-                  <img src={src} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Main Display */}
-          <div className="order-1 md:order-2 flex-1 relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-inner group flex items-center justify-center min-h-[300px] md:min-h-0">
+          {/* Main Display - Centered and Premium */}
+          <div 
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className="flex-1 relative bg-white rounded-3xl overflow-hidden border border-border-main shadow-inner group flex items-center justify-center min-h-[300px] md:min-h-[400px] touch-pan-y"
+          >
             {vehicle.photos && vehicle.photos.length > 0 ? (
               <>
                 <img 
                   src={vehicle.photos[activePhoto]} 
                   alt={vehicle.name} 
-                  className="w-full h-full object-contain md:object-cover transition-transform duration-700"
+                  className="w-full h-full object-contain md:object-cover transition-all duration-500 select-none pointer-events-none"
                 />
                 
                 {vehicle.photos.length > 1 && (
-                  <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute inset-0 flex items-center justify-between p-4 pointer-events-none">
                     <button 
                       onClick={() => setActivePhoto(prev => (prev > 0 ? prev - 1 : vehicle.photos.length - 1))}
-                      className="p-3 bg-white/90 text-gray-800 rounded-2xl shadow-xl hover:bg-blue-600 hover:text-white transition-all transform -translate-x-2 group-hover:translate-x-0"
+                      className="p-3 bg-white/70 backdrop-blur-md text-gray-800 rounded-2xl shadow-xl hover:bg-blue-600 hover:text-white transition-all transform -translate-x-2 group-hover:translate-x-0 pointer-events-auto border border-white/20"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button 
                       onClick={() => setActivePhoto(prev => (prev < vehicle.photos.length - 1 ? prev + 1 : 0))}
-                      className="p-3 bg-white/90 text-gray-800 rounded-2xl shadow-xl hover:bg-blue-600 hover:text-white transition-all transform translate-x-2 group-hover:translate-x-0"
+                      className="p-3 bg-white/70 backdrop-blur-md text-gray-800 rounded-2xl shadow-xl hover:bg-blue-600 hover:text-white transition-all transform translate-x-2 group-hover:translate-x-0 pointer-events-auto border border-white/20"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
                   </div>
                 )}
 
-                <div className="absolute bottom-6 right-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border border-white/10">
+                <div className="absolute bottom-6 right-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-white/10">
                   {activePhoto + 1} / {vehicle.photos.length}
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center text-gray-300 gap-4">
-                <CarFront className="w-32 h-32 opacity-20" />
-                <p className="font-bold uppercase tracking-tighter text-gray-400">No photos available</p>
+              <div className="flex flex-col items-center justify-center text-text-muted/20 gap-4">
+                <CarFront className="w-32 h-32" />
+                <p className="font-black uppercase tracking-[0.2em] text-[10px]">No photos available</p>
               </div>
             )}
           </div>
+
+          {/* Thumbnails - Horizontal Scrollable Strip for all devices */}
+          {vehicle.photos && vehicle.photos.length > 1 && (
+            <div className="flex gap-3 overflow-x-auto no-scrollbar py-2 px-1">
+              {vehicle.photos.map((src, i) => (
+                <button 
+                  key={i}
+                  onClick={() => setActivePhoto(i)}
+                  className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-2 transition-all flex-shrink-0 ${activePhoto === i ? 'border-blue-600 ring-4 ring-blue-500/10 shadow-lg' : 'border-transparent hover:border-gray-300 opacity-60 hover:opacity-100'}`}
+                >
+                  <img src={src} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Info Section */}
@@ -212,12 +243,14 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose }) => {
                 <h5 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4" /> Compliance & Documents
                 </h5>
-                <button 
-                  onClick={() => isEditingDocs ? handleUpdateDocs() : setIsEditingDocs(true)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors ${isEditingDocs ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
-                >
-                  {isEditingDocs ? 'Save Changes' : 'Update Dates'}
-                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={() => isEditingDocs ? handleUpdateDocs() : setIsEditingDocs(true)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors ${isEditingDocs ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                  >
+                    {isEditingDocs ? 'Save Changes' : 'Update Dates'}
+                  </button>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-4 p-5 bg-gray-50 rounded-3xl border border-gray-100">
                 {[
@@ -244,10 +277,10 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose }) => {
               </div>
             </section>
 
-            {vehicle.notes && (
+            {isAdmin && vehicle.notes && (
               <section className="bg-orange-50/50 dark:bg-orange-900/10 p-5 rounded-3xl border border-orange-100/50 dark:border-orange-800/30">
                 <h5 className="text-[10px] font-black text-orange-600/60 dark:text-orange-400/60 uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
-                  <Edit className="w-4 h-4" /> Fleet Manager Notes
+                  <Edit className="w-4 h-4" /> Fleet Manager Notes (Private)
                 </h5>
                 <p className="text-sm text-gray-700 dark:text-gray-300 font-medium italic leading-relaxed">
                    "{vehicle.notes}"
@@ -260,12 +293,14 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose }) => {
                 <h5 className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] flex items-center gap-2">
                   <Droplets className="w-4 h-4" /> Fuel Logs
                 </h5>
-                <button 
-                  onClick={() => setShowFuelModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add Log
-                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={() => setShowFuelModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Log
+                  </button>
+                )}
               </div>
 
               <div className="space-y-3 max-h-[300px] overflow-y-auto no-scrollbar">
@@ -285,12 +320,14 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose }) => {
                           </div>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => deleteFuelLog(vehicle.id, log.id)}
-                        className="p-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      {isAdmin && (
+                        <button 
+                          onClick={() => deleteFuelLog(vehicle.id, log.id)}
+                          className="p-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   ))
                 ) : (
@@ -306,12 +343,14 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose }) => {
                 <h5 className="text-[10px] font-black text-orange-600 uppercase tracking-[0.3em] flex items-center gap-2">
                   <Wrench className="w-4 h-4" /> Maintenance
                 </h5>
-                <button 
-                  onClick={() => setShowMaintenanceModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-orange-100 transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Log Service
-                </button>
+                {isAdmin && (
+                  <button 
+                    onClick={() => setShowMaintenanceModal(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-orange-100 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Log Service
+                  </button>
+                )}
               </div>
 
               <div className="space-y-3 max-h-[300px] overflow-y-auto no-scrollbar">

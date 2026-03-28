@@ -5,12 +5,14 @@ import { useNavigate } from 'react-router-dom';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import VehicleDetails from '../components/VehicleDetails';
 import { uploadFile, compressImage } from '../utils/firestoreService';
+import { listenToQuota, recordDeletion } from '../utils/usageService';
 
 const initialForm = {
   name: '', type: '4-Wheeler', capacity: '', numberPlate: '', 
   ratePerKm: '', ratePerDay: '', tankCapacity: '', color: '', notes: '',
   status: 'Available',
   photos: [],
+  photoData: [], // Stores { url, size } for accurate quota tracking
   hasAC: false,
   ratePerKmAC: '', ratePerDayAC: ''
 };
@@ -27,12 +29,21 @@ const Vehicles = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
   const [isUploading, setIsUploading] = useState(false);
+  const [quota, setQuota] = useState({ totalBytesUsed: 0, safetyLimit: 4.5 * 1024 * 1024 * 1024 });
   const fileInputRef = useRef(null);
 
   // Global Vehicle Stats
   const totalTrips = allTrips?.length || 0;
   const totalKm = (allTrips || []).reduce((sum, t) => sum + (Number(t.distance)||0), 0);
   const formatMoney = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val);
+
+  // Quota Listener
+  React.useEffect(() => {
+    const unsubscribe = listenToQuota((data) => {
+      setQuota(data);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const validate = () => {
     let newErrors = {};
@@ -95,39 +106,50 @@ const Vehicles = () => {
         photos: [...prev.photos, ...localPreviews.map(p => p.url)].slice(0, 5)
       }));
 
-      // 2. Upload one by one in the background for speed and stability
-      for (const item of localPreviews) {
+      // 2. Parallel Uploads for maximum speed
+      const uploadPromises = localPreviews.map(async (item) => {
         try {
-          if (item.file.size > 20 * 1024 * 1024) continue;
-          const cloudUrl = await uploadFile(item.file, 'vehicles');
+          if (item.file.size > 20 * 1024 * 1024) return { error: 'Too large', url: item.url };
+          const result = await uploadFile(item.file, 'vehicles');
           
-          if (cloudUrl) {
+          if (result && result.url) {
             // Replace THIS specific preview with the cloud URL
             setForm(prev => ({
               ...prev,
-              photos: prev.photos.map(p => p === item.url ? cloudUrl : p)
+              photos: prev.photos.map(p => p === item.url ? result.url : p),
+              photoData: [...(prev.photoData || []), { url: result.url, size: result.size }],
+              totalPhotosSize: (prev.totalPhotosSize || 0) + result.size
             }));
-            // Cleanup memory
             URL.revokeObjectURL(item.url);
+            return { success: true };
           } else {
-             throw new Error('Upload returned null');
+             throw new Error('Upload failed');
           }
         } catch (e) {
           console.error("Upload failed for file:", item.file.name, e);
-          hasError = true;
-          // Strip the failed local preview so it doesn't corrupt Firestore
+          // Strip the failed local preview
           setForm(prev => ({
             ...prev,
             photos: prev.photos.filter(p => p !== item.url)
           }));
           URL.revokeObjectURL(item.url);
           
-          if (e.message && e.message.includes('permission')) {
-             showToast('Firebase Error: Storage Rules are blocking uploads (Permission Denied)', 'error');
+          if (e.message && e.message.includes('STORAGE_LIMIT_REACHED')) {
+             showToast(e.message.split(': ')[1], 'error');
           } else {
              showToast(`Upload failed: ${item.file.name.substring(0, 15)}...`, 'error');
           }
+          return { error: e.message };
         }
+      });
+
+      const results = await Promise.all(uploadPromises);
+      const failedCount = results.filter(r => r.error).length;
+
+      if (failedCount === 0) {
+        showToast("Photos synced to cloud successfully", 'success');
+      } else if (failedCount < localPreviews.length) {
+        showToast(`${localPreviews.length - failedCount} photos synced, ${failedCount} failed`, 'warning');
       }
 
       if (!hasError) {
@@ -141,10 +163,20 @@ const Vehicles = () => {
     }
   };
 
-  const removePhoto = (index) => {
+  const removePhoto = async (index) => {
+    const photoUrl = form.photos[index];
+    const photoInfo = (form.photoData || []).find(p => p.url === photoUrl);
+    
+    if (photoInfo && photoInfo.size) {
+      // Decrement the global quota immediately
+      await recordDeletion(photoInfo.size);
+    }
+
     setForm(prev => ({
       ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
+      photos: prev.photos.filter((_, i) => i !== index),
+      photoData: (prev.photoData || []).filter(p => p.url !== photoUrl),
+      totalPhotosSize: Math.max(0, (prev.totalPhotosSize || 0) - (photoInfo?.size || 0))
     }));
   };
 
@@ -252,10 +284,15 @@ const Vehicles = () => {
                 {form.photos.length < 5 && !isUploading && (
                   <button 
                     type="button" 
+                    disabled={quota.totalBytesUsed > quota.safetyLimit}
                     onClick={() => fileInputRef.current?.click()}
-                    className="text-xs text-blue-600 font-bold hover:text-blue-700 underline underline-offset-4"
+                    className={`text-xs font-bold underline underline-offset-4 transition-all ${
+                      quota.totalBytesUsed > quota.safetyLimit 
+                        ? 'text-red-500 opacity-50 cursor-not-allowed' 
+                        : 'text-blue-600 hover:text-blue-700'
+                    }`}
                   >
-                    + Add New
+                    {quota.totalBytesUsed > quota.safetyLimit ? 'Storage Full' : '+ Add New'}
                   </button>
                 )}
                 {isUploading && (
@@ -266,7 +303,7 @@ const Vehicles = () => {
                 )}
               </label>
               
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 mt-4">
                 {form.photos.map((src, idx) => {
                   const isLocal = src.startsWith('blob:');
                   return (
@@ -303,12 +340,16 @@ const Vehicles = () => {
                 {form.photos.length < 5 && (
                   <button
                     type="button"
-                    disabled={isUploading}
+                    disabled={isUploading || quota.totalBytesUsed > quota.safetyLimit}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`aspect-square border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${isUploading ? 'bg-gray-100/50 border-gray-200 text-gray-300 cursor-not-allowed opacity-50' : 'border-border-main text-text-muted hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-500 bg-white dark:bg-card-bg shadow-sm'}`}
+                    className={`aspect-square border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
+                      isUploading || quota.totalBytesUsed > quota.safetyLimit
+                        ? 'bg-gray-100/50 border-gray-200 text-gray-300 cursor-not-allowed opacity-50' 
+                        : 'border-border-main text-text-muted hover:border-blue-400 hover:bg-blue-50/50 hover:text-blue-500 bg-white dark:bg-card-bg shadow-sm'
+                    }`}
                   >
-                    <div className={`p-2 rounded-full ${isUploading ? 'bg-gray-200' : 'bg-blue-50 dark:bg-blue-500/10'}`}>
-                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4 text-blue-500" />}
+                    <div className={`p-2 rounded-full ${isUploading || quota.totalBytesUsed > quota.safetyLimit ? 'bg-gray-200' : 'bg-blue-50 dark:bg-blue-500/10'}`}>
+                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className={`w-4 h-4 ${quota.totalBytesUsed > quota.safetyLimit ? 'text-gray-400' : 'text-blue-500'}`} />}
                     </div>
                     <span className="text-[10px] font-bold">{isUploading ? 'Syncing' : 'Add'}</span>
                   </button>
@@ -323,6 +364,19 @@ const Vehicles = () => {
                 onChange={handlePhotoChange}
                 className="hidden"
               />
+              
+              {/* QUOTA WARNING BAND */}
+              {quota.totalBytesUsed / quota.safetyLimit > 0.8 && (
+                <div className={`mt-3 p-2 rounded-lg flex items-center gap-2 border ${quota.totalBytesUsed > quota.safetyLimit ? 'bg-red-500/10 border-red-500/30' : 'bg-amber-500/10 border-amber-500/30'}`}>
+                  <AlertTriangle className={`w-3.5 h-3.5 ${quota.totalBytesUsed > quota.safetyLimit ? 'text-red-600' : 'text-amber-600'}`} />
+                  <p className={`text-[10px] font-black uppercase tracking-tighter ${quota.totalBytesUsed > quota.safetyLimit ? 'text-red-700' : 'text-amber-700'}`}>
+                    {quota.totalBytesUsed > quota.safetyLimit 
+                      ? "Storage Limit Reached! Delete old vehicles to add photos." 
+                      : `Space Running Low (${(quota.totalBytesUsed / (1024*1024)).toFixed(0)}MB used)`}
+                  </p>
+                </div>
+              )}
+              
               <p className="text-[10px] text-text-muted mt-3 italic text-center px-2">
                 * Click 'Add' to upload up to 5 photos. Files are optimized for speed.
               </p>
@@ -447,10 +501,29 @@ const Vehicles = () => {
               <textarea name="notes" value={form.notes} onChange={handleChange} placeholder="Maintenance notes, insurance info, etc." rows="2" className={inputClass('notes')}></textarea>
             </div>
 
-            <div className="flex gap-3 pt-4 border-t border-gray-100">
-              <button type="submit" className={`flex-1 py-3 px-4 rounded-xl text-white font-bold transition-all shadow-md ${editingId ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                {editingId ? 'Save Changes' : 'Add to Fleet'}
+            <div className="flex flex-col gap-3 pt-4 border-t border-gray-100">
+              <button 
+                type="submit" 
+                disabled={isUploading}
+                className={`py-3 px-4 rounded-xl text-white font-bold transition-all shadow-md flex items-center justify-center gap-2 ${
+                  isUploading ? 'bg-gray-400 cursor-wait' :
+                  editingId ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Syncing Photos...</span>
+                  </>
+                ) : (
+                  editingId ? 'Save Changes' : 'Add to Fleet'
+                )}
               </button>
+              {isUploading && (
+                <p className="text-[10px] text-blue-600 font-bold text-center uppercase tracking-widest animate-pulse">
+                  Cloud optimization in progress. Please wait.
+                </p>
+              )}
             </div>
           </form>
         </div>
@@ -652,7 +725,12 @@ const Vehicles = () => {
       </div>
       {/* DETAILS MODAL */}
       {viewingVehicle && (
-        <VehicleDetails vehicle={viewingVehicle} stats={getStats(viewingVehicle.id)} onClose={() => setViewingVehicle(null)} />
+        <VehicleDetails 
+          vehicle={viewingVehicle} 
+          stats={getStats(viewingVehicle.id)} 
+          isAdmin={true}
+          onClose={() => setViewingVehicle(null)} 
+        />
       )}
     </div>
   );

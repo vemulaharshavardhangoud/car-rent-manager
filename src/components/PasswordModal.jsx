@@ -34,15 +34,15 @@ const PasswordModal = ({ isOpen, actionInfo, onConfirm, onCancel }) => {
   };
 
   const verifyPin = (currentPin) => {
-    const isDelete = actionInfo?.isDeleteAction;
-    const storageKey = isDelete ? 'crm_delete_password' : 'crm_admin_password';
+    // Both Edit and Delete actions now use the Universal Safety PIN (crm_delete_password)
+    const storageKey = 'crm_delete_password'; 
     const storedPass = localStorage.getItem(storageKey);
     let isValid = false;
     
     // Check if stored format is base64 or plain
-    const decodedStored = storedPass ? atob(storedPass) : (isDelete ? '654321' : '123456');
+    const decodedStored = storedPass ? atob(storedPass) : '654321';
     
-    if (currentPin === decodedStored || currentPin === (isDelete ? '654321' : '123456')) isValid = true;
+    if (currentPin === decodedStored || currentPin === '654321') isValid = true;
 
     if (isValid) {
       onConfirm(currentPin);
@@ -73,10 +73,10 @@ const PasswordModal = ({ isOpen, actionInfo, onConfirm, onCancel }) => {
             <Lock className="w-10 h-10 text-blue-600" />
           </div>
           <h3 className="text-2xl font-black text-text-main tracking-tight italic">
-            {actionInfo?.isDeleteAction ? 'Delete Lock' : 'Admin Lock'}
+            Universal Safety PIN
           </h3>
           <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mt-2 opacity-60">
-            {actionInfo?.isDeleteAction ? 'Verification PIN Required' : 'Admin Verification Required'}
+            Authorization Required
           </p>
 
           {actionInfo?.actionLabel && (

@@ -3,6 +3,9 @@ import { Lock, Eye, EyeOff, Shield, Timer, AlertTriangle, CheckCircle2, Cloud, I
 import { AppContext } from '../context/AppContext';
 import * as storage from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
+import { listenToQuota, resetQuotaCounter, QUOTA_DOC_ID } from '../utils/usageService';
+import { recalculateTotalStorageUsage } from '../utils/firestoreService';
+import { IndianRupee, Trash2, RefreshCcw, HardDrive } from 'lucide-react';
 
 const Settings = () => {
   const { showToast, requirePassword, endAdminSession, updateSettings } = useContext(AppContext);
@@ -43,6 +46,10 @@ const Settings = () => {
     publicKey: localStorage.getItem('crm_email_public_key') || ''
   });
 
+  // Quota usage state
+  const [quota, setQuota] = useState({ totalBytesUsed: 0, safetyLimit: 4.5 * 1024 * 1024 * 1024 });
+  const [isRecalculating, setIsRecalculating] = useState(false);
+
   const handleSaveEmailConfig = async (e) => {
     e.preventDefault();
     const ok = await requirePassword({ actionType: 'editSettings', actionLabel: 'SAVE EmailJS Integration Keys' });
@@ -70,6 +77,12 @@ const Settings = () => {
 
     const savedDuration = localStorage.getItem('crm_session_duration');
     if (savedDuration) setSessionDuration(savedDuration);
+
+    // Subscribe to quota updates
+    const unsubscribeQuota = listenToQuota((data) => {
+      setQuota(data);
+    });
+    return () => unsubscribeQuota();
   }, []);
 
   // --- PASSWORD MANAGEMENT ---
@@ -176,7 +189,7 @@ const Settings = () => {
       });
 
       setLastChanged('Never (Using Default)');
-      showToast('Password reset to default and synced');
+      showToast('Login Key reset to default and synced');
       endAdminSession();
     }
   };
@@ -227,12 +240,35 @@ const Settings = () => {
     if (ok) {
       const success = storage.clearAllData();
       if (success) {
+        // Reset quota doc too
+        await resetQuotaCounter(0);
         showToast('All data has been cleared', 'success');
         localStorage.setItem('crm_admin_password', btoa('123456')); // ensure app continues to work smoothly on fresh load
         // Note: storage.clearAllData removes ALL localStorage including the password. So I am putting default back immediately.
         setTimeout(() => window.location.reload(), 500); // hard reset state
       }
     }
+  };
+
+  const handleRecalculateQuota = async () => {
+    setIsRecalculating(true);
+    try {
+      const actualBytes = await recalculateTotalStorageUsage();
+      await resetQuotaCounter(actualBytes);
+      showToast(`Usage recalculated: ${(actualBytes / (1024*1024)).toFixed(2)} MB`);
+    } catch (err) {
+      showToast('Recalculation failed', 'error');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
+  const formatBytes = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const strength = getStrengthLabel(newPassword);
@@ -249,8 +285,8 @@ const Settings = () => {
         {/* SECTION 1: PASSWORD MANAGEMENT */}
         <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-border-main flex items-center gap-3 bg-main-bg/50">
-            <div className="bg-blue-500/10 p-2 rounded-xl text-blue-500"><Lock className="w-5 h-5" /></div>
-            <h2 className="text-base sm:text-lg font-black text-text-main">Security Settings</h2>
+            <div className="bg-blue-500/10 p-2 rounded-xl text-blue-500"><Key className="w-5 h-5" /></div>
+            <h2 className="text-base sm:text-lg font-black text-text-main">Owner Portal Login Key</h2>
           </div>
           <div className="p-4 sm:p-6">
             <div className="bg-green-500/10 rounded-xl p-4 border border-green-500/20 flex items-start gap-4 mb-6">
@@ -263,7 +299,7 @@ const Settings = () => {
 
             <form onSubmit={handleUpdatePassword} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-text-muted uppercase mb-2">Current Admin PIN *</label>
+                <label className="block text-xs font-black text-text-muted uppercase mb-2">Current Login Key *</label>
                 <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500/20">
                   <input type={showCurrent ? "text" : "password"} value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} required placeholder="6-digit PIN" maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-text-main tracking-[0.5em]" />
                   <button type="button" onClick={() => setShowCurrent(!showCurrent)} className="text-text-muted hover:text-text-main ml-2"><Eye className="w-4 h-4" /></button>
@@ -271,7 +307,7 @@ const Settings = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-text-muted uppercase mb-2">New Admin PIN *</label>
+                  <label className="block text-xs font-black text-text-muted uppercase mb-2">New Login Key *</label>
                   <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-blue-500/20">
                     <input type={showNew ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} required maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-text-main tracking-[0.5em]" />
                     <button type="button" onClick={() => setShowNew(!showNew)} className="text-text-muted hover:text-text-main ml-2"><Eye className="w-4 h-4" /></button>
@@ -290,9 +326,9 @@ const Settings = () => {
               </div>
               
               <div className="pt-4 flex flex-col md:flex-row items-center gap-4">
-                <button type="submit" className="w-full md:w-auto px-6 py-3 rounded-xl bg-blue-600 text-white font-black hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/10">Update Password</button>
+                <button type="submit" className="w-full md:w-auto px-6 py-3 rounded-xl bg-blue-600 text-white font-black hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/10">Update Login Key</button>
                 <div className="flex-1"></div>
-                <button type="button" onClick={handleResetDefault} className="w-full md:w-auto px-6 py-3 rounded-xl border-2 border-border-main text-text-muted font-bold hover:border-red-500/50 hover:text-red-500 hover:bg-red-500/5 transition-colors">Reset to Default Password</button>
+                <button type="button" onClick={handleResetDefault} className="w-full md:w-auto px-6 py-3 rounded-xl border-2 border-border-main text-text-muted font-bold hover:border-red-500/50 hover:text-red-500 hover:bg-red-500/5 transition-colors">Reset to Default Login Key</button>
               </div>
             </form>
           </div>
@@ -301,16 +337,16 @@ const Settings = () => {
         {/* SECTION 1B: DELETE PIN MANAGEMENT */}
         <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
           <div className="p-4 sm:p-6 border-b border-border-main flex items-center gap-3 bg-red-500/5">
-            <div className="bg-red-500/10 p-2 rounded-xl text-red-500"><Lock className="w-5 h-5" /></div>
+            <div className="bg-red-500/10 p-2 rounded-xl text-red-500"><Shield className="w-5 h-5" /></div>
             <div>
-              <h2 className="text-base sm:text-lg font-black text-text-main">Delete PIN Management</h2>
-              <p className="text-[10px] sm:text-xs font-bold text-text-muted">Set a separate PIN for sensitive delete operations</p>
+              <h2 className="text-base sm:text-lg font-black text-text-main">Universal Safety PIN</h2>
+              <p className="text-[10px] sm:text-xs font-bold text-text-muted">High-security PIN for editing, deleting, and settings</p>
             </div>
           </div>
           <div className="p-4 sm:p-6">
             <form onSubmit={handleUpdateDeletePassword} className="space-y-4">
               <div>
-                <label className="block text-xs font-black text-text-muted uppercase mb-2">Current Delete PIN *</label>
+                <label className="block text-xs font-black text-text-muted uppercase mb-2">Current Safety PIN *</label>
                 <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-red-500/20">
                   <input type={showCurrentDelete ? "text" : "password"} value={currentDeletePass} onChange={e => setCurrentDeletePass(e.target.value)} required placeholder="Default: 654321" maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-text-main tracking-[0.5em]" />
                   <button type="button" onClick={() => setShowCurrentDelete(!showCurrentDelete)} className="text-text-muted hover:text-text-main ml-2"><Eye className="w-4 h-4" /></button>
@@ -318,14 +354,14 @@ const Settings = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-text-muted uppercase mb-2">New Delete PIN *</label>
+                  <label className="block text-xs font-black text-text-muted uppercase mb-2">New Safety PIN *</label>
                   <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-red-500/20">
                     <input type={showNewDelete ? "text" : "password"} value={newDeletePass} onChange={e => setNewDeletePass(e.target.value)} required maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-text-main tracking-[0.5em]" />
                     <button type="button" onClick={() => setShowNewDelete(!showNewDelete)} className="text-text-muted hover:text-text-main ml-2"><Eye className="w-4 h-4" /></button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-text-muted uppercase mb-2">Confirm Delete PIN *</label>
+                  <label className="block text-xs font-black text-text-muted uppercase mb-2">Confirm Safety PIN *</label>
                   <div className="flex items-center bg-main-bg border border-border-main rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-red-500/20">
                     <input type={showConfirmDelete ? "text" : "password"} value={confirmDeletePass} onChange={e => setConfirmDeletePass(e.target.value)} required maxLength={6} className="w-full bg-transparent outline-none text-sm font-bold text-text-main tracking-[0.5em]" />
                     <button type="button" onClick={() => setShowConfirmDelete(!showConfirmDelete)} className="text-text-muted hover:text-text-main ml-2"><Eye className="w-4 h-4" /></button>
@@ -334,7 +370,7 @@ const Settings = () => {
               </div>
               
               <div className="pt-4">
-                <button type="submit" className="w-full md:w-auto px-6 py-3 rounded-xl bg-red-600 text-white font-black hover:bg-red-700 transition-colors shadow-lg shadow-red-500/10">Update Delete PIN</button>
+                <button type="submit" className="w-full md:w-auto px-6 py-3 rounded-xl bg-red-600 text-white font-black hover:bg-red-700 transition-colors shadow-lg shadow-red-500/10">Update Safety PIN</button>
               </div>
             </form>
           </div>
@@ -409,38 +445,61 @@ const Settings = () => {
         </div>
         
         {/* SECTION 4: CLOUD SYNC INFO & LIMITS */}
-        <div className="bg-blue-500/5 rounded-3xl shadow-sm border border-blue-500/20 overflow-hidden">
-          <div className="p-6 border-b border-blue-500/20 flex items-center gap-3 bg-blue-500/10">
-            <div className="bg-blue-500/10 p-2 rounded-xl text-blue-500"><Cloud className="w-5 h-5" /></div>
-            <h2 className="text-lg font-black text-blue-600">Cloud Sync & Quotas</h2>
+        <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
+          <div className="p-6 border-b border-border-main flex items-center justify-between bg-blue-500/5">
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-500/10 p-2 rounded-xl text-blue-500"><Cloud className="w-5 h-5" /></div>
+              <h2 className="text-lg font-black text-text-main">Storage & Quota</h2>
+            </div>
+            <button 
+              onClick={handleRecalculateQuota}
+              disabled={isRecalculating}
+              className="p-2 hover:bg-main-bg rounded-xl transition-all disabled:opacity-50"
+              title="Recalculate Usage"
+            >
+              <RefreshCcw className={`w-4 h-4 text-text-muted ${isRecalculating ? 'animate-spin' : ''}`} />
+            </button>
           </div>
           <div className="p-6">
-            <div className="flex items-start gap-4 mb-6">
-               <div className="mt-1 bg-amber-500/10 p-2 rounded-lg text-amber-500 shrink-0"><AlertTriangle className="w-4 h-4" /></div>
-               <div>
-                  <h4 className="font-bold text-text-main mb-1">Firebase Spark (Free) Plan Limits</h4>
-                  <p className="text-sm text-text-muted leading-relaxed mb-4">
-                     Your data is synchronized using the Firebase free tier. Please be aware of the following daily limits. If these are exceeded, sync may stop until the next day.
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                     {[
-                        { label: 'Data Storage', value: '1 GB Total', icon: Info },
-                        { label: 'Reads / Day', value: '50,000', icon: Info },
-                        { label: 'Writes / Day', value: '20,000', icon: Info },
-                        { label: 'Deletes / Day', value: '20,000', icon: Info },
-                     ].map((lim, i) => (
-                        <div key={i} className="bg-card-bg/50 border border-blue-500/10 p-3 rounded-xl flex items-center justify-between">
-                           <span className="text-xs font-bold text-text-muted uppercase">{lim.label}</span>
-                           <span className="text-sm font-black text-blue-500">{lim.value}</span>
-                        </div>
-                     ))}
-                  </div>
-                  
-                  <p className="text-[11px] text-text-muted mt-4 italic font-medium">
-                     * This car rental app uses very small data packets, so these limits are extremely high for typical small-business usage.
-                  </p>
-               </div>
+            <div className="space-y-6">
+              {/* Usage Stats */}
+              <div className="flex justify-between items-end">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-text-muted">Current Usage</p>
+                  <h3 className="text-2xl font-black text-text-main tracking-tighter">{formatBytes(quota.totalBytesUsed || 0)}</h3>
+                </div>
+                <div className="text-right space-y-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-text-muted">Safety Limit</p>
+                  <h3 className="text-xl font-bold text-blue-500 tracking-tighter">{formatBytes(quota.safetyLimit || 4.5 * 1024 * 1024 * 1024)}</h3>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="space-y-2">
+                <div className="h-3 w-full bg-main-bg rounded-full overflow-hidden border border-border-main p-0.5">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${
+                      (quota.totalBytesUsed / quota.safetyLimit) > 0.9 ? 'bg-red-500' : 
+                      (quota.totalBytesUsed / quota.safetyLimit) > 0.7 ? 'bg-amber-500' : 'bg-blue-500'
+                    }`}
+                    style={{ width: `${Math.min(100, (quota.totalBytesUsed / quota.safetyLimit) * 100)}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-[9px] font-black uppercase tracking-widest">
+                  <span className="text-text-muted">0 GB</span>
+                  <span className={quota.totalBytesUsed > quota.safetyLimit ? 'text-red-500' : 'text-text-muted'}>
+                    {(quota.totalBytesUsed / quota.safetyLimit * 100).toFixed(1)}% Used
+                  </span>
+                  <span className="text-text-muted">5.0 GB Max (Free)</span>
+                </div>
+              </div>
+
+              <div className="bg-blue-500/5 border border-blue-500/10 p-4 rounded-2xl flex gap-4">
+                <Info className="w-5 h-5 text-blue-500 shrink-0" />
+                <p className="text-xs text-text-muted font-medium leading-relaxed">
+                  Your project is on the Blaze plan, but we've added this <span className="text-blue-600 font-bold">Budget Protector</span> to ensure you stay within the 5GB free tier. If usage hits the safety limit, the app will pause uploads to prevent any charges.
+                </p>
+              </div>
             </div>
           </div>
         </div>
