@@ -58,7 +58,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           </button>
         </div>
 
-        <div className="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
+        <div className="flex-1 py-8 px-4 space-y-2 overflow-y-auto min-h-0">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted px-4 mb-4 opacity-50">Portal Menu</p>
           {navItems.map((item) => (
             <NavLink
@@ -79,7 +79,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           ))}
         </div>
 
-        <div className="p-4 border-t border-border-main bg-main-bg/10 flex flex-col gap-2">
+        <div className="flex-shrink-0 p-4 border-t border-border-main bg-main-bg/10 flex flex-col gap-2 pb-safe">
           {isAdmin && (
             <div className="flex items-center justify-between mb-2">
               <div className="flex flex-col">
