@@ -45,7 +45,7 @@ const Header = ({ setSidebarOpen }) => {
   };
 
   return (
-    <header className="h-16 bg-card-bg border-b border-border-main shadow-sm flex items-center justify-between px-4 lg:px-8 z-30 sticky top-0 transition-colors duration-300">
+    <header className="h-16 bg-card-bg border-b border-border-main shadow-sm flex items-center justify-between px-6 lg:px-8 z-30 sticky top-0 transition-colors duration-300">
       <div className="flex items-center gap-4">
         <button 
           className="lg:hidden p-2 hover:bg-main-bg rounded-md text-text-muted transition-colors"

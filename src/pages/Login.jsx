@@ -4,7 +4,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { Lock, Eye, Shield, CarFront, ArrowRight, UserCheck } from 'lucide-react';
 
 const Login = () => {
-  const [selectedRole, setSelectedRole] = useState(null); // 'OWNER' or 'CUSTOMER'
+  const [selectedRole, setSelectedRole] = useState('CUSTOMER'); // Default to Customer Hub
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
