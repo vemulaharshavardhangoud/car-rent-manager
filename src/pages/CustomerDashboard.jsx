@@ -4,12 +4,30 @@ import { useNavigate } from 'react-router-dom';
 import { CarFront, CalendarCheck, MapPin, QrCode, Share2 } from 'lucide-react';
 
 const CustomerDashboard = () => {
-  const { vehicles } = useContext(AppContext);
+  const { vehicles, isSyncing } = useContext(AppContext);
   const navigate = useNavigate();
 
   const totalVehicles = vehicles.length;
   const availableVehicles = vehicles.filter(v => v.status === 'Available').length;
   const onTripVehicles = vehicles.filter(v => v.status === 'On Trip').length;
+
+  // Premium Skeleton Loader for a 'WOW' first impression while syncing
+  if (isSyncing && totalVehicles === 0) {
+    return (
+      <div className="space-y-8 animate-pulse pb-10">
+        <div className="flex flex-col gap-2">
+          <div className="h-10 w-48 bg-border-main rounded-xl"></div>
+          <div className="h-4 w-64 bg-border-main/50 rounded-lg"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-48 bg-card-bg border border-border-main rounded-[2.5rem]"></div>
+          ))}
+        </div>
+        <div className="h-64 bg-border-main/30 rounded-[2.5rem]"></div>
+      </div>
+    );
+  }
 
   const stats = [
     { label: 'Total Fleet', value: totalVehicles, icon: CarFront, color: 'text-blue-500', bg: 'bg-blue-500/10' },
