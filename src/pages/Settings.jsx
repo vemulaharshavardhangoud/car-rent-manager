@@ -18,7 +18,7 @@ const Settings = () => {
     cancelBooking: true, editVehicle: true, editTrip: false,
     editBooking: true, clearData: true
   });
-  const [sessionDuration, setSessionDuration] = useState('5');
+  const [sessionDuration, setSessionDuration] = useState('30');
 
   // PIN Form State
   const [currentPassword, setCurrentPassword] = useState('');
@@ -435,10 +435,11 @@ const Settings = () => {
             <label className="block font-bold text-text-main mb-1">Admin Session Duration</label>
             <p className="text-xs text-text-muted mb-4">After correct PIN how long before it is required again</p>
             <select value={sessionDuration} onChange={handleSessionChange} className="w-full md:w-1/2 px-4 py-3 bg-main-bg border border-border-main rounded-xl font-bold text-text-main outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100">
-              <option value="2">2 Minutes</option>
-              <option value="5">5 Minutes</option>
-              <option value="10">10 Minutes</option>
-              <option value="30">30 Minutes</option>
+              <option value="30">30 Seconds</option>
+              <option value="60">1 Minute</option>
+              <option value="120">2 Minutes</option>
+              <option value="300">5 Minutes</option>
+              <option value="600">10 Minutes</option>
               <option value="Until Page Refresh">Until Page Refresh</option>
             </select>
           </div>

@@ -224,19 +224,21 @@ export const AppProvider = ({ children }) => {
   }, [adminSession]);
 
   const handlePasswordSuccess = () => {
-    const durationSetting = localStorage.getItem('crm_session_duration') || '5';
+    const durationSetting = localStorage.getItem('crm_session_duration') || '30'; // default: 30 seconds
     let expiresAt = null;
     
     if (durationSetting === 'Until Page Refresh') {
       expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 365; // Indefinitely
     } else {
-      expiresAt = Date.now() + parseInt(durationSetting, 10) * 60 * 1000;
+      // Duration is stored in seconds
+      expiresAt = Date.now() + parseInt(durationSetting, 10) * 1000;
     }
 
     setAdminSession({ active: true, expiresAt });
     if (passwordModalConfig.resolve) passwordModalConfig.resolve(true);
     setPasswordModalConfig({ isOpen: false, actionInfo: null, resolve: null });
   };
+
 
   const handlePasswordCancel = () => {
     if (passwordModalConfig.resolve) passwordModalConfig.resolve(false);
