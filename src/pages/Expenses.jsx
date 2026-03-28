@@ -218,10 +218,10 @@ const Expenses = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-          <div className="relative w-full max-w-xl bg-card-bg rounded-[3rem] shadow-2xl overflow-hidden border border-border-main animate-slide-up">
-              <div className="p-10 border-b border-border-main bg-main-bg/20 flex items-center justify-between">
+          <div className="relative w-full max-w-xl bg-card-bg rounded-t-3xl md:rounded-[3rem] shadow-2xl overflow-hidden border border-border-main animate-slide-up self-end md:self-center">
+              <div className="p-6 md:p-10 border-b border-border-main bg-main-bg/20 flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-black text-text-main tracking-tight">{editingExpense ? 'Edit Expense' : 'New Expense Entry'}</h3>
+                  <h3 className="text-xl md:text-2xl font-black text-text-main tracking-tight">{editingExpense ? 'Edit Expense' : 'New Expense Entry'}</h3>
                   <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mt-1">Finance & Ledger</p>
                 </div>
                 <button onClick={() => setIsModalOpen(false)} className="p-3 hover:bg-main-bg rounded-2xl transition-colors">
@@ -229,7 +229,7 @@ const Expenses = () => {
                 </button>
              </div>
 
-             <form onSubmit={handleSubmit} className="p-10 space-y-6">
+             <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-text-muted uppercase tracking-widest pl-1">Amount (₹)</label>
                   <input 

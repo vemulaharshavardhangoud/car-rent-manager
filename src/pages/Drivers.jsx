@@ -53,7 +53,7 @@ const Drivers = () => {
         </div>
         <button 
           onClick={() => { resetForm(); setIsModalOpen(true); }}
-          className="flex items-center gap-3 bg-blue-600 hover:bg-black text-white px-8 py-4 rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-blue-500/20 transition-all hover:-translate-y-1 active:scale-95 group"
+          className="w-full md:w-auto flex items-center justify-center gap-3 bg-blue-600 hover:bg-black text-white px-8 py-4 rounded-3xl md:rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-blue-500/20 transition-all hover:-translate-y-1 active:scale-95 group"
         >
           <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
           Onboard Driver
@@ -86,7 +86,7 @@ const Drivers = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(driver => (
-            <div key={driver.id} className="bg-card-bg rounded-[2.5rem] border border-border-main p-8 shadow-sm hover:shadow-xl hover:shadow-black/5 hover:border-blue-500/20 transition-all group relative overflow-hidden">
+            <div key={driver.id} className="bg-card-bg rounded-3xl md:rounded-[2.5rem] border border-border-main p-6 md:p-8 shadow-sm hover:shadow-xl hover:shadow-black/5 hover:border-blue-500/20 transition-all group relative overflow-hidden">
                <div className="absolute top-0 right-0 w-32 h-32 bg-main-bg -mr-16 -mt-16 rounded-full opacity-50 transition-transform group-hover:scale-110"></div>
                
                <div className="relative z-10 flex flex-col items-center text-center">
@@ -140,10 +140,10 @@ const Drivers = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsModalOpen(false)}></div>
-          <div className="relative w-full max-w-xl bg-card-bg rounded-[3rem] shadow-2xl overflow-hidden border border-border-main animate-slide-up">
-             <div className="p-10 border-b border-border-main bg-main-bg/20 flex items-center justify-between">
+          <div className="relative w-full max-w-xl bg-card-bg rounded-t-3xl md:rounded-[3rem] shadow-2xl overflow-hidden border border-border-main animate-slide-up self-end md:self-center">
+             <div className="p-6 md:p-10 border-b border-border-main bg-main-bg/20 flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-black text-text-main tracking-tight">Onboard Personnel</h3>
+                  <h3 className="text-xl md:text-2xl font-black text-text-main tracking-tight">Onboard Personnel</h3>
                   <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mt-1">New Driver Profile Registration</p>
                 </div>
                 <button onClick={() => setIsModalOpen(false)} className="p-3 hover:bg-main-bg rounded-2xl transition-colors">
@@ -151,7 +151,7 @@ const Drivers = () => {
                 </button>
              </div>
 
-             <form onSubmit={handleSubmit} className="p-10 space-y-6">
+             <form onSubmit={handleSubmit} className="p-6 md:p-10 space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-text-muted uppercase tracking-widest pl-1">Full Name</label>

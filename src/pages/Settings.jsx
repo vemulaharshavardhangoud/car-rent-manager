@@ -229,11 +229,11 @@ const Settings = () => {
       <div className="space-y-8">
         {/* SECTION 1: PASSWORD MANAGEMENT */}
         <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
-          <div className="p-6 border-b border-border-main flex items-center gap-3 bg-main-bg/50">
+          <div className="p-4 sm:p-6 border-b border-border-main flex items-center gap-3 bg-main-bg/50">
             <div className="bg-blue-500/10 p-2 rounded-xl text-blue-500"><Lock className="w-5 h-5" /></div>
-            <h2 className="text-lg font-black text-text-main">Security Settings</h2>
+            <h2 className="text-base sm:text-lg font-black text-text-main">Security Settings</h2>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <div className="bg-green-500/10 rounded-xl p-4 border border-green-500/20 flex items-start gap-4 mb-6">
               <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
               <div>
@@ -281,14 +281,14 @@ const Settings = () => {
 
         {/* SECTION 1B: DELETE PIN MANAGEMENT */}
         <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
-          <div className="p-6 border-b border-border-main flex items-center gap-3 bg-red-500/5">
+          <div className="p-4 sm:p-6 border-b border-border-main flex items-center gap-3 bg-red-500/5">
             <div className="bg-red-500/10 p-2 rounded-xl text-red-500"><Lock className="w-5 h-5" /></div>
             <div>
-              <h2 className="text-lg font-black text-text-main">Delete PIN Management</h2>
-              <p className="text-xs font-bold text-text-muted">Set a separate PIN for sensitive delete operations</p>
+              <h2 className="text-base sm:text-lg font-black text-text-main">Delete PIN Management</h2>
+              <p className="text-[10px] sm:text-xs font-bold text-text-muted">Set a separate PIN for sensitive delete operations</p>
             </div>
           </div>
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <form onSubmit={handleUpdateDeletePassword} className="space-y-4">
               <div>
                 <label className="block text-xs font-black text-text-muted uppercase mb-2">Current Delete PIN *</label>
@@ -323,11 +323,11 @@ const Settings = () => {
 
         {/* SECTION 2: PROTECTED ACTIONS */}
         <div className="bg-card-bg rounded-3xl shadow-sm border border-border-main overflow-hidden">
-          <div className="p-6 border-b border-border-main flex items-center gap-3 bg-main-bg/50">
+          <div className="p-4 sm:p-6 border-b border-border-main flex items-center gap-3 bg-main-bg/50">
             <div className="bg-amber-500/10 p-2 rounded-xl text-amber-500"><Shield className="w-5 h-5" /></div>
             <div>
-              <h2 className="text-lg font-black text-text-main">Protected Actions</h2>
-              <p className="text-xs font-bold text-text-muted">Choose which actions require PIN verification</p>
+              <h2 className="text-base sm:text-lg font-black text-text-main">Protected Actions</h2>
+              <p className="text-[10px] sm:text-xs font-bold text-text-muted">Choose which actions require PIN verification</p>
             </div>
           </div>
           <div className="p-2">
