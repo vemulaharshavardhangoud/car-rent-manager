@@ -17,9 +17,9 @@ const CustomerDashboard = () => {
     { label: 'Currently on Trip', value: onTripVehicles, icon: MapPin, color: 'text-orange-500', bg: 'bg-orange-500/10' },
   ];
 
-  // The link to the new booking page
-  const bookingLink = `${window.location.origin}${window.location.pathname}#/new-booking`;
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(bookingLink)}`;
+  // The link to the main website root
+  const websiteLink = `${window.location.origin}${window.location.pathname}#/`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(websiteLink)}`;
 
   return (
     <div className="space-y-8 animate-fade-in pb-10">
@@ -62,18 +62,18 @@ const CustomerDashboard = () => {
           <div className="mb-6 relative">
             <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full scale-75 group-hover:scale-110 transition-transform"></div>
             <div className="bg-white p-4 rounded-2xl shadow-lg relative border border-gray-100">
-               <img src={qrUrl} alt="Booking QR Code" className="w-32 h-32" />
+               <img src={qrUrl} alt="Website QR Code" className="w-32 h-32" />
                <div className="absolute -bottom-2 -right-2 bg-blue-600 p-2 rounded-xl text-white shadow-lg">
                   <QrCode className="w-4 h-4" />
                </div>
             </div>
           </div>
-          <h3 className="text-xl font-black text-text-main mb-2">Scan to Book</h3>
-          <p className="text-text-muted text-sm font-medium mb-6">Open your camera to scan and start a new booking instantly.</p>
+          <h3 className="text-xl font-black text-text-main mb-2">Scan Website</h3>
+          <p className="text-text-muted text-sm font-medium mb-6">Open your camera to scan and visit the website instantly.</p>
           <button 
             onClick={() => {
-              navigator.clipboard.writeText(bookingLink);
-              alert('Booking link copied to clipboard!');
+              navigator.clipboard.writeText(websiteLink);
+              alert('Website link copied to clipboard!');
             }}
             className="flex items-center gap-2 text-blue-600 font-bold text-sm hover:underline"
           >
