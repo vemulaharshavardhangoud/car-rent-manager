@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Users, Car, History, Menu, DollarSign, CalendarDays, LogOut } from 'lucide-react';
+import { Home, Users, Car, History, Menu, DollarSign, CalendarDays, LogOut, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const BottomNav = ({ setSidebarOpen }) => {
@@ -18,7 +18,7 @@ const BottomNav = ({ setSidebarOpen }) => {
   ] : [
     { icon: Home, label: 'Home', path: '/' },
     { icon: Car, label: 'Availability', path: '/vehicles' },
-    { icon: LogOut, label: 'Logout', path: 'LOGOUT_ACTION' },
+    { icon: Search, label: 'My Booking', path: '/my-bookings' },
     { icon: Menu, label: 'Menu', path: 'MENU_TOGGLE' },
   ];
 

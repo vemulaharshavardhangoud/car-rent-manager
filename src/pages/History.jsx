@@ -338,12 +338,24 @@ const History = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center text-[10px] text-text-muted px-1">
-                    <div className="flex items-center gap-3">
-                       <span><b className="text-text-main">{trip.distance}</b> KM</span>
-                       {trip.hasAC && <span className="text-blue-500 font-black uppercase">AC Mode</span>}
+                  <div className="flex justify-between items-center mt-4 pt-3 border-t border-border-main/30">
+                    <div className="flex items-center gap-4">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleEdit(trip); }}
+                        className="flex items-center gap-1.5 text-[10px] font-black text-blue-500 uppercase tracking-widest"
+                      >
+                        <Edit className="w-3.5 h-3.5" /> Edit
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); confirmDelete(trip); }}
+                        className="flex items-center gap-1.5 text-[10px] font-black text-red-500 uppercase tracking-widest"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                      </button>
                     </div>
-                    <button className="text-blue-500 font-black uppercase tracking-widest flex items-center gap-1">Details <Eye className="w-3 h-3" /></button>
+                    <button className="text-text-muted font-black uppercase tracking-widest flex items-center gap-1 text-[10px]">
+                      Details <Eye className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}
