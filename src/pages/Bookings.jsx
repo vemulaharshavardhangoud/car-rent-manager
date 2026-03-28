@@ -320,23 +320,23 @@ const Bookings = () => {
   return (
     <div className="pb-20 animate-fade-in">
       {/* PAGE HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 mt-2">
         <div>
           <h1 className="text-3xl font-black text-text-main tracking-tight">Vehicle Bookings</h1>
-          <p className="text-text-muted font-medium">Manage all vehicle booking and cancellation dates</p>
+          <p className="text-text-muted font-medium text-sm">Manage all vehicle booking and cancellation dates</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 w-full md:w-auto">
           <button 
             onClick={() => storage.exportBookingsAsCSV(filteredBookings)}
-            className="flex items-center gap-2 bg-card-bg border border-border-main text-text-main px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-main-bg transition-all shadow-sm"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-card-bg border border-border-main text-text-main px-4 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-main-bg transition-all shadow-sm"
           >
-            <Download className="w-4 h-4" /> Export CSV
+            <Download className="w-4 h-4" /> Export
           </button>
           <button 
             onClick={() => { setShowForm(true); setEditingId(null); setForm(initialForm); }}
-            className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md shadow-blue-500/10"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20"
           >
-            <Plus className="w-4 h-4" /> New Booking
+            <Plus className="w-4 h-4" /> Add New
           </button>
         </div>
       </div>

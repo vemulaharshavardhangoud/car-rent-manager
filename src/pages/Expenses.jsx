@@ -81,7 +81,7 @@ const Expenses = () => {
         </div>
         <button 
           onClick={() => { setEditingExpense(null); setFormData(initialForm); setIsModalOpen(true); }}
-          className="flex items-center gap-3 bg-red-600 hover:bg-black text-white px-8 py-4 rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-red-500/20 transition-all hover:-translate-y-1 active:scale-95 group"
+          className="w-full md:w-auto flex items-center justify-center gap-3 bg-red-600 hover:bg-black text-white px-6 py-4 rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-red-500/20 transition-all hover:-translate-y-1 active:scale-95 group"
         >
           <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
           Log Expense

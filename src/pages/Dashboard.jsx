@@ -323,7 +323,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="hidden md:table w-full text-sm text-left">
+                <table className="hidden md:table w-full text-sm text-left min-w-[700px]">
                   <thead className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-black bg-main-bg/50 border-b border-border-main">
                     <tr>
                       <th className="px-8 py-5">Vehicle</th>

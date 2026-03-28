@@ -243,7 +243,7 @@ const History = () => {
 
             {/* Desktop Table View (Hidden on Mobile) */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm text-left">
+              <table className="w-full text-sm text-left min-w-[1000px]">
                 <thead className="text-xs text-text-muted uppercase bg-main-bg/50 border-b border-border-main">
                   <tr>
                     <th className="px-4 py-3 font-semibold">#</th>
