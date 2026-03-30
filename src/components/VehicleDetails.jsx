@@ -59,14 +59,14 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
         </button>
 
         {/* LEFT: Gallery — compact on mobile */}
-        <div className="w-full md:w-[55%] bg-gray-50 flex flex-col p-3 md:p-8 gap-3 md:gap-6 border-b md:border-b-0 md:border-r border-gray-100">
+        <div className="w-full md:w-[55%] bg-gray-50 flex flex-col p-2 md:p-8 gap-2 md:gap-6 border-b md:border-b-0 md:border-r border-gray-100">
 
           {/* Main Photo — smaller on mobile */}
           <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className="relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-inner group flex items-center justify-center h-48 md:h-80 touch-pan-y"
+            className={`relative bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-inner group flex items-center justify-center ${vehicle.photos?.length > 0 ? 'h-44 md:h-80' : 'h-32 md:h-48'} touch-pan-y`}
           >
             {vehicle.photos && vehicle.photos.length > 0 ? (
               <>
@@ -90,9 +90,9 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
                 </div>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center text-gray-300 gap-3">
-                <CarFront className="w-20 h-20" />
-                <p className="font-black uppercase tracking-[0.2em] text-[10px]">No photos available</p>
+              <div className="flex flex-col items-center justify-center text-gray-300 gap-2">
+                <CarFront className="w-12 h-12" />
+                <p className="font-black uppercase tracking-[0.2em] text-[8px]">No photos available</p>
               </div>
             )}
           </div>
@@ -114,10 +114,10 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
         </div>
 
         {/* RIGHT: Info — scrollable */}
-        <div className="w-full md:w-[45%] p-5 md:p-8 flex flex-col bg-white overflow-y-auto">
+        <div className="w-full md:w-[45%] p-4 md:p-8 flex flex-col bg-white overflow-y-auto">
 
           {/* Header */}
-          <div className="mb-5">
+          <div className="mb-4">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-[0.2em] rounded-full">{vehicle.type}</span>
               {vehicle.hasAC && (
@@ -132,19 +132,19 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
 
           {/* Stats */}
           {stats && (
-            <div className="grid grid-cols-2 gap-3 mb-5">
-              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="p-3 md:p-4 bg-gray-50 rounded-2xl border border-gray-100">
                 <span className="block text-[10px] uppercase font-black text-gray-400 mb-1 tracking-widest">Lifetime Trips</span>
-                <span className="text-2xl font-black text-gray-900">{stats.count}</span>
+                <span className="text-xl md:text-2xl font-black text-gray-900">{stats.count}</span>
               </div>
-              <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
+              <div className="p-3 md:p-4 bg-gray-50 rounded-2xl border border-gray-100">
                 <span className="block text-[10px] uppercase font-black text-gray-400 mb-1 tracking-widest">Distance</span>
-                <span className="text-2xl font-black text-gray-900">{stats.totalKm} <span className="text-xs">KM</span></span>
+                <span className="text-xl md:text-2xl font-black text-gray-900">{stats.totalKm} <span className="text-xs">KM</span></span>
               </div>
             </div>
           )}
 
-          <div className="space-y-5 flex-1">
+          <div className="space-y-4 flex-1">
 
             {/* Pricing — always visible */}
             <section>
@@ -272,9 +272,11 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
               </>
             )}
 
-            <button onClick={onClose} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl mt-auto">
-              Back to Fleet
-            </button>
+            <div className="sticky bottom-0 pt-4 bg-white border-t border-gray-50 mt-auto">
+              <button onClick={onClose} className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl">
+                Back to Fleet
+              </button>
+            </div>
           </div>
         </div>
       </div>
