@@ -3,12 +3,17 @@ import { X, ChevronLeft, ChevronRight, Receipt, Edit, CarFront, Droplets, Plus, 
 import { AppContext } from '../context/AppContext';
 
 const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = false }) => {
+  const { vehicles, fuelLogs, addFuelLog, deleteFuelLog, updateVehicleDocuments, addMaintenanceLog } = useContext(AppContext);
+  const vehicle = vehicles.find(v => v.id === initialVehicle.id) || initialVehicle;
+
   const [activePhoto, setActivePhoto] = useState(0);
   const [startTouch, setStartTouch] = useState(null);
   const [endTouch, setEndTouch] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const autoScrollRef = useRef(null);
   const minSwipeDistance = 50;
+
+  if (!vehicle) return null;
 
   // Auto-scroll logic
   useEffect(() => {
@@ -51,8 +56,7 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
     else if (distance < -minSwipeDistance) setActivePhoto(prev => (prev > 0 ? prev - 1 : vehicle.photos.length - 1));
   };
 
-  const { vehicles, fuelLogs, addFuelLog, deleteFuelLog, updateVehicleDocuments, addMaintenanceLog } = useContext(AppContext);
-  const vehicle = vehicles.find(v => v.id === initialVehicle.id) || initialVehicle;
+  const vehicleFuelLogs = fuelLogs.filter(log => log.vehicleId === vehicle.id).sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const [showFuelModal, setShowFuelModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
@@ -60,10 +64,6 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
   const [fuelForm, setFuelForm] = useState({ amount: '', litres: '', date: new Date().toISOString().split('T')[0] });
   const [docForm, setDocForm] = useState({ insuranceExpiry: vehicle.insuranceExpiry || '', permitExpiry: vehicle.permitExpiry || '', fitnessExpiry: vehicle.fitnessExpiry || '' });
   const [maintenanceForm, setMaintenanceForm] = useState({ type: 'Oil Change', date: new Date().toISOString().split('T')[0], km: '', notes: '' });
-
-  if (!vehicle) return null;
-
-  const vehicleFuelLogs = fuelLogs.filter(log => log.vehicleId === vehicle.id).sort((a, b) => new Date(b.date) - new Date(a.date));
 
   const handleAddFuel = async (e) => {
     e.preventDefault();
