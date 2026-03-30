@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, Receipt, Edit, CarFront, Droplets, Plus, Trash2, Calendar, ShieldCheck, Wrench } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 
@@ -6,11 +6,34 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
   const [activePhoto, setActivePhoto] = useState(0);
   const [startTouch, setStartTouch] = useState(null);
   const [endTouch, setEndTouch] = useState(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const autoScrollRef = useRef(null);
   const minSwipeDistance = 50;
 
-  const handleTouchStart = (e) => { setEndTouch(null); setStartTouch(e.targetTouches[0].clientX); };
+  // Auto-scroll logic
+  useEffect(() => {
+    if (!vehicle.photos || vehicle.photos.length <= 1 || isPaused) {
+      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+      return;
+    }
+
+    autoScrollRef.current = setInterval(() => {
+      setActivePhoto(prev => (prev < vehicle.photos.length - 1 ? prev + 1 : 0));
+    }, 4000); // 4 seconds interval
+
+    return () => {
+      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+    };
+  }, [vehicle.photos, isPaused]);
+
+  const handleTouchStart = (e) => { 
+    setIsPaused(true); // Pause auto-scroll on interaction
+    setEndTouch(null); 
+    setStartTouch(e.targetTouches[0].clientX); 
+  };
   const handleTouchMove = (e) => { setEndTouch(e.targetTouches[0].clientX); };
   const handleTouchEnd = () => {
+    setIsPaused(false); // Resume after interaction
     if (!startTouch || !endTouch) return;
     const distance = startTouch - endTouch;
     if (distance > minSwipeDistance) setActivePhoto(prev => (prev < vehicle.photos.length - 1 ? prev + 1 : 0));
@@ -77,10 +100,10 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
                 />
                 {vehicle.photos.length > 1 && (
                   <div className="absolute inset-0 flex items-center justify-between p-3 pointer-events-none">
-                    <button onClick={() => setActivePhoto(prev => (prev > 0 ? prev - 1 : vehicle.photos.length - 1))} className="p-2 bg-white/80 backdrop-blur-md text-gray-800 rounded-xl shadow-lg hover:bg-blue-600 hover:text-white transition-all pointer-events-auto border border-white/20">
+                    <button onClick={(e) => { e.stopPropagation(); setIsPaused(true); setActivePhoto(prev => (prev > 0 ? prev - 1 : vehicle.photos.length - 1)); setTimeout(() => setIsPaused(false), 2000); }} className="p-2 bg-white/80 backdrop-blur-md text-gray-800 rounded-xl shadow-lg hover:bg-blue-600 hover:text-white transition-all pointer-events-auto border border-white/20">
                       <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <button onClick={() => setActivePhoto(prev => (prev < vehicle.photos.length - 1 ? prev + 1 : 0))} className="p-2 bg-white/80 backdrop-blur-md text-gray-800 rounded-xl shadow-lg hover:bg-blue-600 hover:text-white transition-all pointer-events-auto border border-white/20">
+                    <button onClick={(e) => { e.stopPropagation(); setIsPaused(true); setActivePhoto(prev => (prev < vehicle.photos.length - 1 ? prev + 1 : 0)); setTimeout(() => setIsPaused(false), 2000); }} className="p-2 bg-white/80 backdrop-blur-md text-gray-800 rounded-xl shadow-lg hover:bg-blue-600 hover:text-white transition-all pointer-events-auto border border-white/20">
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
