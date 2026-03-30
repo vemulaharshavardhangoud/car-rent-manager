@@ -12,19 +12,30 @@ const VehicleDetails = ({ vehicle: initialVehicle, stats, onClose, isAdmin = fal
 
   // Auto-scroll logic
   useEffect(() => {
-    if (!vehicle.photos || vehicle.photos.length <= 1 || isPaused) {
-      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+    const hasPhotos = vehicle?.photos && vehicle.photos.length > 1;
+    if (!hasPhotos || isPaused) {
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
       return;
     }
 
+    // Use a fresh interval
     autoScrollRef.current = setInterval(() => {
-      setActivePhoto(prev => (prev < vehicle.photos.length - 1 ? prev + 1 : 0));
-    }, 4000); // 4 seconds interval
+      setActivePhoto(prev => {
+        const next = (prev < vehicle.photos.length - 1) ? prev + 1 : 0;
+        return next;
+      });
+    }, 4000);
 
     return () => {
-      if (autoScrollRef.current) clearInterval(autoScrollRef.current);
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
     };
-  }, [vehicle.photos, isPaused]);
+  }, [vehicle?.id, vehicle?.photos?.length, isPaused]);
 
   const handleTouchStart = (e) => { 
     setIsPaused(true); // Pause auto-scroll on interaction
