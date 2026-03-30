@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { AppContext } from '../context/AppContext';
 import { Car, Fuel, Users, Wind, CheckCircle2, XCircle, Search, Filter, IndianRupee, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import VehicleDetails from '../components/VehicleDetails';
@@ -8,10 +8,36 @@ const VehicleCard = ({ vehicle, stats }) => {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const autoScrollRef = useRef(null);
   
   const minSwipeDistance = 50;
 
+  // Auto-scroll logic for cards
+  useEffect(() => {
+    const hasPhotos = vehicle?.photos && vehicle.photos.length > 1;
+    if (!hasPhotos || isPaused) {
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
+      return;
+    }
+
+    autoScrollRef.current = setInterval(() => {
+      setCurrentPhotoIndex(prev => (prev < vehicle.photos.length - 1 ? prev + 1 : 0));
+    }, 4000);
+
+    return () => {
+      if (autoScrollRef.current) {
+        clearInterval(autoScrollRef.current);
+        autoScrollRef.current = null;
+      }
+    };
+  }, [vehicle?.id, vehicle?.photos?.length, isPaused]);
+
   const handleTouchStart = (e) => {
+    setIsPaused(true);
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
@@ -19,6 +45,7 @@ const VehicleCard = ({ vehicle, stats }) => {
   const handleTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
 
   const handleTouchEnd = () => {
+    setIsPaused(false);
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
@@ -32,14 +59,18 @@ const VehicleCard = ({ vehicle, stats }) => {
 
   const nextPhoto = (e) => {
     e.stopPropagation();
+    setIsPaused(true);
     if (!vehicle.photos || vehicle.photos.length === 0) return;
     setCurrentPhotoIndex((prev) => (prev + 1) % vehicle.photos.length);
+    setTimeout(() => setIsPaused(false), 2000);
   };
 
   const prevPhoto = (e) => {
     e.stopPropagation();
+    setIsPaused(true);
     if (!vehicle.photos || vehicle.photos.length === 0) return;
     setCurrentPhotoIndex((prev) => (prev - 1 + vehicle.photos.length) % vehicle.photos.length);
+    setTimeout(() => setIsPaused(false), 2000);
   };
 
   return (
