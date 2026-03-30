@@ -427,9 +427,9 @@ const NewBooking = () => {
 
             <button 
               type="submit"
-              disabled={!!conflict || !formData.vehicleId || !formData.pickupDate || !formData.returnDate}
+              disabled={!!conflict || !formData.vehicleId || !formData.pickupDate || !formData.returnDate || !/^\d{10}$/.test(formData.customerPhone)}
               className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-3 ${
-                conflict || !formData.vehicleId
+                conflict || !formData.vehicleId || !/^\d{10}$/.test(formData.customerPhone)
                   ? 'bg-main-bg border border-border-main text-text-muted cursor-not-allowed opacity-50'
                   : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-blue-500/10'
               }`}
