@@ -81,6 +81,12 @@ const NewBooking = () => {
       return;
     }
 
+    // Strict 10-digit Mobile Validation
+    if (!/^\d{10}$/.test(formData.customerPhone)) {
+      showToast('Please enter a valid 10-digit mobile number.', 'error');
+      return;
+    }
+
     const start = new Date(`${formData.pickupDate}T${formData.pickupTime}`);
     const end = new Date(`${formData.returnDate}T${formData.returnTime}`);
     if (end <= start) {
@@ -261,9 +267,16 @@ const NewBooking = () => {
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-blue-500 transition-colors" />
                   <input 
                     type="tel"
-                    placeholder="10-digit mobile number"
+                    placeholder="e.g. 9876543210"
                     value={formData.customerPhone}
-                    onChange={(e) => setFormData({...formData, customerPhone: e.target.value})}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, ''); // Only digits
+                      if (value.length <= 10) {
+                        setFormData({...formData, customerPhone: value});
+                      }
+                    }}
+                    pattern="[0-9]{10}"
+                    maxLength="10"
                     className="w-full bg-main-bg border border-border-main rounded-2xl py-4 pl-12 pr-4 text-text-main font-medium focus:border-blue-500 outline-none transition-all"
                     required
                   />
