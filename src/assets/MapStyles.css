@@ -2,7 +2,7 @@
 
 /* Premium Map Container */
 .map-picker-container {
-  height: 300px;
+  height: 250px; /* Mobile first */
   width: 100%;
   border-radius: 1.5rem;
   overflow: hidden;
@@ -13,13 +13,16 @@
   z-index: 1;
 }
 
-/* Dark Mode Tile Filter */
-.dark-map .leaflet-tile-pane {
-  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+@media (min-width: 768px) {
+  .map-picker-container {
+    height: 400px;
+  }
 }
 
-.dark-map .leaflet-container {
-  background: #1a1a1a !important;
+
+/* Clean Map Container */
+.leaflet-container {
+  background: #f8fafc !important;
 }
 
 /* Custom Marker Pulse Effect */
@@ -62,8 +65,217 @@
   color: var(--blue-600);
 }
 
-/* Search Input Styling */
-.map-search-input-group {
-  position: relative;
-  width: 100%;
+/* Route Metrics Overlay */
+.map-metrics-overlay {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  gap: 0.5rem;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  padding: 0.75rem 1.25rem;
+  border-radius: 1.5rem;
+  border: 1px solid var(--border-main);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+  width: max-content;
+  max-width: 90%;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.75rem;
+  border-right: 1px solid var(--border-main);
+}
+
+.metric-item:last-child {
+  border-right: none;
+}
+
+.metric-label {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.metric-value {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+/* Floating Map Controls */
+.map-floating-controls {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1000;
+}
+
+.map-control-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-main);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+/* Floating Google Maps Header */
+.floating-search-bar {
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Google Style Teardrop Pin */
+.google-pin {
+  filter: drop-shadow(0 15px 10px rgba(0,0,0,0.3));
+}
+
+/* Animations */
+@keyframes pin-lift {
+  from { transform: translate(-50%, -100%) scale(1); }
+  to { transform: translate(-50%, -120%) scale(1.1); }
+}
+
+@keyframes dash {
+  from { stroke-dashoffset: 200; }
+  to { stroke-dashoffset: 0; }
+}
+
+.leaflet-interactive {
+  stroke-dasharray: 10, 10;
+  animation: dash 10s linear infinite;
+}
+
+/* Bottom Selection Sheet */
+.bottom-selection-card {
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+  .map-metrics-overlay {
+    bottom: 5rem !important;
+    top: auto !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    transform: none !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+.map-control-btn:hover {
+  background: var(--main-bg);
+  transform: translateY(-2px);
+}
+
+/* Custom Animations */
+@keyframes bounce-short {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-bounce-short {
+  animation: bounce-short 0.8s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+@keyframes slide-up {
+  from { transform: translate(-50%, 20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+/* Route Confirmation Button - WhatsApp Style */
+.map-confirm-btn {
+  background: var(--blue-600);
+  background: linear-gradient(135deg, var(--blue-600), #1d4ed8);
+  color: white;
+  border-radius: 1.25rem;
+  font-weight: 900;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 15px 35px -10px rgba(37, 99, 235, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.map-confirm-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 20px 45px -10px rgba(37, 99, 235, 0.6);
+}
+
+.map-confirm-btn:active {
+  transform: scale(0.98);
+}
+
+/* Floating Map Controls */
+.map-floating-controls {
+  position: absolute;
+  right: 1.5rem;
+  bottom: 8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  z-index: 1000;
+}
+
+.map-control-btn {
+  width: 52px;
+  height: 52px;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-main);
+  border-radius: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-main);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.map-control-btn:hover {
+  background: var(--blue-600);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px -10px rgba(37, 99, 235, 0.4);
+}
+
+/* Recent Locations Styling */
+.recent-header {
+  padding: 0.75rem 1rem 0.25rem;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  background: var(--main-bg);
 }

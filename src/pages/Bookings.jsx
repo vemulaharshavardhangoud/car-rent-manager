@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import CostComparison from '../components/CostComparison';
+import RoutePicker from '../components/RoutePicker';
 
 const Bookings = () => {
   const { vehicles, bookings, customers, addBooking, updateBooking, cancelBooking, deleteBooking, showToast } = useContext(AppContext);
@@ -24,6 +25,7 @@ const Bookings = () => {
   const [viewBooking, setViewBooking] = useState(null);
   const [cancelBookingItem, setCancelBookingItem] = useState(null);
   const [showCustomerList, setShowCustomerList] = useState(false);
+  const [showRoutePicker, setShowRoutePicker] = useState(false);
 
   const location = useLocation();
 
@@ -69,7 +71,12 @@ const Bookings = () => {
     paymentMode: 'Cash',
     status: 'Confirmed',
     specialInstructions: '',
-    acMode: false
+    acMode: false,
+    pickupCoords: null,
+    returnCoords: null,
+    tripDistance: 0,
+    tripFare: 0,
+    isLocationConfirmed: false
   };
   const [form, setForm] = useState(initialForm);
   const [formErrors, setFormErrors] = useState({});
@@ -749,25 +756,66 @@ const Bookings = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Pickup Location *</label>
-                    <input 
-                      type="text" 
-                      placeholder="Address"
-                      value={form.pickupLocation}
-                      onChange={(e) => setForm(prev => ({ ...prev, pickupLocation: e.target.value }))}
-                      className={`w-full px-4 py-3 bg-main-bg border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-text-main ${formErrors.pickupLocation ? 'border-red-300' : 'border-border-main'}`}
-                    />
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black uppercase text-text-muted tracking-widest pl-1">Pickup Location *</p>
+                    <div className="relative group">
+                      <input 
+                        type="text" 
+                        placeholder="Address"
+                        value={form.pickupLocation}
+                        onChange={(e) => setForm(prev => ({ ...prev, pickupLocation: e.target.value }))}
+                        className={`w-full px-4 py-3 pb-4 bg-main-bg border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-text-main pr-12 ${formErrors.pickupLocation ? 'border-red-300' : 'border-border-main'}`}
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setShowRoutePicker(true)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-blue-600/10 text-blue-500 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                        title="Pick on Map"
+                      >
+                        <Map className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-black text-text-muted uppercase tracking-widest mb-2">Drop Location *</label>
-                    <input 
-                      type="text" 
-                      placeholder="Address"
-                      value={form.dropLocation}
-                      onChange={(e) => setForm(prev => ({ ...prev, dropLocation: e.target.value }))}
-                      className={`w-full px-4 py-3 bg-main-bg border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-text-main ${formErrors.dropLocation ? 'border-red-300' : 'border-border-main'}`}
+                  <div className="space-y-4">
+                    <p className="text-[10px] font-black uppercase text-text-muted tracking-widest pl-1">Drop Location *</p>
+                    <div className="relative group">
+                      <input 
+                        type="text" 
+                        placeholder="Address"
+                        value={form.dropLocation}
+                        onChange={(e) => setForm(prev => ({ ...prev, dropLocation: e.target.value }))}
+                        className={`w-full px-4 py-3 pb-4 bg-main-bg border rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all font-bold text-text-main pr-12 ${formErrors.dropLocation ? 'border-red-300' : 'border-border-main'}`}
+                      />
+                      <button 
+                         type="button"
+                         onClick={() => setShowRoutePicker(true)}
+                         className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-emerald-600/10 text-emerald-500 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                         title="Pick on Map"
+                      >
+                         <Map className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <RoutePicker 
+                      isOpen={showRoutePicker}
+                      setIsOpen={setShowRoutePicker}
+                      showToast={showToast}
+                      ratePerKm={form.acMode ? (selectedVehicle?.ratePerKmAC || selectedVehicle?.ratePerKm || 12) : (selectedVehicle?.ratePerKm || 10)}
+                      initialPickup={{ address: form.pickupLocation, ...form.pickupCoords }}
+                      initialDrop={{ address: form.dropLocation, ...form.returnCoords }}
+                      onConfirm={({ pickup, drop, metrics }) => {
+                        setForm({
+                          ...form,
+                          pickupLocation: pickup.address,
+                          pickupCoords: { lat: pickup.lat, lng: pickup.lng },
+                          dropLocation: drop.address,
+                          returnCoords: { lat: drop.lat, lng: drop.lng },
+                          estimatedDistance: metrics.distance,
+                          tripFare: metrics.fare,
+                          isLocationConfirmed: true
+                        });
+                      }}
                     />
                   </div>
 
@@ -1072,17 +1120,6 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onCancel, onComplete, o
                          <p className="text-[10px] text-text-muted font-bold uppercase tracking-tight">From: {booking.bookingStartDate || booking.pickupDate}</p>
                          <p className="text-sm font-black flex items-center gap-2">
                            {booking.pickupLocation}
-                           {booking.pickupCoords && (
-                             <a 
-                               href={`https://www.google.com/maps?q=${booking.pickupCoords.lat},${booking.pickupCoords.lng}`}
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               className="p-1 bg-blue-500/10 rounded-md text-blue-500 hover:bg-blue-500/20 transition-all"
-                               title="View on Map"
-                             >
-                               <Map className="w-3 h-3" />
-                             </a>
-                           )}
                          </p>
                          <p className="text-[11px] font-bold text-blue-500 mt-1">{booking.bookingStartDate} @ {booking.pickupTime}</p>
                       </div>
@@ -1093,21 +1130,23 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onCancel, onComplete, o
                          <p className="text-[10px] text-text-muted font-bold uppercase tracking-tight">To: {booking.bookingEndDate || booking.dropDate}</p>
                          <p className="text-sm font-black flex items-center gap-2">
                            {booking.dropLocation || booking.returnLocation}
-                           {booking.returnCoords && (
-                             <a 
-                               href={`https://www.google.com/maps?q=${booking.returnCoords.lat},${booking.returnCoords.lng}`}
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               className="p-1 bg-emerald-500/10 rounded-md text-emerald-500 hover:bg-emerald-500/20 transition-all"
-                               title="View on Map"
-                             >
-                               <Map className="w-3 h-3" />
-                             </a>
-                           )}
                          </p>
                          <p className="text-[11px] font-bold text-blue-500 mt-1">{booking.bookingEndDate} @ {booking.returnTime}</p>
                       </div>
                    </div>
+
+                   {(booking.pickupCoords || booking.returnCoords) && (
+                      <button 
+                         onClick={() => {
+                           const pickup = { address: booking.pickupLocation, ...(booking.pickupCoords || {}) };
+                           const drop = { address: booking.dropLocation || booking.returnLocation, ...(booking.returnCoords || booking.dropCoords || {}) };
+                           window.open(`https://www.google.com/maps/dir/?api=1&origin=${pickup.lat},${pickup.lng}&destination=${drop.lat},${drop.lng}`, '_blank');
+                         }}
+                         className="flex items-center gap-2 w-full py-3 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all"
+                      >
+                         <Map className="w-4 h-4" /> View Route on Google Maps
+                      </button>
+                    )}
                 </div>
 
                 <div className="space-y-6 md:pl-4">

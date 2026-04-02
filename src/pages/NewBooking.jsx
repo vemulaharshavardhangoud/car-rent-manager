@@ -5,7 +5,7 @@ import {
   Car, User, Phone, Calendar, Clock, AlertCircle, 
   CheckCircle2, ArrowRight, IndianRupee, Info, MapPin, Wind, Map
 } from 'lucide-react';
-import LocationPicker from '../components/LocationPicker';
+import RoutePicker from '../components/RoutePicker';
 
 const NewBooking = () => {
   const { vehicles, bookings, addBooking, showToast } = useContext(AppContext);
@@ -31,12 +31,17 @@ const NewBooking = () => {
     useAC: false,
     pickupCoords: null, // {lat, lng}
     returnCoords: null, // {lat, lng}
+    tripDistance: 0,
+    tripDuration: 0,
+    tripFare: 0,
+    isLocationConfirmed: false,
   });
 
   const [estimatedCost, setEstimatedCost] = useState(0);
   const [conflict, setConflict] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [bookingId, setBookingId] = useState('');
+  const [isLocationConfirmed, setIsLocationConfirmed] = useState(false);
+  const [isRoutePickerOpen, setIsRoutePickerOpen] = useState(false);
   const [submittedVehicleName, setSubmittedVehicleName] = useState('');
 
   const selectedVehicle = vehicles.find(v => v.id === formData.vehicleId);
@@ -303,32 +308,95 @@ const NewBooking = () => {
               </div>
             </div>
 
-            {/* Locations */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-main-bg/50 rounded-[2.5rem] border border-border-main">
-              <div className="space-y-4">
-                <LocationPicker 
-                  label="Pickup Location"
-                  value={formData.pickupLocation}
-                  onChange={(val, lat, lng) => setFormData({
-                    ...formData, 
-                    pickupLocation: val,
-                    pickupCoords: lat ? { lat, lng } : formData.pickupCoords
-                  })}
-                  placeholder="Street, area or select on map..."
-                />
+            {/* Route Selection - Hybrid Mode */}
+            <div className="space-y-6">
+              <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                <MapPin className="w-4 h-4" /> Pick-up & Drop Locations
+              </label>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Manual Pickup */}
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase text-text-muted tracking-widest pl-1">Starting Point</p>
+                  <div className="relative group">
+                    <input 
+                      type="text"
+                      placeholder="e.g. Hyderabad Airport"
+                      value={formData.pickupLocation}
+                      onChange={(e) => setFormData({...formData, pickupLocation: e.target.value})}
+                      className="w-full bg-main-bg border border-border-main rounded-2xl py-4 pl-6 pr-12 text-text-main font-medium focus:border-blue-500 outline-none transition-all"
+                      required
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setIsRoutePickerOpen(true)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-blue-600/10 text-blue-500 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"
+                      title="Pick on Map"
+                    >
+                      <Map className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Manual Drop */}
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase text-text-muted tracking-widest pl-1">Destination</p>
+                  <div className="relative group">
+                    <input 
+                      type="text"
+                      placeholder="e.g. Kurnool City"
+                      value={formData.returnLocation}
+                      onChange={(e) => setFormData({...formData, returnLocation: e.target.value})}
+                      className="w-full bg-main-bg border border-border-main rounded-2xl py-4 pl-6 pr-12 text-text-main font-medium focus:border-emerald-500 outline-none transition-all"
+                      required
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setIsRoutePickerOpen(true)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-emerald-600/10 text-emerald-500 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all"
+                      title="Pick on Map"
+                    >
+                      <Map className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-4">
-                <LocationPicker 
-                  label="Return Location"
-                  value={formData.returnLocation}
-                  onChange={(val, lat, lng) => setFormData({
-                    ...formData, 
-                    returnLocation: val,
-                    returnCoords: lat ? { lat, lng } : formData.returnCoords
-                  })}
-                  placeholder="Where will you return it?"
-                />
-              </div>
+
+              {/* Enhanced Map Picker (Modal) */}
+              <RoutePicker 
+                isOpen={isRoutePickerOpen}
+                setIsOpen={setIsRoutePickerOpen}
+                showToast={showToast}
+                ratePerKm={formData.useAC ? (selectedVehicle?.ratePerKmAC || selectedVehicle?.ratePerKm || 12) : (selectedVehicle?.ratePerKm || 10)}
+                initialPickup={{ address: formData.pickupLocation, ...formData.pickupCoords }}
+                initialDrop={{ address: formData.returnLocation, ...formData.returnCoords }}
+                onConfirm={({ pickup, drop, metrics }) => {
+                  setFormData({
+                    ...formData,
+                    pickupLocation: pickup.address,
+                    pickupCoords: { lat: pickup.lat, lng: pickup.lng },
+                    returnLocation: drop.address,
+                    returnCoords: { lat: drop.lat, lng: drop.lng },
+                    tripDistance: metrics.distance,
+                    tripDuration: metrics.duration,
+                    tripFare: metrics.fare,
+                    isLocationConfirmed: true
+                  });
+                  showToast('Route confirmed via Map!', 'success');
+                }}
+              />
+
+              {/* Map Info Badge */}
+              {formData.isLocationConfirmed && (
+                <div className="flex items-center gap-3 p-3 bg-blue-500/5 rounded-2xl border border-blue-500/10 animate-fade-in">
+                   <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <IndianRupee className="w-4 h-4 text-blue-500" />
+                   </div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                      Route Verified: <span className="text-text-main">{formData.tripDistance} km</span> | Est. Fare: <span className="text-blue-500">₹{formData.tripFare}</span>
+                   </p>
+                </div>
+              )}
             </div>
 
             {/* Dates */}
@@ -428,7 +496,7 @@ const NewBooking = () => {
 
             <button 
               type="submit"
-              disabled={!!conflict || !formData.vehicleId || !formData.pickupDate || !formData.returnDate || !/^\d{10}$/.test(formData.customerPhone)}
+              disabled={!!conflict || !formData.vehicleId || !formData.pickupDate || !formData.returnDate || !/^\d{10}$/.test(formData.customerPhone) || !formData.isLocationConfirmed}
               className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl flex items-center justify-center gap-3 ${
                 conflict || !formData.vehicleId || !/^\d{10}$/.test(formData.customerPhone)
                   ? 'bg-main-bg border border-border-main text-text-muted cursor-not-allowed opacity-50'
