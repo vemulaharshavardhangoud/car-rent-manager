@@ -9,7 +9,7 @@ import {
   MapPin, Clock, CreditCard, Info, 
   ChevronLeft, ChevronRight, MoreVertical, 
   Eye, Pencil, X, Trash2, CheckCircle2, 
-  AlertCircle, ArrowRight, Printer, AlertTriangle, Wind, Thermometer, TrendingUp
+  AlertCircle, ArrowRight, Printer, AlertTriangle, Wind, Thermometer, TrendingUp, Map
 } from 'lucide-react';
 import { usePasswordProtection } from '../hooks/usePasswordProtection';
 import CostComparison from '../components/CostComparison';
@@ -1069,16 +1069,42 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onCancel, onComplete, o
                    <div className="flex items-start gap-4">
                       <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-sm shrink-0">1</div>
                       <div>
-                         <span className="text-[10px] font-black text-slate-400 uppercase">Pickup Location</span>
-                         <p className="text-sm font-bold text-slate-700">{booking.pickupLocation}</p>
+                         <p className="text-[10px] text-text-muted font-bold uppercase tracking-tight">From: {booking.bookingStartDate || booking.pickupDate}</p>
+                         <p className="text-sm font-black flex items-center gap-2">
+                           {booking.pickupLocation}
+                           {booking.pickupCoords && (
+                             <a 
+                               href={`https://www.google.com/maps?q=${booking.pickupCoords.lat},${booking.pickupCoords.lng}`}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="p-1 bg-blue-500/10 rounded-md text-blue-500 hover:bg-blue-500/20 transition-all"
+                               title="View on Map"
+                             >
+                               <Map className="w-3 h-3" />
+                             </a>
+                           )}
+                         </p>
                          <p className="text-[11px] font-bold text-blue-500 mt-1">{booking.bookingStartDate} @ {booking.pickupTime}</p>
                       </div>
                    </div>
                    <div className="flex items-start gap-4">
                       <div className="w-8 h-8 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-sm shrink-0">2</div>
                       <div>
-                         <span className="text-[10px] font-black text-slate-400 uppercase">Drop Location</span>
-                         <p className="text-sm font-bold text-slate-700">{booking.dropLocation}</p>
+                         <p className="text-[10px] text-text-muted font-bold uppercase tracking-tight">To: {booking.bookingEndDate || booking.dropDate}</p>
+                         <p className="text-sm font-black flex items-center gap-2">
+                           {booking.dropLocation || booking.returnLocation}
+                           {booking.returnCoords && (
+                             <a 
+                               href={`https://www.google.com/maps?q=${booking.returnCoords.lat},${booking.returnCoords.lng}`}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="p-1 bg-emerald-500/10 rounded-md text-emerald-500 hover:bg-emerald-500/20 transition-all"
+                               title="View on Map"
+                             >
+                               <Map className="w-3 h-3" />
+                             </a>
+                           )}
+                         </p>
                          <p className="text-[11px] font-bold text-blue-500 mt-1">{booking.bookingEndDate} @ {booking.returnTime}</p>
                       </div>
                    </div>

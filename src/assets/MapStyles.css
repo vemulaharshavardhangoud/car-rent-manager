@@ -1,0 +1,69 @@
+@import 'leaflet/dist/leaflet.css';
+
+/* Premium Map Container */
+.map-picker-container {
+  height: 300px;
+  width: 100%;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--border-main);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Dark Mode Tile Filter */
+.dark-map .leaflet-tile-pane {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+.dark-map .leaflet-container {
+  background: #1a1a1a !important;
+}
+
+/* Custom Marker Pulse Effect */
+.leaflet-marker-icon {
+  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5));
+}
+
+/* Autocomplete Suggestion List */
+.map-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border-main);
+  border-radius: 1rem;
+  margin-top: 0.5rem;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(10px);
+}
+
+.map-search-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-main);
+  font-size: 0.85rem;
+  color: var(--text-main);
+  transition: all 0.2s;
+}
+
+.map-search-item:last-child {
+  border-bottom: none;
+}
+
+.map-search-item:hover {
+  background: var(--main-bg);
+  color: var(--blue-600);
+}
+
+/* Search Input Styling */
+.map-search-input-group {
+  position: relative;
+  width: 100%;
+}

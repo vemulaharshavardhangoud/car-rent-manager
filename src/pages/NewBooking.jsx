@@ -3,8 +3,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { 
   Car, User, Phone, Calendar, Clock, AlertCircle, 
-  CheckCircle2, ArrowRight, IndianRupee, Info, MapPin, Wind
+  CheckCircle2, ArrowRight, IndianRupee, Info, MapPin, Wind, Map
 } from 'lucide-react';
+import LocationPicker from '../components/LocationPicker';
 
 const NewBooking = () => {
   const { vehicles, bookings, addBooking, showToast } = useContext(AppContext);
@@ -28,6 +29,8 @@ const NewBooking = () => {
     customerEmail: '',
     specialInstructions: '',
     useAC: false,
+    pickupCoords: null, // {lat, lng}
+    returnCoords: null, // {lat, lng}
   });
 
   const [estimatedCost, setEstimatedCost] = useState(0);
@@ -301,31 +304,29 @@ const NewBooking = () => {
             </div>
 
             {/* Locations */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-main-bg/50 rounded-[2rem] border border-border-main">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-main-bg/50 rounded-[2.5rem] border border-border-main">
               <div className="space-y-4">
-                <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-500" /> Pickup Location
-                </label>
-                <input 
-                  type="text"
-                  placeholder="Where should we bring the car?"
+                <LocationPicker 
+                  label="Pickup Location"
                   value={formData.pickupLocation}
-                  onChange={(e) => setFormData({...formData, pickupLocation: e.target.value})}
-                  className="w-full bg-main-bg border border-border-main rounded-xl py-3 px-4 text-text-main text-sm focus:border-blue-500 outline-none transition-all"
-                  required
+                  onChange={(val, lat, lng) => setFormData({
+                    ...formData, 
+                    pickupLocation: val,
+                    pickupCoords: lat ? { lat, lng } : formData.pickupCoords
+                  })}
+                  placeholder="Street, area or select on map..."
                 />
               </div>
               <div className="space-y-4">
-                <label className="text-xs font-black text-text-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-emerald-500" /> Return Location
-                </label>
-                <input 
-                  type="text"
-                  placeholder="Where will you return it?"
+                <LocationPicker 
+                  label="Return Location"
                   value={formData.returnLocation}
-                  onChange={(e) => setFormData({...formData, returnLocation: e.target.value})}
-                  className="w-full bg-main-bg border border-border-main rounded-xl py-3 px-4 text-text-main text-sm focus:border-emerald-500 outline-none transition-all"
-                  required
+                  onChange={(val, lat, lng) => setFormData({
+                    ...formData, 
+                    returnLocation: val,
+                    returnCoords: lat ? { lat, lng } : formData.returnCoords
+                  })}
+                  placeholder="Where will you return it?"
                 />
               </div>
             </div>
